@@ -17,9 +17,14 @@ made using DevilutionX v1.41 by GalaXyHaXz and Devilution Team.
 
 Prebuilt Version only, for now...
 
+Download DCLXVI.zip
+
 The following files are not included in this download: 
 DIABDAT.MPQ diabloui.dll SMACKW32.DLL STANDARD.snp Storm.dll (from Diablo CD)
 hellfire.mpq hfmonk.mpq hfmusic.mpq hfvoice.mpq (from Hellfire CD)
+
+drop the files listed above into the following location
+({drive}:\Users\{username}\AppData\Roaming\daemonstrat\DCLXVI)
 
 Digital verion of Diablo plus Hellfire can be purchased at www.gog.com
 
