@@ -57,6 +57,6 @@ Modified weapon and armor requirements.
 Using devilutionX-1.41
 =======
 
-For more information or more detailed instructions on installing. https://github.com/diasurgical/devilution
+For more information or more detailed instructions on installing. https://github.com/diasurgical/devilutionX/
 =======
 --------------------------------------------------------------------------------------------------
