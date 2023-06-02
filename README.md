@@ -2,6 +2,7 @@
 Diablo mod
 
 Updated from Devilution to DevilutionX...
+
 =======
 --------------------------------------------------------------------------------------------------
 DCLXVI Beta Version Xb
@@ -12,6 +13,7 @@ DCLXVI Beta Version Xb
 
 Diablo 1 Mod DCLXVI by G0PLY,
 made using DevilutionX v1.41 by GalaXyHaXz and Devilution Team.
+
 =======
 --------------------------------------------------------------------------------------------------
 
@@ -32,10 +34,12 @@ Digital verion of Diablo plus Hellfire can be purchased at www.gog.com
 game options file is diablo.ini located in the %AppData% folder
 devilutionx features work except refills, and globe data for non mana classes have been disabled,
 this mod is intended to be used with Singleplayer Quests turned on but is not forced (although it might cause issues if not turned on)
+
 --------------------------------------------------------------------------------------------------
 DCLXVI Features: 
 =======
 Ironman-esk inspired Diablo mod
+
 --------------------------------------------------------------------------------------------------
 Added "Classes", class skills may only be used by other classes with scrolls,
 
@@ -96,6 +100,7 @@ Bard, Assassin and Barbarian have no mana,
 Removed action time differences based on class type.
 
 Class Abilities:
+=======
 - Warrior:ItemRepair -
 - Rogue:TrapDisarm -
 - Sorcerer:ManaShield -
