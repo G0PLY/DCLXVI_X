@@ -32,6 +32,7 @@ Digital verion of Diablo plus Hellfire can be purchased at www.gog.com
 game options file is diablo.ini located in the %AppData% folder
 devilutionx features work except refills, and globe data for non mana classes have been disabled,
 this mod is intended to be used with Singleplayer Quests turned on but is not forced (although it might cause issues if not turned on)
+
 --------------------------------------------------------------------------------------------------
 DCLXVI Features: 
 =======
@@ -85,26 +86,28 @@ NPC's no longer repair or recharge items,
 
 Must kill Diablo to advance difficulty,
 
+Warlock skill (Magi) costs Health,
+
 Bard, Assassin and Barbarian have no mana.
 
 Class Abilities:
-- Warrior:ItemRepair -
-- Rogue:TrapDisarm -
-- Sorcerer:ManaShield -
-- Monk:Warp -
-- Bard:Berserk -
-- Barbarian:Rage -
-- Paladin:Resurrect -
-- Assassin:Infravision -
-- Battlemage:Teleport -
-- Kabbalist:Golem -
-- Templar:Reflect -
-- Witch:StaffRecharge -
-- Psychokineticist:Telekinesis -
-- Sage:Identify -
-- Warlock:Magi -
-- Traveler:TownPortal -
-- Cleric:HealOther -
+- Warrior: ItemRepair -
+- Rogue: TrapDisarm -
+- Sorcerer: ManaShield -
+- Monk: Warp -
+- Bard: Berserk -
+- Barbarian: Rage -
+- Paladin: Resurrect -
+- Assassin: Infravision -
+- Battlemage: Teleport -
+- Kabbalist: Golem -
+- Templar: Reflect -
+- Witch: StaffRecharge -
+- Psychokineticist: Telekinesis -
+- Sage: Identify -
+- Warlock: Magi -
+- Traveler: TownPortal -
+- Cleric: HealOther -
 
 --------------------------------------------------------------------------------------------------
 Using devilutionX-1.41
