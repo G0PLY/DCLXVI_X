@@ -86,6 +86,8 @@ NPC's no longer repair or recharge items,
 
 Must kill Diablo to advance difficulty,
 
+Staff of Laz not needed to goto his area (stand where portal would be),
+
 Warlock skill (Magi) costs Health,
 
 Bard, Assassin and Barbarian have no mana.
