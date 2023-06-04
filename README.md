@@ -2,7 +2,6 @@
 Diablo mod
 
 Updated from Devilution to DevilutionX...
-
 =======
 --------------------------------------------------------------------------------------------------
 DCLXVI Beta Version Xb
@@ -13,7 +12,6 @@ DCLXVI Beta Version Xb
 
 Diablo 1 Mod DCLXVI by G0PLY,
 made using DevilutionX v1.41 by GalaXyHaXz and Devilution Team.
-
 =======
 --------------------------------------------------------------------------------------------------
 
@@ -34,18 +32,18 @@ Digital verion of Diablo plus Hellfire can be purchased at www.gog.com
 game options file is diablo.ini located in the %AppData% folder
 devilutionx features work except refills, and globe data for non mana classes have been disabled,
 this mod is intended to be used with Singleplayer Quests turned on but is not forced (although it might cause issues if not turned on)
-
 --------------------------------------------------------------------------------------------------
 DCLXVI Features: 
 =======
 Ironman-esk inspired Diablo mod
-
 --------------------------------------------------------------------------------------------------
-Added "Classes", class skills may only be used by other classes with scrolls,
+Added "Classes", class skills may only be used by other classes with scrolls and staves,
 
 Multiplayer mode only,
 
 Weapons may have spells,
+
+Items with magic must be equipped to see what spell it has (no more Staff of Healing type names),
 
 Players start with 100gp and no items,
 
@@ -55,7 +53,7 @@ Removed most type restrictions on item prefix/suffix,
 
 Increased level cap (100, softcap currently 70), 
 
-Reduced stat gain (3 per lv), 
+Reduced stat gain (3 per lv, elixers needed to max stats), 
 
 Vitality capped depending on class,
 
@@ -97,10 +95,21 @@ Must kill Diablo to advance difficulty,
 
 Bard, Assassin and Barbarian have no mana,
 
-Removed action time differences based on class type.
+Spell formulas changed (spells now scale with magic amount and spell level),
+
+Golem now scales based on Casters stats, magic amount and spell level,
+
+Warlock Spells cost double,
+
+Sorcerer/Sage/Psychokineticist/Battlemage/Traveler Spells cost half,
+
+Spells costs normal for classes not listed,
+
+Healing should be slightly stronger (scrolls scale),
+
+Removed action time frame differences based on class type.
 
 Class Abilities:
-=======
 - Warrior:ItemRepair -
 - Rogue:TrapDisarm -
 - Sorcerer:ManaShield -
