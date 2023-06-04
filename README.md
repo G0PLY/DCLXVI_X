@@ -31,7 +31,8 @@ Digital verion of Diablo plus Hellfire can be purchased at www.gog.com
 
 game options file is diablo.ini located in the %AppData% folder
 devilutionx features work except refills, and globe data for non mana classes have been disabled,
-this mod is intended to be used with Singleplayer Quests turned on but is not forced (although it might cause issues if not turned on)
+this mod was intended to be used with Singleplayer Quests turned on but is not forced...
+
 --------------------------------------------------------------------------------------------------
 DCLXVI Features: 
 =======
@@ -103,11 +104,7 @@ Warlock Spells cost double,
 
 Sorcerer/Sage/Psychokineticist/Battlemage/Traveler Spells cost half,
 
-Spells costs normal for classes not listed,
-
-Healing should be slightly stronger (scrolls scale),
-
-Removed action time frame differences based on class type.
+Removed action time frame differences based on class type (time to cast or shoot bow ect..)..
 
 Class Abilities:
 - Warrior : ItemRepair -
