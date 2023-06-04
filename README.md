@@ -97,7 +97,7 @@ Bard, Assassin and Barbarian have no mana,
 
 Spell formulas changed (spells now scale with magic amount and spell level),
 
-Golem now scales based on Casters stats, magic amount and spell level,
+Golem now scales based on player stats, magic amount and spell level,
 
 Warlock Spells cost double,
 
@@ -110,23 +110,23 @@ Healing should be slightly stronger (scrolls scale),
 Removed action time frame differences based on class type.
 
 Class Abilities:
-- Warrior:ItemRepair -
-- Rogue:TrapDisarm -
-- Sorcerer:ManaShield -
-- Monk:Warp -
-- Bard:Berserk -
-- Barbarian:Rage -
-- Paladin:Resurrect -
-- Assassin:Infravision -
-- Battlemage:Teleport -
-- Kabbalist:Golem -
-- Templar:Reflect -
-- Witch:StaffRecharge -
-- Psychokineticist:Telekinesis -
-- Sage:Identify -
-- Warlock:Magi -
-- Traveler:TownPortal -
-- Cleric:HealOther -
+- Warrior : ItemRepair -
+- Rogue : TrapDisarm -
+- Sorcerer : ManaShield -
+- Monk : Warp -
+- Bard : Berserk -
+- Barbarian : Rage -
+- Paladin : Resurrect -
+- Assassin : Infravision -
+- Battlemage : Teleport -
+- Kabbalist : Golem -
+- Templar : Reflect -
+- Witch : StaffRecharge -
+- Psychokineticist : Telekinesis -
+- Sage : Identify -
+- Warlock : Magi -
+- Traveler : TownPortal -
+- Cleric : HealOther -
 
 --------------------------------------------------------------------------------------------------
 Using devilutionX-1.41
