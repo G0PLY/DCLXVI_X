@@ -2,20 +2,24 @@
 Diablo mod
 
 Updated from Devilution to DevilutionX...
+
 =======
 --------------------------------------------------------------------------------------------------
 DCLXVI Beta Version Xb
+
 =======
 
 (You will need a copy of Diablo and Hellfire to use this)
+
 =======
 
 Diablo 1 Mod DCLXVI by G0PLY,
 made using DevilutionX v1.41 by GalaXyHaXz and Devilution Team.
+
 =======
 --------------------------------------------------------------------------------------------------
 
-Prebuilt Version only, for now...
+Prebuilt Windows Version only, for now...
 
 Download DCLXVI.zip
 
@@ -30,13 +34,12 @@ or goto File Explorer and type %AppData%
 Digital verion of Diablo plus Hellfire can be purchased at www.gog.com
 
 game options file is diablo.ini located in the %AppData% folder
-devilutionx features work except refills, and globe data for non mana classes have been disabled,
-this mod was intended to be used with Singleplayer Quests turned on but is not forced...
 
 --------------------------------------------------------------------------------------------------
 DCLXVI Features: 
 =======
 Ironman-esk inspired Diablo mod
+
 --------------------------------------------------------------------------------------------------
 Added "Classes", class skills may only be used by other classes with scrolls and staves,
 
@@ -76,7 +79,7 @@ New Charging runes (witch sometimes sells),
 
 New Max Charge runes (witch sometimes sells),
 
-New Stat Exchange Uniques (12 rings, 6 amulets),
+New Stat Exchange Uniques (6 rings, 12 amulets),
 
 New Skeleton King room palette,
 
@@ -98,15 +101,20 @@ Bard, Assassin and Barbarian have no mana,
 
 Spell formulas changed (spells now scale with magic amount and spell level),
 
-Golem now scales based on player stats, magic amount and spell level,
+Golem now scales based on player stats, magic amount, tohit and dmg,
 
 Warlock Spells cost double,
 
 Sorcerer/Sage/Psychokineticist/Battlemage/Traveler Spells cost half,
 
+Bards' Berserk no longer requires a target,
+
+Templars' Reflect now does magic damage as well as physical (magic dmg scales based on, player level/stats/ac)
+
 Removed action time frame differences based on class type (time to cast or shoot bow ect..)..
 
 Class Abilities:
+=======
 - Warrior : ItemRepair -
 - Rogue : TrapDisarm -
 - Sorcerer : ManaShield -
