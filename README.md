@@ -93,7 +93,9 @@ Increased monsters per floor,
 
 Modified weapon and armor requirements,
 
-NPCs no longer repair or recharge items (cain wont identify in future),
+NPCs no longer repair or recharge items,
+
+Cain no longer identifies items,
 
 Must kill Diablo to advance difficulty,
 
@@ -113,7 +115,9 @@ Bards' Berserk no longer requires a target,
 
 Battlemages' Teleport allowed in town,
 
-Templars' Reflect now does magic damage as well as physical (magic dmg scales based on, player level/stats/ac)
+Templars' Reflect now does magic damage as well as physical (magic dmg scales based on, player level/stats/ac),
+
+Templars' Reflect no longer protects against damage,
 
 Removed action time frame differences based on class type (time to cast or shoot bow ect..)..
 
@@ -162,6 +166,26 @@ New Uniques:
 - Ring : +25 Dex, -25 Str
 - Ring : +25 Mag, -25 Dex
 - Ring : +25 Mag, -25 Str
+
+Class Stats:
+=======
+Starting primary stats define the max.
+
+Classes with 35 or 40 as primary starting stat
+40start = 255max
+35start = 250max
+30start = NA
+25start = 96max
+20start = 82max
+15start = 75max
+
+Classes without 35 or 40 as primary starting stat
+30start = 153max
+25start = 137max
+20start = 123max
+15start = 116max
+
+Vitality is formulated based on starting stats...
 
 --------------------------------------------------------------------------------------------------
 Using devilutionX-1.41
