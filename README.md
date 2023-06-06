@@ -96,13 +96,15 @@ Modified weapon and armor requirements,
 
 NPCs no longer repair or recharge items,
 
-Cain no longer identifies items,
+Cain NO longer IDENTIFIES items,
 
 Must kill Diablo to advance difficulty,
 
 Bard, Assassin and Barbarian have no mana,
 
 Spell formulas changed (spells now scale with magic amount and spell level),
+
+Witch spells cost a percentage (mana drains very fast),
 
 Warlock spells cost double,
 
@@ -119,6 +121,10 @@ Battlemages' Teleport allowed in town,
 Templars' Reflect now does magic damage as well as physical (magic dmg scales based on, player level/stats/ac),
 
 Templars' Reflect no longer protects against damage,
+
+Witch StaffRecharge no longer reduces max charge count,
+
+Warrior ItemRepair no longer reduces max durability,
 
 Removed action time frame differences based on class type (time to cast or shoot bow ect..)..
 
