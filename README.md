@@ -33,7 +33,7 @@ or goto File Explorer and type %AppData%
 
 Digital verion of Diablo plus Hellfire can be purchased at www.gog.com
 
-game options file is diablo.ini located in the %AppData% folder
+game options file is diablo.ini located in the %AppData% folder,
 health/mana orbs data has been disabled even when ON in options
 
 --------------------------------------------------------------------------------------------------
