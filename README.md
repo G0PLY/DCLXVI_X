@@ -172,18 +172,18 @@ Class Stats:
 Starting primary stats define the max.
 
 Classes with 35 or 40 as primary starting stat,
-40 start = 255 max,
-35 start = 250 max,
-30 start = NA,
-25 start = 96 max,
-20 start = 82 max,
-15 start = 75 max,
+- 40 start = 255 max,
+- 35 start = 250 max,
+- 30 start = NA,
+- 25 start = 96 max,
+- 20 start = 82 max,
+- 15 start = 75 max,
 
 Classes without 35 or 40 as primary starting stat,
-30 start = 153 max,
-25 start = 137 max,
-20 start = 123 max,
-15 start = 116 max,
+- 30 start = 153 max,
+- 25 start = 137 max,
+- 20 start = 123 max,
+- 15 start = 116 max,
 
 Vitality is formulated based on starting stats...
 
