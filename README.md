@@ -59,9 +59,9 @@ Increased level cap (100, softcap currently 70),
 
 Reduced stat gain (3 per lv, elixers needed to max stats), 
 
-Vitality capped depending on class,
+Vitality capped depending on class (starts at max),
 
-Vitality elixer values set to equivilant of Full Health potion,
+Vitality elixer values are basically Full Health potion,
 
 NPCs dont sell full potions,
 
@@ -89,11 +89,11 @@ Removed extra charges prefix/suffix,
 
 Increased monster health, 
 
-Increases monsters per floor,
+Increased monsters per floor,
 
 Modified weapon and armor requirements,
 
-NPCs no longer repair or recharge items,
+NPCs no longer repair or recharge items (cain wont identify in future),
 
 Must kill Diablo to advance difficulty,
 
@@ -101,13 +101,17 @@ Bard, Assassin and Barbarian have no mana,
 
 Spell formulas changed (spells now scale with magic amount and spell level),
 
-Golem now scales based on player stats, magic amount, tohit and dmg,
+Warlock spells cost double,
 
-Warlock Spells cost double,
+Sorcerer/Sage/Psychokineticist/Battlemage/Traveler spells cost half,
 
-Sorcerer/Sage/Psychokineticist/Battlemage/Traveler Spells cost half,
+Kabbalists' Golem now scales based on player stats, magic amount, tohit and dmg,
+
+Warlocks' Magi costs health and scales with player level (caster recieves full mana),
 
 Bards' Berserk no longer requires a target,
+
+Battlemages' Teleport allowed in town,
 
 Templars' Reflect now does magic damage as well as physical (magic dmg scales based on, player level/stats/ac)
 
@@ -132,6 +136,32 @@ Class Abilities:
 - Warlock : Magi -
 - Traveler : TownPortal -
 - Cleric : HealOther -
+
+New Uniques:
+=======
+- A2 Amulets
+- Amulet : +50 Str, -50 Mag
+- Amulet : +50 Str, -50 Dex
+- Amulet : +50 Dex, -50 Mag
+- Amulet : +50 Dex, -50 Str
+- Amulet : +50 Mag, -50 Dex
+- Amulet : +50 Mag, -50 Str
+
+- A1 Amulets
+- Amulet : +25 Str, -25 Mag
+- Amulet : +25 Str, -25 Dex
+- Amulet : +25 Dex, -25 Mag
+- Amulet : +25 Dex, -25 Str
+- Amulet : +25 Mag, -25 Dex
+- Amulet : +25 Mag, -25 Str
+
+- R1 Rings
+- Ring : +25 Str, -25 Mag
+- Ring : +25 Str, -25 Dex
+- Ring : +25 Dex, -25 Mag
+- Ring : +25 Dex, -25 Str
+- Ring : +25 Mag, -25 Dex
+- Ring : +25 Mag, -25 Str
 
 --------------------------------------------------------------------------------------------------
 Using devilutionX-1.41
