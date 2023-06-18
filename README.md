@@ -42,6 +42,8 @@ DCLXVI Features:
 Ironman-esk inspired Diablo mod
 
 --------------------------------------------------------------------------------------------------
+As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...
+
 Added "Classes", class skills may only be used by other classes with scrolls and staves,
 
 Multiplayer mode only,
@@ -96,8 +98,6 @@ Modified weapon and armor requirements,
 
 NPCs no longer repair or recharge items,
 
-Cain NO longer IDENTIFIES items,
-
 Must kill Diablo to advance difficulty,
 
 Bard, Assassin and Barbarian have no mana,
@@ -142,7 +142,6 @@ Class Abilities:
 - Kabbalist : Golem -
 - Templar : Reflect -
 - Witch : StaffRecharge -
-- Psychokineticist : Telekinesis -
 - Sage : Identify -
 - Warlock : Magi -
 - Traveler : TownPortal -
