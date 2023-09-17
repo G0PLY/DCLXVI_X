@@ -44,7 +44,7 @@ Normal difficulty has been tested and probably won't change,
 NM and Hell have not been fully tested
 
 --------------------------------------------------------------------------------------------------
-9/17/23 -- Healing, Heal Other, WitchBloodstar, Bonespirit and Bloodmagic removed from Bloodmage effect (always require mana)
+9/17/23 -- Healing, Heal Other, WitchBloodstar, Bonespirit, Magi and Bloodmagic removed from Bloodmage effect (always require mana)
 9/16/23 -- Fix for Bloodmage, spells are no longer blocked by not having enough mana
 
 As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...
