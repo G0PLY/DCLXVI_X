@@ -5,7 +5,7 @@ Updated from Devilution to DevilutionX...
 
 =======
 --------------------------------------------------------------------------------------------------
-DCLXVI Beta Version Xb
+DCLXVI Beta Version Xb_91723
 
 =======
 
@@ -51,7 +51,7 @@ NM and Hell have not been fully tested
 
 As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...
 
-Added "Classes", class skills may only be used by other classes with scrolls and staves,
+Added "Classes", class skills useable by other classes with scrolls and staves (added class books and increased spell menu tabs),
 
 Multiplayer mode only,
 
