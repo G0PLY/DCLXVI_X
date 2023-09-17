@@ -44,8 +44,10 @@ Normal difficulty has been tested and probably won't change,
 NM and Hell have not been fully tested
 
 --------------------------------------------------------------------------------------------------
-9/17/23 -- Healing, Heal Other, WitchBloodstar, Bonespirit, Magi and Bloodmagic removed from Bloodmage effect (always require mana)
-9/16/23 -- Fix for Bloodmage, spells are no longer blocked by not having enough mana
+
+9/17/23 -- Healing, Heal Other, WitchBloodstar, Bonespirit, Magi and Bloodmagic removed from Bloodmage effect (always require mana),
+
+9/16/23 -- Fix for Bloodmage, spells are no longer blocked by not having enough mana,
 
 As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...
 
@@ -118,6 +120,8 @@ Sorcerer/Sage/Battlemage/Traveler spells cost half,
 Kabbalists' Golem now scales based on player stats, magic amount, tohit and dmg,
 
 Warlocks' Magi costs health and scales with player level (caster recieves full mana),
+
+Bloodmages' Bloodmagic changes spell costs from mana to health also passively converts mana to refill health,
 
 Bards' Berserk no longer requires a target,
 
@@ -198,6 +202,8 @@ Classes without 35 or 40 as primary starting stat,
 - 15 start = 116 max,
 
 Vitality is formulated based on starting stats...
+
+Bloodmage health increases with magic stat,
 
 --------------------------------------------------------------------------------------------------
 Using devilutionX-1.41
