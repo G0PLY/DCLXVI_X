@@ -37,11 +37,14 @@ game options file is diablo.ini located in the %AppData% folder,
 health/mana orbs data has been disabled even when ON in options
 
 --------------------------------------------------------------------------------------------------
-DCLXVI Features: 
+DCLXVI: 
 =======
 Ironman-esk inspired Diablo mod
+Normal difficulty has been tested and probably won't change, 
+NM and Hell have not been fully tested
 
 --------------------------------------------------------------------------------------------------
+9/17/23 -- Healing, Heal Other, WitchBloodstar, Bonespirit and Bloodmagic removed from Bloodmage effect (always require mana)
 9/16/23 -- Fix for Bloodmage, spells are no longer blocked by not having enough mana
 
 As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...
@@ -54,13 +57,13 @@ Weapons may have spells,
 
 Items with magic must be equipped to see what spell it has (no more Staff of Healing type names),
 
-Players start with 100gp and no items,
+Players start with 1000gp and no items,
 
 Increased curse chances on items,
 
 Removed most type restrictions on item prefix/suffix, 
 
-Increased level cap (100, softcap currently 70), 
+Increased level cap 100, 
 
 Reduced stat gain (3 per lv, elixers needed to max stats), 
 
@@ -110,7 +113,7 @@ Witch spells cost a percentage (mana drains very fast),
 
 Warlock spells cost double,
 
-Sorcerer/Sage/Psychokineticist/Battlemage/Traveler spells cost half,
+Sorcerer/Sage/Battlemage/Traveler spells cost half,
 
 Kabbalists' Golem now scales based on player stats, magic amount, tohit and dmg,
 
@@ -148,6 +151,7 @@ Class Abilities:
 - Warlock : Magi -
 - Traveler : TownPortal -
 - Cleric : HealOther -
+- Bloodmage : Bloodmagic - 
 
 New Uniques:
 =======
