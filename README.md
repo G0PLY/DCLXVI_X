@@ -42,6 +42,8 @@ DCLXVI Features:
 Ironman-esk inspired Diablo mod
 
 --------------------------------------------------------------------------------------------------
+9/16/23 -- Fix for Bloodmage, spells are no longer blocked by not having enough mana
+
 As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...
 
 Added "Classes", class skills may only be used by other classes with scrolls and staves,
