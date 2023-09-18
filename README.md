@@ -44,18 +44,18 @@ Normal difficulty has been tested and probably won't change,
 NM and Hell have not been fully tested
 
 --------------------------------------------------------------------------------------------------
-9/18/23 -- Manashield Fix -- Manashield in multiplayer would kick people from the game,
-Loopback was working without Manashield issues,
-, 
+9/18/23 -- Manashield Fix -- Manashield no longer kicks players from the game,
+;/, 
 
-9/17/23 -- Moved Witch near town portals, removed mana cost of Bloodmagic,
-Healing, Heal Other, WitchBloodstar, Bonespirit, Magi and Bloodmagic removed from Bloodmage effect (always require mana),
+9/17/23 -- Moved Witch near town portals, removed mana cost of Bloodmagic,..
+Healing, Heal Other, WitchBloodstar, Bonespirit, Mana from Blood and Bloodmagic removed from Bloodmagic effect (always require mana),
 
-9/16/23 -- Fix for Bloodmage, spells are no longer blocked by not having enough mana,
+9/16/23 -- Fix for Bloodmagic, spells are no longer blocked by not having enough mana,
 
-As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...
+As of 6/18/23 this mod was updated with a bunch of changes that are not listed below...,
+-added class books and increased spell menu tabs, secondary class abilities added to each class-
 
-Added "Classes", class skills useable by other classes with scrolls and staves (added class books and increased spell menu tabs),
+Added "Classes", class skills useable by other classes with scrolls and staves,
 
 Multiplayer mode only,
 
