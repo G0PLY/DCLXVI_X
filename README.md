@@ -5,7 +5,7 @@ Updated from Devilution to DevilutionX...
 
 =======
 --------------------------------------------------------------------------------------------------
-DCLXVI Beta Version Xb_91723.2
+DCLXVI Beta Version Xb_91823.0
 
 =======
 
@@ -44,6 +44,9 @@ Normal difficulty has been tested and probably won't change,
 NM and Hell have not been fully tested
 
 --------------------------------------------------------------------------------------------------
+9/18/23 -- Manashield Fix -- Manashield in multiplayer would kick people from the game,
+Loopback was working without Manashield issues,
+, 
 
 9/17/23 -- Moved Witch near town portals, removed mana cost of Bloodmagic,
 Healing, Heal Other, WitchBloodstar, Bonespirit, Magi and Bloodmagic removed from Bloodmage effect (always require mana),
