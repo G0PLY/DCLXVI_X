@@ -4,12 +4,14 @@ Diablo mod
 Updated from Devilution to DevilutionX...,
 
 My time with this mod is coming to an end, if I do anything else it will most likely just be balance changes and a fix for multiplayer in 92223,
+
 Source code will be coming soon...
 
 =======
 --------------------------------------------------------------------------------------------------
-DCLXVI Beta Version Xb_92223 (multiplayer issues (loopback works fine), class abilites)
-DCLXVI Version X 6123 (working multiplayer, no class abilities)
+DCLXVI Beta Version Xb_92223 (multiplayer issues (loopback works fine), class abilites),
+
+DCLXVI Version X 6123 (working multiplayer, no class abilities),
 
 =======
 
