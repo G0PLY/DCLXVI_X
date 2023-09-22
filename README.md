@@ -5,7 +5,7 @@ Updated from Devilution to DevilutionX...
 
 =======
 --------------------------------------------------------------------------------------------------
-DCLXVI Beta Version Xb_91823.0
+DCLXVI Beta Version Xb_92223
 
 =======
 
@@ -41,9 +41,13 @@ DCLXVI:
 =======
 Ironman-esk inspired Diablo mod
 Normal difficulty has been tested and probably won't change, 
-NM and Hell have not been fully tested
+NM and Hell have not been fully tested,
+
+There are some multiplayer issues, game crashes on players who die (loopback is safe from this) and the magic rock quest is broken,
+Gold and Item drops on death have been disactivated for now...
 
 --------------------------------------------------------------------------------------------------
+9/22/23 -- Bloodmagic Fix -- no longer crashes game when disactivating, bloodmagic now costs zero mana
 9/18/23 -- Manashield Fix -- Manashield no longer kicks players from the game,
 ;/, 
 
