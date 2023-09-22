@@ -1,15 +1,11 @@
 # DCLXVI_X
 Diablo mod
 
-Updated from Devilution to DevilutionX...,
-
-My time with this mod is coming to an end, if I do anything else it will most likely just be balance changes and a fix for multiplayer in 92223,
-
-Source code will be coming some day...
+Updated from Devilution to DevilutionX...
 
 =======
 --------------------------------------------------------------------------------------------------
-DCLXVI Beta Version Xb_922231 
+DCLXVI Beta Version Xb_91823.0
 
 =======
 
@@ -18,14 +14,14 @@ DCLXVI Beta Version Xb_922231
 =======
 
 Diablo 1 Mod DCLXVI by G0PLY,
-made using DevilutionX v1.5 by GalaXyHaXz and Devilution Team.
+made using DevilutionX v1.41 by GalaXyHaXz and Devilution Team.
 
 =======
 --------------------------------------------------------------------------------------------------
 
 Prebuilt Windows Version only, for now...
 
-Download DCLXVI_922231.zip
+Download DCLXVI.zip
 
 The following files are not included in this download: 
 DIABDAT.MPQ diabloui.dll SMACKW32.DLL STANDARD.snp Storm.dll (from Diablo)
@@ -47,15 +43,11 @@ Ironman-esk inspired Diablo mod
 Normal difficulty has been tested and probably won't change, 
 NM and Hell have not been fully tested,
 
-There are some multiplayer issues, game crashes on players who die (loopback is safe from this) and the magic rock quest is broken,
-
+There are some multiplayer issues, game crashes when someone dies (loopback is safe from this) and the magic rock quest is broken,
 Gold and Item drops on death have been disactivated for now...
 
 --------------------------------------------------------------------------------------------------
-9/22/23 -- Multiplayer should be working again,
-
-9/22/23 -- Bloodmagic Fix -- no longer crashes game when disactivating, bloodmagic now costs zero mana,
-
+9/22/23 -- Bloodmagic Fix -- no longer crashes game when disactivating, bloodmagic now costs zero mana
 9/18/23 -- Manashield Fix -- Manashield no longer kicks players from the game,
 ;/, 
 
@@ -222,7 +214,7 @@ Vitality is formulated based on starting stats...
 Bloodmage health increases with magic stat,
 
 --------------------------------------------------------------------------------------------------
-Using devilutionX-1.5
+Using devilutionX-1.41
 =======
 
 For more information or more detailed instructions on installing. https://github.com/diasurgical/devilutionX/
