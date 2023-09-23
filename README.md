@@ -33,7 +33,9 @@ if ya want to know anything about it download and play...
 
 Prebuilt Windows Version only...
 
-Download DCLXVI_922232.zip
+Download DCLXVI_922232.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+
+Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
 The following files are not included in this download: 
 DIABDAT.MPQ diabloui.dll SMACKW32.DLL STANDARD.snp Storm.dll (from Diablo)
