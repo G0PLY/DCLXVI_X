@@ -1,7 +1,7 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v922232
+DCLXVI v92523
 
 =======
 
@@ -20,11 +20,15 @@ DCLXVI:
 
 Singleplayer Ironman-esk inspired Diablo mod,
 
-This mod is not meant to be easy... Good Luck.
+... Good Luck.
 
 --------------------------------------------------------------------------------------------------
 
-9/22/23 -- This is the last update I will be making to this mod 
+9/25/23 -- Health regen fixed, was broken on the following; Sorcerer, Sage, Bloodmage, Traveler, Witch, Warlock, Battlemage
+added costs/lv reqs to a few overlooked items, remove testing ids from pre/suf on items, item/gold drop on death is active again
+
+
+9/22/23 -- This is probably the last major update I will be making to this mod 
 Removed Multiplayer 
 removed all info about the mod 
 if ya want to know anything about it download and play...
@@ -33,7 +37,7 @@ if ya want to know anything about it download and play...
 
 Prebuilt Windows Version only...
 
-Download DCLXVI_922232.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_92523.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
