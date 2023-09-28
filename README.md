@@ -1,7 +1,7 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v927231
+DCLXVI v927232
 
 =======
 
@@ -23,10 +23,14 @@ Singleplayer Ironman-esk inspired Diablo mod,
 ... Good Luck.
 
 --------------------------------------------------------------------------------------------------
-To-do-list (coming soon): Spell icons, Overhead buff icons 
+To-do-list: Spell icons, Overhead buff icons...
 
 Latest Updates:
+
+9/27/23.2 -- something... :)
+
 9/27/23.1 -- traveler has town portal again instead of escape to town
+
 9/27/23.0 -- classes revamped a bit (new abilities if old was multiplayer), drops on death disactivated, class spec books no longer drop/sell, golem shouldn't atk diablo
 
 9/25/23 -- Health regen fixed, was broken on the following; Sorcerer, Sage, Bloodmage, Traveler, Witch, Warlock, Battlemage
@@ -41,7 +45,7 @@ if ya want to know anything about it download and play...
 
 Prebuilt Windows Version only...
 
-Download DCLXVI_927231.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_927232.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
