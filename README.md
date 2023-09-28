@@ -1,7 +1,7 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v927232
+DCLXVI v92823
 
 =======
 
@@ -23,9 +23,11 @@ Singleplayer Ironman-esk inspired Diablo mod,
 ... Good Luck.
 
 --------------------------------------------------------------------------------------------------
-To-do-list: Spell icons, Overhead buff icons...
+To-do-list (/issues): Spell icons, Overhead buff icons, (Theo, Magic Rock, Multiplayer)
 
 Latest Updates:
+
+9/28/23 -- reverted "hot" update, spells were missing target more than usual
 
 9/27/23.2 -- hot update
 
@@ -38,9 +40,9 @@ added costs/lv reqs to a few overlooked items, remove testing ids from pre/suf o
 
 --------------------------------------------------------------------------------------------------
 
-Prebuilt Windows Version only...
+Prebuilt Windows Version...
 
-Download DCLXVI_927232.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_92823.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
@@ -60,6 +62,10 @@ health/mana orbs data has been disabled even when ON in options
 --------------------------------------------------------------------------------------------------
 
 Using devilutionX-1.5
+
+download devilutionX v1.5 from
+https://github.com/diasurgical/devilutionX/releases
+
 =======
 
 For more information or more detailed instructions on installing. https://github.com/diasurgical/devilutionX/
