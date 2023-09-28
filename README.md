@@ -27,7 +27,7 @@ To-do-list: Spell icons, Overhead buff icons...
 
 Latest Updates:
 
-9/27/23.2 -- something... :)
+9/27/23.2 -- hot update
 
 9/27/23.1 -- traveler has town portal again instead of escape to town
 
@@ -35,11 +35,6 @@ Latest Updates:
 
 9/25/23 -- Health regen fixed, was broken on the following; Sorcerer, Sage, Bloodmage, Traveler, Witch, Warlock, Battlemage
 added costs/lv reqs to a few overlooked items, remove testing ids from pre/suf on items
-
-9/22/23 -- This is probably the last major update I will be making to this mod 
-Removed Multiplayer 
-removed all info about the mod 
-if ya want to know anything about it download and play...
 
 --------------------------------------------------------------------------------------------------
 
