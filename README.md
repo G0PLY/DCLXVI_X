@@ -27,7 +27,7 @@ To-do-list (/issues): Spell icons, Overhead buff icons, (Multiplayer)
 
 Latest Updates:
 
-9/29/23 -- hot update is back in, Magic rock and Theo quests are fixed (theo now gives a random unique item)
+9/29/23 -- hot update is back in, Magic rock and Theo quests are fixed (theo now gives a random unique item), escape to town now takes 0 mana and reqs 0 int
 
 9/28/23 -- reverted "hot" update, spells were missing target more than usual
 
