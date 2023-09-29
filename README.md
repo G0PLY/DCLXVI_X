@@ -1,7 +1,7 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v92823
+DCLXVI v92923
 
 =======
 
@@ -23,9 +23,11 @@ Singleplayer Ironman-esk inspired Diablo mod,
 ... Good Luck.
 
 --------------------------------------------------------------------------------------------------
-To-do-list (/issues): Spell icons, Overhead buff icons, (Theo, Magic Rock, Multiplayer)
+To-do-list (/issues): Spell icons, Overhead buff icons, (Multiplayer)
 
 Latest Updates:
+
+9/29/23 -- hot update is back in, Magic rock and Theo quests are fixed (theo now gives a random unique item)
 
 9/28/23 -- reverted "hot" update, spells were missing target more than usual
 
@@ -42,7 +44,7 @@ added costs/lv reqs to a few overlooked items, remove testing ids from pre/suf o
 
 Prebuilt Windows Version...
 
-Download DCLXVI_92823.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_92923.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
