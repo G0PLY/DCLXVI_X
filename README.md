@@ -1,7 +1,7 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v92923
+DCLXVI v93023
 
 =======
 
@@ -27,24 +27,13 @@ To-do-list (/issues): Spell icons, Overhead buff icons, (Multiplayer)
 
 Latest Updates:
 
-9/29/23 -- hot update is back in, Magic rock and Theo quests are fixed (theo now gives a random unique item), escape to town now takes 0 mana and reqs 0 int
-
-9/28/23 -- reverted "hot" update, spells were missing target more than usual
-
-9/27/23.2 -- hot update
-
-9/27/23.1 -- traveler has town portal again instead of escape to town
-
-9/27/23.0 -- classes revamped a bit (new abilities if old was multiplayer), drops on death disactivated, class spec books no longer drop/sell, golem shouldn't atk diablo
-
-9/25/23 -- Health regen fixed, was broken on the following; Sorcerer, Sage, Bloodmage, Traveler, Witch, Warlock, Battlemage
-added costs/lv reqs to a few overlooked items, remove testing ids from pre/suf on items
+9/30/23 -- This is the most current version...
 
 --------------------------------------------------------------------------------------------------
 
 Prebuilt Windows Version...
 
-Download DCLXVI_92923.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_93023.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
