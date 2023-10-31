@@ -3,6 +3,10 @@ A mod for Diablo 1 with Hellfire
 
 DCLXVI v93023
 
+Source release Halloween '23 (v93023)
+
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source.zip
+
 =======
 
 (You will need a copy of Diablo and Hellfire to use this)
@@ -29,6 +33,8 @@ Latest Updates:
 
 10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v93023), have fun... 
 
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source.zip
+
 9/30/23 -- This is the most current version...
 
 --------------------------------------------------------------------------------------------------
@@ -37,7 +43,11 @@ Prebuilt Windows Version...
 
 Download DCLXVI_93023.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
+https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_93023.zip
+
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
+
+https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_6123.zip
 
 The following files are not included in this download: 
 DIABDAT.MPQ diabloui.dll SMACKW32.DLL STANDARD.snp Storm.dll (from Diablo)
