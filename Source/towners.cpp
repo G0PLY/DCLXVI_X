@@ -11,7 +11,6 @@
 #include "minitext.h"
 #include "stores.h"
 #include "utils/language.h"
-#include "utils/str_case.hpp"
 
 namespace devilution {
 namespace {
@@ -19,6 +18,7 @@ namespace {
 OptionalOwnedClxSpriteSheet CowSprites;
 int CowMsg;
 int CowClicks;
+int randomitem;
 
 /** Specifies the active sound effect ID for interacting with cows. */
 _sfx_id CowPlaying = SFX_NONE;
@@ -77,7 +77,8 @@ void InitSmith(Towner &towner, const TownerData &townerData)
 		0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 1, 2, 3
 		// clang-format on
 	};
-	towner.animOrder = { AnimOrder };
+	towner.animOrder = AnimOrder;
+	towner.animOrderSize = sizeof(AnimOrder);
 	LoadTownerAnimations(towner, "towners\\smith\\smithn", 16, 3);
 	towner.name = _("Griswold the Blacksmith");
 	towner.gossip = PickRandomlyAmong({ TEXT_GRISWOLD2, TEXT_GRISWOLD3, TEXT_GRISWOLD4, TEXT_GRISWOLD5, TEXT_GRISWOLD6, TEXT_GRISWOLD7, TEXT_GRISWOLD8, TEXT_GRISWOLD9, TEXT_GRISWOLD10, TEXT_GRISWOLD12, TEXT_GRISWOLD13 });
@@ -99,7 +100,8 @@ void InitBarOwner(Towner &towner, const TownerData &townerData)
 		0, 1, 2, 3, 4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15
 		// clang-format on
 	};
-	towner.animOrder = { AnimOrder };
+	towner.animOrder = AnimOrder;
+	towner.animOrderSize = sizeof(AnimOrder);
 	LoadTownerAnimations(towner, "towners\\twnf\\twnfn", 16, 3);
 	towner.name = _("Ogden the Tavern owner");
 	towner.gossip = PickRandomlyAmong({ TEXT_OGDEN2, TEXT_OGDEN3, TEXT_OGDEN4, TEXT_OGDEN5, TEXT_OGDEN6, TEXT_OGDEN8, TEXT_OGDEN9, TEXT_OGDEN10 });
@@ -108,7 +110,8 @@ void InitBarOwner(Towner &towner, const TownerData &townerData)
 void InitTownDead(Towner &towner, const TownerData &townerData)
 {
 	towner._tAnimWidth = 96;
-	towner.animOrder = {};
+	towner.animOrder = nullptr;
+	towner.animOrderSize = 0;
 	LoadTownerAnimations(towner, "towners\\butch\\deadguy", 8, 6);
 	towner.name = _("Wounded Townsman");
 }
@@ -129,7 +132,8 @@ void InitWitch(Towner &towner, const TownerData &townerData)
 		 0,  1,  0, 18, 17, 18,  0,  1,  0,  1,  2
 		// clang-format on
 	};
-	towner.animOrder = { AnimOrder };
+	towner.animOrder = AnimOrder;
+	towner.animOrderSize = sizeof(AnimOrder);
 	LoadTownerAnimations(towner, "towners\\townwmn1\\witch", 19, 6);
 	towner.name = _("Adria the Witch");
 	towner.gossip = PickRandomlyAmong({ TEXT_ADRIA2, TEXT_ADRIA3, TEXT_ADRIA4, TEXT_ADRIA5, TEXT_ADRIA6, TEXT_ADRIA7, TEXT_ADRIA8, TEXT_ADRIA9, TEXT_ADRIA10, TEXT_ADRIA12, TEXT_ADRIA13 });
@@ -138,7 +142,8 @@ void InitWitch(Towner &towner, const TownerData &townerData)
 void InitBarmaid(Towner &towner, const TownerData &townerData)
 {
 	towner._tAnimWidth = 96;
-	towner.animOrder = {};
+	towner.animOrder = nullptr;
+	towner.animOrderSize = 0;
 	LoadTownerAnimations(towner, "towners\\townwmn1\\wmnn", 18, 6);
 	towner.name = _("Gillian the Barmaid");
 	towner.gossip = PickRandomlyAmong({ TEXT_GILLIAN2, TEXT_GILLIAN3, TEXT_GILLIAN4, TEXT_GILLIAN5, TEXT_GILLIAN6, TEXT_GILLIAN7, TEXT_GILLIAN9, TEXT_GILLIAN10 });
@@ -147,7 +152,8 @@ void InitBarmaid(Towner &towner, const TownerData &townerData)
 void InitBoy(Towner &towner, const TownerData &townerData)
 {
 	towner._tAnimWidth = 96;
-	towner.animOrder = {};
+	towner.animOrder = nullptr;
+	towner.animOrderSize = 0;
 	LoadTownerAnimations(towner, "towners\\townboy\\pegkid1", 20, 6);
 	towner.name = _("Wirt the Peg-legged boy");
 	towner.gossip = PickRandomlyAmong({ TEXT_WIRT2, TEXT_WIRT3, TEXT_WIRT4, TEXT_WIRT5, TEXT_WIRT6, TEXT_WIRT7, TEXT_WIRT8, TEXT_WIRT9, TEXT_WIRT11, TEXT_WIRT12 });
@@ -169,7 +175,8 @@ void InitHealer(Towner &towner, const TownerData &townerData)
 		 4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
 		// clang-format on
 	};
-	towner.animOrder = { AnimOrder };
+	towner.animOrder = AnimOrder;
+	towner.animOrderSize = sizeof(AnimOrder);
 	LoadTownerAnimations(towner, "towners\\healer\\healer", 20, 6);
 	towner.name = _("Pepin the Healer");
 	towner.gossip = PickRandomlyAmong({ TEXT_PEPIN2, TEXT_PEPIN3, TEXT_PEPIN4, TEXT_PEPIN5, TEXT_PEPIN6, TEXT_PEPIN7, TEXT_PEPIN9, TEXT_PEPIN10, TEXT_PEPIN11 });
@@ -186,7 +193,8 @@ void InitTeller(Towner &towner, const TownerData &townerData)
 		13, 12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2,  1,  0
 		// clang-format on
 	};
-	towner.animOrder = { AnimOrder };
+	towner.animOrder = AnimOrder;
+	towner.animOrderSize = sizeof(AnimOrder);
 	LoadTownerAnimations(towner, "towners\\strytell\\strytell", 25, 3);
 	towner.name = _("Cain the Elder");
 	towner.gossip = PickRandomlyAmong({ TEXT_STORY2, TEXT_STORY3, TEXT_STORY4, TEXT_STORY5, TEXT_STORY6, TEXT_STORY7, TEXT_STORY9, TEXT_STORY10, TEXT_STORY11 });
@@ -202,7 +210,8 @@ void InitDrunk(Towner &towner, const TownerData &townerData)
 		 0, 1, 2,  3,  4,  4,  4,  3,  2,  1
 		// clang-format on
 	};
-	towner.animOrder = { AnimOrder };
+	towner.animOrder = AnimOrder;
+	towner.animOrderSize = sizeof(AnimOrder);
 	LoadTownerAnimations(towner, "towners\\drunk\\twndrunk", 18, 3);
 	towner.name = _("Farnham the Drunk");
 	towner.gossip = PickRandomlyAmong({ TEXT_FARNHAM2, TEXT_FARNHAM3, TEXT_FARNHAM4, TEXT_FARNHAM5, TEXT_FARNHAM6, TEXT_FARNHAM8, TEXT_FARNHAM9, TEXT_FARNHAM10, TEXT_FARNHAM11, TEXT_FARNHAM12, TEXT_FARNHAM13 });
@@ -211,7 +220,8 @@ void InitDrunk(Towner &towner, const TownerData &townerData)
 void InitCows(Towner &towner, const TownerData &townerData)
 {
 	towner._tAnimWidth = 128;
-	towner.animOrder = {};
+	towner.animOrder = nullptr;
+	towner.animOrderSize = 0;
 
 	NewTownerAnim(towner, (*CowSprites)[static_cast<size_t>(townerData.dir)], 12, 3);
 	towner._tAnimFrame = GenerateRnd(11);
@@ -236,7 +246,8 @@ void InitCows(Towner &towner, const TownerData &townerData)
 void InitFarmer(Towner &towner, const TownerData &townerData)
 {
 	towner._tAnimWidth = 96;
-	towner.animOrder = {};
+	towner.animOrder = nullptr;
+	towner.animOrderSize = 0;
 	LoadTownerAnimations(towner, "towners\\farmer\\farmrn2", 15, 3);
 	towner.name = _("Lester the farmer");
 }
@@ -248,7 +259,8 @@ void InitCowFarmer(Towner &towner, const TownerData &townerData)
 		celPath = "towners\\farmer\\mfrmrn2";
 	}
 	towner._tAnimWidth = 96;
-	towner.animOrder = {};
+	towner.animOrder = nullptr;
+	towner.animOrderSize = 0;
 	LoadTownerAnimations(towner, celPath, 15, 3);
 	towner.name = _("Complete Nut");
 }
@@ -256,7 +268,8 @@ void InitCowFarmer(Towner &towner, const TownerData &townerData)
 void InitGirl(Towner &towner, const TownerData &townerData)
 {
 	towner._tAnimWidth = 96;
-	towner.animOrder = {};
+	towner.animOrder = nullptr;
+	towner.animOrderSize = 0;
 	LoadTownerAnimations(towner, "towners\\girl\\girlw1", 20, 6);
 	towner.name = _("Celia");
 }
@@ -332,7 +345,7 @@ void TalkToBarOwner(Player &player, Towner &barOwner)
 				bannerQuest._qactive = QUEST_DONE;
 				bannerQuest._qvar1 = 3;
 				NetSendCmdQuest(true, bannerQuest);
-				SpawnUnique(UITEM_HARCREST, barOwner.position + Direction::SouthWest, bannerQuest._qlevel);
+				SpawnUnique(UITEM_HARCREST, barOwner.position + Direction::SouthWest);
 				InitQTextMsg(TEXT_BANNER3);
 				return;
 			}
@@ -401,7 +414,7 @@ void TalkToBlackSmith(Player &player, Towner &blackSmith)
 		if (Quests[Q_ANVIL]._qvar2 == 1 && RemoveInventoryItemById(player, IDI_ANVIL)) {
 			Quests[Q_ANVIL]._qactive = QUEST_DONE;
 			NetSendCmdQuest(true, Quests[Q_ANVIL]);
-			SpawnUnique(UITEM_GRISWOLD, blackSmith.position + Direction::SouthWest, Quests[Q_ANVIL]._qlevel);
+			SpawnUnique(UITEM_GRISWOLD, blackSmith.position + Direction::SouthWest);
 			InitQTextMsg(TEXT_ANVIL7);
 			return;
 		}
@@ -467,7 +480,6 @@ void TalkToBarmaid(Player &player, Towner & /*barmaid*/)
 		Quests[Q_GRAVE]._qactive = QUEST_ACTIVE;
 		Quests[Q_GRAVE]._qlog = true;
 		Quests[Q_GRAVE]._qmsg = TEXT_GRAVE8;
-		NetSendCmdQuest(true, Quests[Q_GRAVE]);
 		InitQTextMsg(TEXT_GRAVE8);
 		return;
 	}
@@ -499,7 +511,7 @@ void TalkToHealer(Player &player, Towner &healer)
 		if (poisonWater._qactive == QUEST_DONE && poisonWater._qvar1 != 2) {
 			poisonWater._qvar1 = 2;
 			InitQTextMsg(TEXT_POISON5);
-			SpawnUnique(UITEM_TRING, healer.position + Direction::SouthWest, poisonWater._qlevel);
+			SpawnUnique(UITEM_TRING, healer.position + Direction::SouthWest);
 			NetSendCmdQuest(true, poisonWater);
 			return;
 		}
@@ -609,7 +621,7 @@ void TalkToFarmer(Player &player, Towner &farmer)
 			break;
 		}
 
-		if (!player._pLvlVisited[9] && player.getCharacterLevel() < 15) {
+		if (!player._pLvlVisited[9] && player._pLevel < 15) {
 			_speech_id qt = TEXT_FARMER8;
 			if (player._pLvlVisited[2])
 				qt = TEXT_FARMER5;
@@ -637,6 +649,7 @@ void TalkToFarmer(Player &player, Towner &farmer)
 		InitQTextMsg(TEXT_FARMER4);
 		SpawnRewardItem(IDI_AURIC, farmer.position + Displacement { 1, 0 }, true);
 		quest._qactive = QUEST_HIVE_DONE;
+		quest._qlog = false;
 		if (gbIsMultiplayer)
 			NetSendCmdQuest(true, quest);
 		break;
@@ -658,11 +671,12 @@ void TalkToCowFarmer(Player &player, Towner &cowFarmer)
 	auto &quest = Quests[Q_JERSEY];
 
 	if (RemoveInventoryItemById(player, IDI_BROWNSUIT)) {
-		SpawnUnique(UITEM_BOVINE, cowFarmer.position + Direction::SouthEast, quest._qlevel);
+		SpawnUnique(UITEM_BOVINE, cowFarmer.position + Direction::SouthEast);
 		InitQTextMsg(TEXT_JERSEY8);
 		quest._qactive = QUEST_DONE;
-		UpdateCowFarmerAnimAfterQuestComplete();
-		NetSendCmdQuest(true, quest);
+		auto curFrame = cowFarmer._tAnimFrame;
+		LoadTownerAnimations(cowFarmer, "towners\\farmer\\mfrmrn2", 15, 3);
+		cowFarmer._tAnimFrame = std::min<uint8_t>(curFrame, cowFarmer._tAnimLen - 1);
 		return;
 	}
 
@@ -672,7 +686,6 @@ void TalkToCowFarmer(Player &player, Towner &cowFarmer)
 		quest._qvar1 = 1;
 		quest._qmsg = TEXT_JERSEY4;
 		quest._qlog = true;
-		NetSendCmdQuest(true, quest);
 		return;
 	}
 
@@ -700,8 +713,20 @@ void TalkToCowFarmer(Player &player, Towner &cowFarmer)
 			NetSendCmdQuest(true, quest);
 		break;
 	case QUEST_HIVE_ACTIVE:
-		if (!player._pLvlVisited[9] && player.getCharacterLevel() < 15) {
-			InitQTextMsg(PickRandomlyAmong({ TEXT_JERSEY9, TEXT_JERSEY10, TEXT_JERSEY11, TEXT_JERSEY12 }));
+		if (!player._pLvlVisited[9] && player._pLevel < 15) {
+			_speech_id qt = TEXT_JERSEY12;
+			switch (GenerateRnd(4)) {
+			case 0:
+				qt = TEXT_JERSEY9;
+				break;
+			case 1:
+				qt = TEXT_JERSEY10;
+				break;
+			case 2:
+				qt = TEXT_JERSEY11;
+				break;
+			}
+			InitQTextMsg(qt);
 			break;
 		}
 
@@ -722,13 +747,306 @@ void TalkToCowFarmer(Player &player, Towner &cowFarmer)
 
 void TalkToGirl(Player &player, Towner &girl)
 {
+	randomitem = GenerateRnd(90);
+	//randomitem = rand();
+	//if (randomitem <= 1 || randomitem >= 91) {
+	//	randomitem = rand(); // FlipCoin(10);
+	//} 
 	auto &quest = Quests[Q_GIRL];
+
+
+
 
 	if (quest._qactive != QUEST_DONE && RemoveInventoryItemById(player, IDI_THEODORE)) {
 		InitQTextMsg(TEXT_GIRL4);
-		CreateAmulet(girl.position, 13, false, false, true);
+		//CreateAmulet(girl.position, 13, false, false, true);
 		quest._qactive = QUEST_DONE;
-		UpdateGirlAnimAfterQuestComplete();
+		//UpdateGirlAnimAfterQuestComplete();
+
+//CreateAmulet(girl.position, 13, true, false);
+		switch (randomitem) {
+		case 0:
+			SpawnUnique(UITEM_THINKINGCAP, girl.position + Direction::SouthWest, true);
+			break;
+		case 1:
+			SpawnUnique(UITEM_REGHA, girl.position + Direction::SouthWest, true);
+			break;
+		case 2:
+			SpawnUnique(UITEM_BRAMBLE, girl.position + Direction::SouthWest, true);
+			break;
+		case 3:
+			SpawnUnique(UITEM_STORMSHLD, girl.position + Direction::SouthWest, true);
+			break;
+		case 4:
+			SpawnUnique(UITEM_HOLYDEF, girl.position + Direction::SouthWest, true);
+			break;
+		case 5:
+			SpawnUnique(UITEM_BLKOAKSHLD, girl.position + Direction::SouthWest, true);
+			break;
+		case 6:
+			SpawnUnique(UITEM_DRAGONBRCH, girl.position + Direction::SouthWest, true);
+			break;
+		case 7:
+			SpawnUnique(UITEM_SKULLSHLD, girl.position + Direction::SouthWest, true);
+			break;
+		case 8:
+			SpawnUnique(UITEM_DEFLECTOR, girl.position + Direction::SouthWest, true);
+			break;
+		case 9:
+			SpawnUnique(UITEM_DEMONSPIKE, girl.position + Direction::SouthWest, true);
+			break;
+		case 10:
+			SpawnUnique(UITEM_NAJPLATE, girl.position + Direction::SouthWest, true);
+			break;
+		case 11:
+			SpawnUnique(UITEM_NIGHTSCAPE, girl.position + Direction::SouthWest, true);
+			break;
+		case 12:
+			SpawnUnique(UITEM_SCAVCARAP, girl.position + Direction::SouthWest, true);
+			break;
+		case 13:
+			SpawnUnique(UITEM_SPARKMAIL, girl.position + Direction::SouthWest, true);
+			break;
+		case 14:
+			SpawnUnique(UITEM_WISDWRAP, girl.position + Direction::SouthWest, true);
+			break;
+		case 15:
+			SpawnUnique(UITEM_LEATHAUT, girl.position + Direction::SouthWest, true);
+			break;
+		case 16:
+			SpawnUnique(UITEM_RAINCLOAK, girl.position + Direction::SouthWest, true);
+			break;
+		case 17:
+			SpawnUnique(UITEM_GLADBANE, girl.position + Direction::SouthWest, true);
+			break;
+		case 18:
+			SpawnUnique(UITEM_TORNFLESH, girl.position + Direction::SouthWest, true);
+			break;
+		case 19:
+			SpawnUnique(UITEM_ROYCIRCLET, girl.position + Direction::SouthWest, true);
+			break;
+		case 20:
+			SpawnUnique(UITEM_GOTTERDAM, girl.position + Direction::SouthWest, true);
+			break;
+		case 21:
+			SpawnUnique(UITEM_FOOLSCREST, girl.position + Direction::SouthWest, true);
+			break;
+		case 22:
+			SpawnUnique(UITEM_OVERLORDHELM, girl.position + Direction::SouthWest, true);
+			break;
+		case 23:
+			SpawnUnique(UITEM_SPIRITSHELM, girl.position + Direction::SouthWest, true);
+			break;
+		case 24:
+			SpawnUnique(UITEM_RODOFONAN, girl.position + Direction::SouthWest, true);
+			break;
+		case 25:
+			SpawnUnique(UITEM_MINDCRY, girl.position + Direction::SouthWest, true);
+			break;
+		case 26:
+			SpawnUnique(UITEM_NAJPUZZLE, girl.position + Direction::SouthWest, true);
+			break;
+		case 27:
+			SpawnUnique(UITEM_PROTECTOR, girl.position + Direction::SouthWest, true);
+			break;
+		case 28:
+			SpawnUnique(UITEM_THUNDERCALL, girl.position + Direction::SouthWest, true);
+			break;
+		case 29:
+			SpawnUnique(UITEM_GLEAMSONG, girl.position + Direction::SouthWest, true);
+			break;
+		case 30:
+			SpawnUnique(UITEM_STORMSPIRE, girl.position + Direction::SouthWest, true);
+			break;
+		case 31:
+			SpawnUnique(UITEM_IMMOLATOR, girl.position + Direction::SouthWest, true);
+			break;
+		case 32:
+			SpawnUnique(UITEM_STAFFOFSHAD, girl.position + Direction::SouthWest, true);
+			break;
+		case 33:
+			SpawnUnique(UITEM_DREAMFLANGE, girl.position + Direction::SouthWest, true);
+			break;
+		case 34:
+			SpawnUnique(UITEM_SCHAEFHAMM, girl.position + Direction::SouthWest, true);
+			break;
+		case 35:
+			SpawnUnique(UITEM_CRANBASH, girl.position + Direction::SouthWest, true);
+			break;
+		case 36:
+			SpawnUnique(UITEM_GNARLROOT, girl.position + Direction::SouthWest, true);
+			break;
+		case 37:
+			SpawnUnique(UITEM_BARANSTAR, girl.position + Direction::SouthWest, true);
+			break;
+		case 38:
+			SpawnUnique(UITEM_CELESTSTAR, girl.position + Direction::SouthWest, true);
+			break;
+		case 39:
+			SpawnUnique(UITEM_CIVERBS, girl.position + Direction::SouthWest, true);
+			break;
+		case 40:
+			SpawnUnique(UITEM_JHOLMHAMM, girl.position + Direction::SouthWest, true);
+			break;
+		case 41:
+			SpawnUnique(UITEM_CRACKRUST, girl.position + Direction::SouthWest, true);
+			break;
+		case 42:
+			SpawnUnique(UITEM_MESSERREAVER, girl.position + Direction::SouthWest, true);
+			break;
+		case 43:
+			SpawnUnique(UITEM_HELLSLAYER, girl.position + Direction::SouthWest, true);
+			break;
+		case 44:
+			SpawnUnique(UITEM_AGUHATCHET, girl.position + Direction::SouthWest, true);
+			break;
+		case 45:
+			SpawnUnique(UITEM_STONECLEAV, girl.position + Direction::SouthWest, true);
+			break;
+		case 46:
+			SpawnUnique(UITEM_WICKEDAXE, girl.position + Direction::SouthWest, true);
+			break;
+		case 47:
+			SpawnUnique(UITEM_CELESTAXE, girl.position + Direction::SouthWest, true);
+			break;
+		case 48:
+			SpawnUnique(UITEM_BLOODLSLAYER, girl.position + Direction::SouthWest, true);
+			break;
+		case 49:
+			SpawnUnique(UITEM_SHARPBEAK, girl.position + Direction::SouthWest, true);
+			break;
+		case 50:
+			SpawnUnique(UITEM_MANGLER, girl.position + Direction::SouthWest, true);
+			break;
+		case 51:
+			SpawnUnique(UITEM_GRANDFATHER, girl.position + Direction::SouthWest, true);
+			break;
+		case 52:
+			SpawnUnique(UITEM_GRIZZLY, girl.position + Direction::SouthWest, true);
+			break;
+		case 53:
+			SpawnUnique(UITEM_DOOMBRINGER, girl.position + Direction::SouthWest, true);
+			break;
+		case 54:
+			SpawnUnique(UITEM_INFERNO, girl.position + Direction::SouthWest, true);
+			break;
+		case 55:
+			SpawnUnique(UITEM_FALCONTALON, girl.position + Direction::SouthWest, true);
+			break;
+		case 56:
+			SpawnUnique(UITEM_LGTSABRE, girl.position + Direction::SouthWest, true);
+			break;
+		case 57:
+			SpawnUnique(UITEM_WIZSPIKE, girl.position + Direction::SouthWest, true);
+			break;
+		case 58:
+			SpawnUnique(UITEM_SHADHAWK, girl.position + Direction::SouthWest, true);
+			break;
+		case 59:
+			SpawnUnique(UITEM_BONESAW, girl.position + Direction::SouthWest, true);
+			break;
+		case 60:
+			SpawnUnique(UITEM_EXECUTIONER, girl.position + Direction::SouthWest, true);
+			break;
+		case 61:
+			SpawnUnique(UITEM_ICESHANK, girl.position + Direction::SouthWest, true);
+			break;
+		case 62:
+			SpawnUnique(UITEM_GIBBOUSMOON, girl.position + Direction::SouthWest, true);
+			break;
+		case 63:
+			SpawnUnique(UITEM_BLACKRAZOR, girl.position + Direction::SouthWest, true);
+			break;
+		case 64:
+			SpawnUnique(UITEM_GRYPHONCLAW, girl.position + Direction::SouthWest, true);
+			break;
+		case 65:
+			SpawnUnique(UITEM_DEFENDER, girl.position + Direction::SouthWest, true);
+			break;
+		case 66:
+			SpawnUnique(UITEM_GONNAGALDIRK, girl.position + Direction::SouthWest, true);
+			break;
+		case 67:
+			SpawnUnique(UITEM_EAGLEHORN, girl.position + Direction::SouthWest, true);
+			break;
+		case 68:
+			SpawnUnique(UITEM_WINDFORCE, girl.position + Direction::SouthWest, true);
+			break;
+		case 69:
+			SpawnUnique(UITEM_FLESHSTING, girl.position + Direction::SouthWest, true);
+			break;
+		case 70:
+			SpawnUnique(UITEM_FLAMEDART, girl.position + Direction::SouthWest, true);
+			break;
+		case 71:
+			SpawnUnique(UITEM_BLKOAKBOW, girl.position + Direction::SouthWest, true);
+			break;
+		case 72:
+			SpawnUnique(UITEM_BOWOFDEAD, girl.position + Direction::SouthWest, true);
+			break;
+		case 73:
+			SpawnUnique(UITEM_DEADLYHUNT, girl.position + Direction::SouthWest, true);
+			break;
+		case 74:
+			SpawnUnique(UITEM_CELESTBOW, girl.position + Direction::SouthWest, true);
+			break;
+		case 75:
+			SpawnUnique(UITEM_NEEDLER, girl.position + Direction::SouthWest, true);
+			break;
+		case 76:
+			SpawnUnique(UITEM_RIFTBOW, girl.position + Direction::SouthWest, true);
+			break;
+		case 77:
+			SpawnUnique(UITEM_BOVINE, girl.position + Direction::SouthWest, true);
+			break;
+		case 78:
+			SpawnUnique(UITEM_GRISWOLD, girl.position + Direction::SouthWest, true);
+			break;
+		case 79:
+			SpawnUnique(UITEM_ARMOFVAL, girl.position + Direction::SouthWest, true);
+			break;
+		case 80:
+			SpawnUnique(UITEM_STEELVEIL, girl.position + Direction::SouthWest, true);
+			break;
+		case 81:
+			SpawnUnique(UITEM_HARCREST, girl.position + Direction::SouthWest, true);
+			break;
+		case 82:
+			SpawnUnique(UITEM_TRING, girl.position + Direction::SouthWest, true);
+			break;
+		case 83:
+			SpawnUnique(UITEM_OPTAMULET, girl.position + Direction::SouthWest, true);
+			break;
+		case 84:
+			SpawnUnique(UITEM_INFRARING, girl.position + Direction::SouthWest, true);
+			break;
+		case 85:
+			SpawnUnique(UITEM_SKCROWN, girl.position + Direction::SouthWest, true);
+			break;
+		case 86:
+			SpawnUnique(UITEM_CLEAVER, girl.position + Direction::SouthWest, true);
+			break;
+		case 87:
+			SpawnUnique(UITEM_BLEEDER, girl.position + Direction::SouthWest, true);
+			break;
+		case 88:
+			SpawnUnique(UITEM_CONSTRICT, girl.position + Direction::SouthWest, true);
+			break;
+		case 89:
+			SpawnUnique(UITEM_ENGAGE, girl.position + Direction::SouthWest, true);
+			break;
+		case 90:
+			SpawnUnique(UITEM_THINKINGCAP, girl.position + Direction::SouthWest, true);
+			break;
+		}
+
+		quest._qlog = false;
+quest._qactive = QUEST_DONE;
+auto curFrame = girl._tAnimFrame;
+LoadTownerAnimations(girl, "towners\\girl\\girls1", 20, 6);
+girl._tAnimFrame = std::min<uint8_t>(curFrame, girl._tAnimLen - 1);
+
+
 		if (gbIsMultiplayer)
 			NetSendCmdQuest(true, quest);
 		return;
@@ -771,6 +1089,7 @@ const TownerData TownersData[] = {
 	{ TOWN_COWFARM, { 61, 22 }, Direction::SouthWest, InitCowFarmer, TalkToCowFarmer   },
 	{ TOWN_FARMER,  { 62, 16 }, Direction::South,     InitFarmer,    TalkToFarmer      },
 	{ TOWN_GIRL,    { 77, 43 }, Direction::South,     InitGirl,      TalkToGirl        },
+	//{ TOWN_WITCH,   { 80, 20 }, Direction::South,     InitWitch,     TalkToWitch       },
 	// clang-format on
 };
 
@@ -814,15 +1133,6 @@ bool IsTownerPresent(_talker_id npc)
 	}
 }
 
-Towner *GetTowner(_talker_id type)
-{
-	for (Towner &towner : Towners) {
-		if (towner._ttype == type)
-			return &towner;
-	}
-	return nullptr;
-}
-
 void InitTowners()
 {
 	assert(!CowSprites);
@@ -862,9 +1172,9 @@ void ProcessTowners()
 
 		towner._tAnimCnt = 0;
 
-		if (!towner.animOrder.empty()) {
+		if (towner.animOrderSize > 0) {
 			towner._tAnimFrameCnt++;
-			if (towner._tAnimFrameCnt > towner.animOrder.size() - 1)
+			if (towner._tAnimFrameCnt > towner.animOrderSize - 1)
 				towner._tAnimFrameCnt = 0;
 
 			towner._tAnimFrame = towner.animOrder[towner._tAnimFrameCnt];
@@ -891,29 +1201,11 @@ void TalkToTowner(Player &player, int t)
 	towner.talk(player, towner);
 }
 
-void UpdateGirlAnimAfterQuestComplete()
-{
-	Towner *girl = GetTowner(TOWN_GIRL);
-	if (girl == nullptr || !girl->ownedAnim)
-		return; // Girl is not spawned in town yet
-	auto curFrame = girl->_tAnimFrame;
-	LoadTownerAnimations(*girl, "towners\\girl\\girls1", 20, 6);
-	girl->_tAnimFrame = std::min<uint8_t>(curFrame, girl->_tAnimLen - 1);
-}
-
-void UpdateCowFarmerAnimAfterQuestComplete()
-{
-	Towner *cowFarmer = GetTowner(TOWN_COWFARM);
-	auto curFrame = cowFarmer->_tAnimFrame;
-	LoadTownerAnimations(*cowFarmer, "towners\\farmer\\mfrmrn2", 15, 3);
-	cowFarmer->_tAnimFrame = std::min<uint8_t>(curFrame, cowFarmer->_tAnimLen - 1);
-}
-
 #ifdef _DEBUG
 bool DebugTalkToTowner(std::string targetName)
 {
 	SetupTownStores();
-	AsciiStrToLower(targetName);
+	std::transform(targetName.begin(), targetName.end(), targetName.begin(), [](unsigned char c) { return std::tolower(c); });
 	Player &myPlayer = *MyPlayer;
 	for (auto &townerData : TownersData) {
 		if (!IsTownerPresent(townerData.type))
@@ -924,7 +1216,8 @@ bool DebugTalkToTowner(std::string targetName)
 		Towner fakeTowner;
 		townerData.init(fakeTowner, townerData);
 		fakeTowner.position = myPlayer.position.tile;
-		const std::string npcName = AsciiStrToLower(fakeTowner.name);
+		std::string npcName(fakeTowner.name);
+		std::transform(npcName.begin(), npcName.end(), npcName.begin(), [](unsigned char c) { return std::tolower(c); });
 		if (npcName.find(targetName) != std::string::npos) {
 			townerData.talk(myPlayer, fakeTowner);
 			return true;

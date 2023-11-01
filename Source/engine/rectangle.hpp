@@ -2,7 +2,6 @@
 
 #include "engine/point.hpp"
 #include "engine/size.hpp"
-#include "utils/attributes.h"
 
 namespace devilution {
 
@@ -13,7 +12,7 @@ struct RectangleOf {
 
 	RectangleOf() = default;
 
-	DVL_ALWAYS_INLINE constexpr RectangleOf(PointOf<CoordT> position, SizeOf<SizeT> size)
+	constexpr RectangleOf(PointOf<CoordT> position, SizeOf<SizeT> size)
 	    : position(position)
 	    , size(size)
 	{
@@ -27,7 +26,7 @@ struct RectangleOf {
 	 * @param center center point of the target rectangle
 	 * @param radius a non-negative value indicating how many tiles to include around the center
 	 */
-	DVL_ALWAYS_INLINE explicit constexpr RectangleOf(PointOf<CoordT> center, SizeT radius)
+	explicit constexpr RectangleOf(PointOf<CoordT> center, SizeT radius)
 	    : position(center - DisplacementOf<SizeT> { radius })
 	    , size(static_cast<SizeT>(2 * radius + 1))
 	{
@@ -38,7 +37,7 @@ struct RectangleOf {
 	 * Works correctly even if the point uses a different underlying numeric type
 	 */
 	template <typename PointCoordT>
-	DVL_ALWAYS_INLINE constexpr bool contains(PointOf<PointCoordT> point) const
+	constexpr bool contains(PointOf<PointCoordT> point) const
 	{
 		return contains(point.x, point.y);
 	}

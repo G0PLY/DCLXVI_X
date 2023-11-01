@@ -13,7 +13,6 @@
 #include "engine/backbuffer_state.hpp"
 #include "engine/point.hpp"
 #include "engine/random.hpp"
-#include "engine/world_tile.hpp"
 #include "gamemenu.h"
 #include "inv.h"
 #include "missiles.h"
@@ -111,7 +110,8 @@ int GetManaAmount(const Player &player, SpellID sn)
 	// spell level
 	int sl = std::max(player.GetSpellLevel(sn) - 1, 0);
 
-	if (player.pEtherShield) { // Blood Magic
+	if (player.pEtherShield)
+	{ // Blood Magic
 		if (sl > 0) {
 			adj = 0;
 		}
@@ -274,7 +274,7 @@ int GetManaAmount(const Player &player, SpellID sn)
 		goto xtblbm;
 	}
 
-nobloodm:;
+	nobloodm:;
 
 	if (player._pClass == HeroClass::Warlock) {
 		if (sl > 0) {
@@ -288,7 +288,7 @@ nobloodm:;
 		}
 
 		if (sn == SpellID::Healing || sn == SpellID::HealOther) {
-			ma = ((GetSpellData(SpellID::Healing).sManaCost * 2) + 2 * (player.getCharacterLevel() / 2) - adj);
+			ma = ((GetSpellData(SpellID::Healing).sManaCost * 2) + 2 * (player._pLevel / 2) - adj);
 		} else if ((GetSpellData(sn).sManaCost * 2) == 255) {
 			ma = (player._pMaxManaBase >> 6) - adj;
 		} else {
@@ -319,7 +319,7 @@ nobloodm:;
 		}
 
 		if (sn == SpellID::Healing || sn == SpellID::HealOther) {
-			ma = ((GetSpellData(SpellID::Healing).sManaCost / 2) + 2 * (player.getCharacterLevel() / 2) - adj);
+			ma = ((GetSpellData(SpellID::Healing).sManaCost / 2) + 2 * (player._pLevel / 2) - adj);
 		} else if ((GetSpellData(sn).sManaCost / 2) == 255) {
 			ma = (player._pMaxManaBase >> 6) - adj;
 		} else {
@@ -353,7 +353,7 @@ nobloodm:;
 		}
 
 		if (sn == SpellID::Healing || sn == SpellID::HealOther) {
-			ma = ((GetSpellData(SpellID::Healing).sManaCost / 2) + 2 * (player.getCharacterLevel() / 2) - adj);
+			ma = ((GetSpellData(SpellID::Healing).sManaCost / 2) + 2 * (player._pLevel / 2) - adj);
 		} else if ((GetSpellData(sn).sManaCost / 2) == 255) {
 			ma = (player._pMaxManaBase >> 6) - adj;
 		} else {
@@ -373,34 +373,34 @@ nobloodm:;
 			ma = GetSpellData(sn).sMinMana << 6;
 		}
 	} else if (player._pClass == HeroClass::Assassin) {
-		// if ((player._pMana >> 6) > 0) {
-		if (sl > 0) {
-			adj = player._pManaPer;
-		}
-		if (sn == SpellID::Firebolt) {
-			adj = player._pManaPer;
-		}
-		if (sn == SpellID::Resurrect && sl > 0) {
-			adj = player._pManaPer;
-		}
+		//if ((player._pMana >> 6) > 0) {
+			if (sl > 0) {
+				adj = player._pManaPer;
+			}
+			if (sn == SpellID::Firebolt) {
+				adj = player._pManaPer;
+			}
+			if (sn == SpellID::Resurrect && sl > 0) {
+				adj = player._pManaPer;
+			}
 
-		if (sn == SpellID::Healing || sn == SpellID::HealOther) {
-			ma = player._pManaPer;
-		} else if ((GetSpellData(sn).sManaCost / 2) == 255) {
-			ma = player._pManaPer;
-		} else {
-			ma = player._pManaPer;
-		}
-		if (sn == SpellID::Teleport) {
-			ma = 0;
-		}
+			if (sn == SpellID::Healing || sn == SpellID::HealOther) {
+				ma = player._pManaPer;
+			} else if ((GetSpellData(sn).sManaCost / 2) == 255) {
+				ma = player._pManaPer;
+			} else {
+				ma = player._pManaPer;
+		    }
+		    if (sn == SpellID::Teleport) {
+			    ma = 0;
+		    }
 
-		ma = std::max(ma, 0);
-		ma <<= 6;
+			ma = std::max(ma, 0);
+			ma <<= 6;
 
-		if (GetSpellData(sn).sMinMana > ma >> 6) {
-			ma = player._pManaPer;
-		}
+			if (GetSpellData(sn).sMinMana > ma >> 6) {
+				ma = player._pManaPer;
+			}
 	} else if (player._pClass == HeroClass::Witch) {
 		if ((player._pMana >> 6) > 0) {
 			if (sl > 0) {
@@ -465,7 +465,7 @@ nobloodm:;
 		}
 
 		if (sn == SpellID::Healing || sn == SpellID::HealOther) {
-			ma = ((GetSpellData(SpellID::Healing).sManaCost) + 2 * (player.getCharacterLevel() / 2) - adj);
+			ma = ((GetSpellData(SpellID::Healing).sManaCost) + 2 * (player._pLevel / 2) - adj);
 		} else if ((GetSpellData(sn).sManaCost) == 255) {
 			ma = (player._pMaxManaBase >> 6) - adj;
 		} else {
@@ -476,15 +476,15 @@ nobloodm:;
 		ma <<= 6;
 
 		/*if (gbIsHellfire && player._pClass == HeroClass::Sorcerer) {
-		    ma /= 2 * 2;
+			ma /= 2 * 2;
 		} else if (player._pClass == HeroClass::Rogue || player._pClass == HeroClass::Monk || player._pClass == HeroClass::Bard) {
-		    ma -= ma / 4 * 2;
+			ma -= ma / 4 * 2;
 		}*/
 
 		if (GetSpellData(sn).sMinMana > ma >> 6) {
 			ma = GetSpellData(sn).sMinMana << 6;
 		}
-	} else {
+	}  else {
 		if (sl > 0) {
 			adj = sl * GetSpellData(sn).sManaAdj;
 		}
@@ -496,7 +496,7 @@ nobloodm:;
 		}
 
 		if (sn == SpellID::Healing || sn == SpellID::HealOther) {
-			ma = (GetSpellData(SpellID::Healing).sManaCost + 2 * (player.getCharacterLevel() / 2) - adj);
+			ma = (GetSpellData(SpellID::Healing).sManaCost + 2 * (player._pLevel / 2) - adj);
 		} else if (GetSpellData(sn).sManaCost == 255) {
 			ma = (player._pMaxManaBase >> 6) - adj;
 		} else {
@@ -507,9 +507,9 @@ nobloodm:;
 		ma <<= 6;
 
 		/*if (gbIsHellfire && player._pClass == HeroClass::Sorcerer) {
-		    ma /= 2;
+			ma /= 2;
 		} else if (player._pClass == HeroClass::Rogue || player._pClass == HeroClass::Monk || player._pClass == HeroClass::Bard) {
-		    ma -= ma / 4;
+			ma -= ma / 4;
 		}*/
 
 		if (GetSpellData(sn).sMinMana > ma >> 6) {
@@ -523,8 +523,9 @@ xtblbm:;
 
 void ConsumeSpell(Player &player, SpellID sn)
 {
-	int hpremoved = (player.getCharacterLevel() / 2);
-	int mpremoved = (player.getCharacterLevel() * 2);
+	int hpremoved = (player._pLevel / 2);
+	int mpremoved = (player._pLevel * 2);
+
 	switch (player.executedSpell.spellType) {
 	case SpellType::Skill:
 	case SpellType::Invalid:
@@ -536,22 +537,25 @@ void ConsumeSpell(Player &player, SpellID sn)
 		ConsumeStaffCharge(player);
 		break;
 	case SpellType::Spell:
-#ifdef _DEBUG
-		if (DebugGodMode)
-			break;
-#endif
+//#ifdef _DEBUG
+//		if (DebugGodMode)
+//			break;
+//#endif
 		int ma = GetManaAmount(player, sn);
 		player._pMana -= ma;
 		player._pManaBase -= ma;
+		/*int hpremoved = (player._pLevel / 2);
+		int mpremoved = (player._pLevel * 2);
+		if (sn == SpellID::Magi) {
+			ApplyPlrDamage(DamageType::Physical, player, hpremoved);
+		}*/
+		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
 		RedrawComponent(PanelDrawComponent::Mana);
 		break;
 	}
-	if (sn == SpellID::BloodStar) {
-		ApplyPlrDamage(DamageType::Physical, player, 5);
-	}
-	if (sn == SpellID::Magi) {
-		ApplyPlrDamage(DamageType::Physical, player, hpremoved);
-	}
+		if (sn == SpellID::Magi) {
+			ApplyPlrDamage(DamageType::Physical, player, hpremoved);
+		}
 	if (sn == SpellID::WitchBS) {
 		ApplyPlrDamage(DamageType::Physical, player, 5);
 	}
@@ -568,184 +572,186 @@ void ConsumeSpell(Player &player, SpellID sn)
 		// spell level
 		int sl = std::max(player.GetSpellLevel(sn) - 1, 0);
 		if (sl > 0) {
-			adj = sl * GetSpellData(sn).sManaAdj;
+		adj = sl * GetSpellData(sn).sManaAdj;
 		}
 		if (sn == SpellID::Firebolt) {
-			adj /= 2;
+		adj /= 2;
 		}
 		if (sn == SpellID::Resurrect && sl > 0) {
-			adj = sl * (GetSpellData(SpellID::Resurrect).sManaCost / 8);
+		adj = sl * (GetSpellData(SpellID::Resurrect).sManaCost / 8);
 		}
 
 		if (sn == SpellID::Healing || sn == SpellID::HealOther) {
-			ma = (GetSpellData(SpellID::Healing).sManaCost + 2 * (player.getCharacterLevel() / 2) - adj);
+		ma = (GetSpellData(SpellID::Healing).sManaCost + 2 * (player._pLevel / 2) - adj);
 		} else if (GetSpellData(sn).sManaCost == 255) {
-			ma = (player._pMaxManaBase >> 6) - adj;
+		ma = (player._pMaxManaBase >> 6) - adj;
 		} else {
-			ma = (GetSpellData(sn).sManaCost - adj);
+		ma = (GetSpellData(sn).sManaCost - adj);
 		}
 		ma = std::max(ma, 0);
 		ma <<= 6;
 
 		if (GetSpellData(sn).sMinMana > ma >> 6) {
-			ma = GetSpellData(sn).sMinMana << 6;
+		ma = GetSpellData(sn).sMinMana << 6;
 		}
 
 		int blood;
 		blood = ma / 100;
 
+
 		if (sn == SpellID::Apocalypse) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::BloodStar) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::ChainLightning) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::ChargedBolt) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::DoomSerpents) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Elemental) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Etherealize) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Fireball) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Firebolt) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::FireWall) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::FlameWave) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Flash) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Golem) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Guardian) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::HealOther) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::HolyBolt) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Identify) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Immolation) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Inferno) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Infravision) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::ItemRepair) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Jester) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Lightning) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::LightningWall) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::ManaRegen) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::DmgReduct) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
-		// if (sn == SpellID::BloodM) {
-		// ApplyPlrDamage(DamageType::Physical, player, blood);
-		// }
+		//if (sn == SpellID::BloodM) {
+		//ApplyPlrDamage(DamageType::Physical, player, blood);
+		//}
 		if (sn == SpellID::HealthRegen) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
-		// if (sn == SpellID::Healing) {
-		// ApplyPlrDamage(DamageType::Physical, player, blood);
-		// }
-		// if (sn == SpellID::ManaShield) {
-		// ApplyPlrDamage(DamageType::Physical, player, blood);
-		// }
+		//if (sn == SpellID::Healing) {
+		//ApplyPlrDamage(DamageType::Physical, player, blood);
+		//}
+		//if (sn == SpellID::ManaShield) {
+		//ApplyPlrDamage(DamageType::Physical, player, blood);
+		//}
 		if (sn == SpellID::Nova) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Phasing) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Reflect) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Resurrect) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::RingOfFire) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Rage) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Search) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Smite) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::StaffRecharge) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::StoneCurse) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Telekinesis) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Teleport) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::TownPortal) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::TrapDisarm) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
 		if (sn == SpellID::Warp) {
-			ApplyPlrDamage(DamageType::Physical, player, blood);
+		ApplyPlrDamage(DamageType::Physical, player, blood);
 		}
-		// if (sn == SpellID::WitchBS) {
-		// ApplyPlrDamage(DamageType::Physical, player, blood);
-		// }
-		// if (sn == SpellID::) {
-		// ApplyPlrDamage(DamageType::Physical, player, 6);
-		// }
+		//if (sn == SpellID::WitchBS) {
+		//ApplyPlrDamage(DamageType::Physical, player, blood);
+		//}
+		//if (sn == SpellID::) {
+		//ApplyPlrDamage(DamageType::Physical, player, 6);
+		//}
 		RedrawComponent(PanelDrawComponent::Health);
 	}
-	// int hp = player._pHitPoints;
-	// int hpremoved = hp / 10;
+	//int hp = player._pHitPoints;
+	//int hpremoved = hp / 10;
 	//// old for skilll version of magi
 
-	// if (sn == SpellID::Berserk) {
-	// player._pMana -= mpremoved;
-	// player._pManaBase -= mpremoved;
+
+	//if (sn == SpellID::Berserk) {
+		//player._pMana -= mpremoved;
+		//player._pManaBase -= mpremoved;
 	//	if (player._pClasstype != 5 || 8 || 13)
-	// RedrawComponent(PanelDrawComponent::Mana);
+		//RedrawComponent(PanelDrawComponent::Mana);
 	//	ApplyPlrDamage(DamageType::Physical, player, hpremoved);
 	//}
 }
@@ -775,27 +781,26 @@ SpellCheckResult CheckSpell(const Player &player, SpellID sn, SpellType st, bool
 	if (player.GetSpellLevel(sn) <= 0) {
 		return SpellCheckResult::Fail_Level0;
 	}
+
 	if (player.pEtherShield) {
-		// if (player._pClass == HeroClass::Bloodmage) {
+	//if (player._pClass == HeroClass::Bloodmage) {
 		if (sn == SpellID::Healing || sn == SpellID::HealOther || sn == SpellID::ManaShield || sn == SpellID::BloodM || sn == SpellID::WitchBS || sn == SpellID::BoneSpirit || sn == SpellID::Magi) {
-			goto NotBM;
+		goto NotBM;
 		}
 		if (player._pHitPoints < GetManaAmount(player, sn)) {
-			return SpellCheckResult::Fail_NoMana;
+		return SpellCheckResult::Fail_NoMana;
 		}
 		goto extBM;
 	}
 NotBM:;
-
 	if (player._pMana < GetManaAmount(player, sn)) {
 		return SpellCheckResult::Fail_NoMana;
 	}
-
-extBM:;
+	extBM:;
 	return SpellCheckResult::Success;
 }
 
-void CastSpell(int id, SpellID spl, WorldTilePosition src, WorldTilePosition dst, int spllvl)
+void CastSpell(int id, SpellID spl, int sx, int sy, int dx, int dy, int spllvl)
 {
 	Player &player = Players[id];
 	Direction dir = player._pdir;
@@ -806,12 +811,12 @@ void CastSpell(int id, SpellID spl, WorldTilePosition src, WorldTilePosition dst
 	bool fizzled = false;
 	const SpellData &spellData = GetSpellData(spl);
 	for (size_t i = 0; i < sizeof(spellData.sMissiles) / sizeof(spellData.sMissiles[0]) && spellData.sMissiles[i] != MissileID::Null; i++) {
-		Missile *missile = AddMissile(src, dst, dir, spellData.sMissiles[i], TARGET_MONSTERS, id, 0, spllvl);
+		Missile *missile = AddMissile({ sx, sy }, { dx, dy }, dir, spellData.sMissiles[i], TARGET_MONSTERS, id, 0, spllvl);
 		fizzled |= (missile == nullptr);
 	}
 	if (spl == SpellID::ChargedBolt) {
 		for (int i = (spllvl / 2) + 3; i > 0; i--) {
-			Missile *missile = AddMissile(src, dst, dir, MissileID::ChargedBolt, TARGET_MONSTERS, id, 0, spllvl);
+			Missile *missile = AddMissile({ sx, sy }, { dx, dy }, dir, MissileID::ChargedBolt, TARGET_MONSTERS, id, 0, spllvl);
 			fizzled |= (missile == nullptr);
 		}
 	}
@@ -835,6 +840,7 @@ void DoResurrect(size_t pnum, Player &target)
 		MyPlayerIsDead = false;
 		gamemenu_off();
 		RedrawComponent(PanelDrawComponent::Health);
+		//if (player._pClasstype != 5 || 8 || 13)
 		RedrawComponent(PanelDrawComponent::Mana);
 	}
 
@@ -869,7 +875,7 @@ void DoHealOther(const Player &caster, Player &target)
 	}
 
 	int hp = (GenerateRnd(10) + 1) << 6;
-	for (unsigned i = 0; i < (caster.getCharacterLevel() / 2); i++) {
+	for (int i = 0; i < (caster._pLevel / 2); i++) {
 		hp += (GenerateRnd(4) + 1) << 6;
 	}
 	for (int i = 0; i < caster.GetSpellLevel(SpellID::HealOther); i++) {

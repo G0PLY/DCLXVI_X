@@ -6,7 +6,6 @@
 
 #ifdef _DEBUG
 
-#include <cmath>
 #include <cstdint>
 #include <cstdio>
 
@@ -25,18 +24,14 @@
 #include "lighting.h"
 #include "monstdat.h"
 #include "monster.h"
-#include "pack.h"
 #include "plrmsg.h"
 #include "quests.h"
 #include "spells.h"
 #include "towners.h"
-#include "utils/algorithm/container.hpp"
 #include "utils/endian_stream.hpp"
 #include "utils/file_util.h"
 #include "utils/language.h"
 #include "utils/log.hpp"
-#include "utils/parse_int.hpp"
-#include "utils/str_case.hpp"
 #include "utils/str_cat.hpp"
 #include "utils/str_split.hpp"
 
@@ -52,12 +47,6 @@ bool DebugGrid = false;
 std::unordered_map<int, Point> DebugCoordsMap;
 bool DebugScrollViewEnabled = false;
 std::string debugTRN;
-
-// Used for debugging level generation
-uint32_t glMid1Seed[NUMLEVELS];
-uint32_t glMid2Seed[NUMLEVELS];
-uint32_t glMid3Seed[NUMLEVELS];
-uint32_t glEndSeed[NUMLEVELS];
 
 namespace {
 
@@ -99,19 +88,26 @@ std::vector<std::string> SearchMonsters;
 std::vector<std::string> SearchItems;
 std::vector<std::string> SearchObjects;
 
+// Used for debugging level generation
+uint32_t glMid1Seed[NUMLEVELS];
+uint32_t glMid2Seed[NUMLEVELS];
+uint32_t glMid3Seed[NUMLEVELS];
+uint32_t glEndSeed[NUMLEVELS];
+
 void PrintDebugMonster(const Monster &monster)
 {
 	EventPlrMsg(StrCat(
 	                "Monster ", static_cast<int>(monster.getId()), " = ", monster.name(),
 	                "\nX = ", monster.position.tile.x, ", Y = ", monster.position.tile.y,
 	                "\nEnemy = ", monster.enemy, ", HP = ", monster.hitPoints,
-	                "\nMode = ", static_cast<int>(monster.mode), ", Var1 = ", monster.var1),
-					///"\nMonsterCount = ", ActiveMonsterCount, ", <-Active,,Max-> ,", MaxMonsters),
+	                "\nMode = ", static_cast<int>(monster.mode), ", Var1 = ", monster.var1,
+					"\nMonsterCount = ", ActiveMonsterCount, ", <-Active,,Max-> ,", MaxMonsters),
 	    UiFlags::ColorWhite);
 
 	bool bActive = false;
 
 	for (size_t i = 0; i < ActiveMonsterCount; i++) {
+		//for (int i = 0; i < ActiveMonsterCount; i++) {
 		if (&Monsters[ActiveMonsters[i]] == &monster) {
 			bActive = true;
 			break;
@@ -122,15 +118,15 @@ void PrintDebugMonster(const Monster &monster)
 }
 
 struct DebugCmdItem {
-	const std::string_view text;
-	const std::string_view description;
-	const std::string_view requiredParameter;
-	std::string (*actionProc)(const std::string_view);
+	const string_view text;
+	const string_view description;
+	const string_view requiredParameter;
+	std::string (*actionProc)(const string_view);
 };
 
 extern std::vector<DebugCmdItem> DebugCmdList;
 
-std::string DebugCmdHelp(const std::string_view parameter)
+std::string DebugCmdHelp(const string_view parameter)
 {
 	if (parameter.empty()) {
 		std::string ret = "Available Debug Commands: ";
@@ -144,7 +140,7 @@ std::string DebugCmdHelp(const std::string_view parameter)
 		}
 		return ret;
 	}
-	auto debugCmdIterator = c_find_if(DebugCmdList, [&](const DebugCmdItem &elem) { return elem.text == parameter; });
+	auto debugCmdIterator = std::find_if(DebugCmdList.begin(), DebugCmdList.end(), [&](const DebugCmdItem &elem) { return elem.text == parameter; });
 	if (debugCmdIterator == DebugCmdList.end())
 		return StrCat("Debug command ", parameter, " wasn't found");
 	auto &dbgCmdItem = *debugCmdIterator;
@@ -153,10 +149,9 @@ std::string DebugCmdHelp(const std::string_view parameter)
 	return StrCat("Description: ", dbgCmdItem.description, "\nParameters: ", dbgCmdItem.requiredParameter);
 }
 
-std::string DebugCmdGiveGoldCheat(const std::string_view parameter)
+std::string DebugCmdGiveGoldCheat(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[givegold] ";
 
 	for (int8_t &itemIndex : myPlayer.InvGrid) {
 		if (itemIndex != 0)
@@ -171,13 +166,12 @@ std::string DebugCmdGiveGoldCheat(const std::string_view parameter)
 	}
 	CalcPlrInv(myPlayer, true);
 
-	return StrCat(cmdLabel, "Set your gold to", myPlayer._pGold, ".");
+	return "You are now rich! If only this was as easy in real life...";
 }
 
-std::string DebugCmdTakeGoldCheat(const std::string_view parameter)
+std::string DebugCmdTakeGoldCheat(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[takegold] ";
 
 	for (auto itemIndex : myPlayer.InvGrid) {
 		itemIndex -= 1;
@@ -192,33 +186,26 @@ std::string DebugCmdTakeGoldCheat(const std::string_view parameter)
 
 	myPlayer._pGold = 0;
 
-	return StrCat(cmdLabel, "Set your gold to", myPlayer._pGold, ".");
+	return "You are poor...";
 }
 
-std::string DebugCmdWarpToLevel(const std::string_view parameter)
+std::string DebugCmdWarpToLevel(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[goto] ";
-
-	const ParseIntResult<int> parsedParam = ParseInt<int>(parameter, /*min=*/0);
-	if (!parsedParam.has_value())
-		return StrCat(cmdLabel, "Missing level number!");
-	const int level = parsedParam.value();
-	if (level > (gbIsHellfire ? 24 : 16))
-		return StrCat(cmdLabel, "Level ", level, " does not exist!");
+	auto level = atoi(parameter.data());
+	if (level < 0 || level > (gbIsHellfire ? 24 : 16))
+		return StrCat("Level ", level, " is not known. Do you want to write a mod?");
 	if (!setlevel && myPlayer.isOnLevel(level))
-		return StrCat(cmdLabel, "You are already on level ", level, "!");
+		return StrCat("I did nothing but fulfilled your wish. You are already at level ", level, ".");
 
 	StartNewLvl(myPlayer, (level != 21) ? interface_mode::WM_DIABNEXTLVL : interface_mode::WM_DIABTOWNWARP, level);
-	return StrCat(cmdLabel, "Moved you to level ", level, ".");
+	return StrCat("Welcome to level ", level, ".");
 }
 
-std::string DebugCmdLoadQuestMap(const std::string_view parameter)
+std::string DebugCmdLoadQuestMap(const string_view parameter)
 {
-	std::string cmdLabel = "[questmap] ";
-
 	if (parameter.empty()) {
-		std::string ret = StrCat(cmdLabel, "Missing quest level number!");
+		std::string ret = "What mapid do you want to visit?";
 		for (auto &quest : Quests) {
 			if (quest._qslvl <= 0)
 				continue;
@@ -227,14 +214,11 @@ std::string DebugCmdLoadQuestMap(const std::string_view parameter)
 		return ret;
 	}
 
-	const ParseIntResult<int> parsedParam = ParseInt<int>(parameter, /*min=*/0);
-	if (!parsedParam.has_value())
-		return StrCat(cmdLabel, "Invalid quest level number!");
-	const int level = parsedParam.value();
+	auto level = atoi(parameter.data());
 	if (level < 1)
-		return StrCat(cmdLabel, "Quest level number must be 1 or higher!");
+		return "Map id must be 1 or higher";
 	if (setlevel && setlvlnum == level)
-		return StrCat(cmdLabel, "You are already on quest level", level, "!");
+		return StrCat("I did nothing but fulfilled your wish. You are already at mapid .", level);
 
 	for (auto &quest : Quests) {
 		if (level != quest._qslvl)
@@ -243,62 +227,51 @@ std::string DebugCmdLoadQuestMap(const std::string_view parameter)
 		setlvltype = quest._qlvltype;
 		StartNewLvl(*MyPlayer, WM_DIABSETLVL, level);
 
-		return StrCat(cmdLabel, "Moved you to quest level ", QuestLevelNames[level], ".");
+		return StrCat("Welcome to ", QuestLevelNames[level], ".");
 	}
 
-	return StrCat(cmdLabel, "Quest level ", level, " does not exist!");
+	return StrCat("Mapid ", level, " is not known. Do you want to write a mod?");
 }
 
-std::string DebugCmdLoadMap(const std::string_view parameter)
+std::string DebugCmdLoadMap(const string_view parameter)
 {
 	TestMapPath.clear();
 	int mapType = 0;
 	Point spawn = {};
-	std::string cmdLabel = "[map] ";
 
 	int count = 0;
-	for (std::string_view arg : SplitByChar(parameter, ' ')) {
+	for (string_view arg : SplitByChar(parameter, ' ')) {
 		switch (count) {
 		case 0:
 			TestMapPath = StrCat(arg, ".dun");
 			break;
-		case 1: {
-			const ParseIntResult<int> parsedArg = ParseInt<int>(arg, /*min=*/0);
-			if (!parsedArg.has_value())
-				return StrCat(cmdLabel, "Failed to parse argument 1 as integer!");
-			mapType = parsedArg.value();
-		} break;
-		case 2: {
-			const ParseIntResult<int> parsedArg = ParseInt<int>(arg);
-			if (!parsedArg.has_value())
-				return StrCat(cmdLabel, "Failed to parse argument 2 as integer!");
-			spawn.x = parsedArg.value();
-		} break;
-		case 3: {
-			const ParseIntResult<int> parsedArg = ParseInt<int>(arg);
-			if (!parsedArg.has_value())
-				return StrCat(cmdLabel, "Failed to parse argument 3 as integer!");
-			spawn.y = parsedArg.value();
-		} break;
+		case 1:
+			mapType = atoi(std::string(arg).c_str());
+			break;
+		case 2:
+			spawn.x = atoi(std::string(arg).c_str());
+			break;
+		case 3:
+			spawn.y = atoi(std::string(arg).c_str());
+			break;
 		}
 		count++;
 	}
 
 	if (TestMapPath.empty() || mapType < DTYPE_CATHEDRAL || mapType > DTYPE_LAST || !InDungeonBounds(spawn))
-		return StrCat(cmdLabel, "Invalid parameters!");
+		return "Directions not understood";
 
 	setlvltype = static_cast<dungeon_type>(mapType);
 	ViewPosition = spawn;
 
 	StartNewLvl(*MyPlayer, WM_DIABSETLVL, SL_NONE);
 
-	return StrCat(cmdLabel, "Moved you to ", TestMapPath, ".");
+	return "Welcome to this unique place.";
 }
 
-std::string ExportDun(const std::string_view parameter)
+std::string ExportDun(const string_view parameter)
 {
 	std::string levelName = StrCat(currlevel, "-", glSeedTbl[currlevel], ".dun");
-	std::string cmdLabel = "[exportdun] ";
 
 	FILE *dunFile = OpenFile(levelName.c_str(), "ab");
 
@@ -325,7 +298,7 @@ std::string ExportDun(const std::string_view parameter)
 			uint16_t monsterId = 0;
 			if (dMonster[x][y] > 0) {
 				for (int i = 0; i < 157; i++) {
-					if (MonstConvTbl[i] == Monsters[std::abs(dMonster[x][y]) - 1].type().type) {
+					if (MonstConvTbl[i] == Monsters[abs(dMonster[x][y]) - 1].type().type) {
 						monsterId = i + 1;
 						break;
 					}
@@ -360,54 +333,43 @@ std::string ExportDun(const std::string_view parameter)
 	}
 	std::fclose(dunFile);
 
-	return StrCat(cmdLabel, "Successfully exported ", levelName, ".");
+	return StrCat(levelName, " saved. Happy mapping!");
 }
 
-std::unordered_map<std::string_view, _talker_id> TownerShortNameToTownerId = {
+std::unordered_map<string_view, _talker_id> TownerShortNameToTownerId = {
 	{ "griswold", _talker_id::TOWN_SMITH },
-	{ "smith", _talker_id::TOWN_SMITH },
 	{ "pepin", _talker_id::TOWN_HEALER },
-	{ "healer", _talker_id::TOWN_HEALER },
 	{ "ogden", _talker_id::TOWN_TAVERN },
-	{ "tavern", _talker_id::TOWN_TAVERN },
 	{ "cain", _talker_id::TOWN_STORY },
-	{ "story", _talker_id::TOWN_STORY },
 	{ "farnham", _talker_id::TOWN_DRUNK },
-	{ "drunk", _talker_id::TOWN_DRUNK },
 	{ "adria", _talker_id::TOWN_WITCH },
-	{ "witch", _talker_id::TOWN_WITCH },
 	{ "gillian", _talker_id::TOWN_BMAID },
-	{ "bmaid", _talker_id::TOWN_BMAID },
 	{ "wirt", _talker_id ::TOWN_PEGBOY },
-	{ "pegboy", _talker_id ::TOWN_PEGBOY },
 	{ "lester", _talker_id ::TOWN_FARMER },
-	{ "farmer", _talker_id ::TOWN_FARMER },
 	{ "girl", _talker_id ::TOWN_GIRL },
 	{ "nut", _talker_id::TOWN_COWFARM },
-	{ "cowfarm", _talker_id::TOWN_COWFARM },
 };
 
-std::string DebugCmdVisitTowner(const std::string_view parameter)
+std::string DebugCmdVisitTowner(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[visit] ";
 
 	if (setlevel || !myPlayer.isOnLevel(0))
-		return StrCat(cmdLabel, "This command is only available in Town!");
+		return "What kind of friends do you have in dungeons?";
 
 	if (parameter.empty()) {
 		std::string ret;
-		ret = StrCat(cmdLabel, "Please provide the name of a Towner: ");
-		for (const auto &[name, _] : TownerShortNameToTownerId) {
-			ret += ' ';
-			ret.append(name);
+		ret = "Who? ";
+		for (auto &entry : TownerShortNameToTownerId) {
+			ret.append(" ");
+			ret.append(std::string(entry.first));
 		}
 		return ret;
 	}
 
 	auto it = TownerShortNameToTownerId.find(parameter);
 	if (it == TownerShortNameToTownerId.end())
-		return StrCat(cmdLabel, parameter, " is invalid!");
+		return StrCat(parameter, " is unknown. Perhaps he is a ninja?");
 
 	for (auto &towner : Towners) {
 		if (towner._ttype != it->second)
@@ -416,113 +378,97 @@ std::string DebugCmdVisitTowner(const std::string_view parameter)
 		CastSpell(
 		    MyPlayerId,
 		    SpellID::Teleport,
-		    myPlayer.position.tile,
-		    towner.position,
+		    myPlayer.position.tile.x,
+		    myPlayer.position.tile.y,
+		    towner.position.x,
+		    towner.position.y,
 		    1);
 
-		return StrCat(cmdLabel, "Moved you to ", parameter, ".");
+		return StrCat("Say hello to ", parameter, " from me.");
 	}
 
-	return StrCat(cmdLabel, "Unable to locate ", parameter, "!");
+	return StrCat("Couldn't find ", parameter, ".");
 }
 
-std::string DebugCmdResetLevel(const std::string_view parameter)
+std::string DebugCmdResetLevel(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[restart] ";
 
 	auto args = SplitByChar(parameter, ' ');
 	auto it = args.begin();
 	if (it == args.end())
-		return StrCat(cmdLabel, "Missing level number!");
-	int level;
-	{
-		const ParseIntResult<int> parsedArg = ParseInt<int>(*it, /*min=*/0);
-		if (!parsedArg.has_value())
-			return StrCat(cmdLabel, "Failed to parse argument 1 as integer!");
-		level = parsedArg.value();
-	}
-	if (level > (gbIsHellfire ? 24 : 16))
-		return StrCat(cmdLabel, "Level ", level, " does not exist!");
+		return "What level do you want to visit?";
+	auto level = atoi(std::string(*it).c_str());
+	if (level < 0 || level > (gbIsHellfire ? 24 : 16))
+		return StrCat("Level ", level, " is not known. Do you want to write an extension mod?");
 	myPlayer._pLvlVisited[level] = false;
 	DeltaClearLevel(level);
 
 	if (++it != args.end()) {
-		const ParseIntResult<uint32_t> parsedArg = ParseInt<uint32_t>(*it);
-		if (!parsedArg.has_value())
-			return StrCat(cmdLabel, "Failed to parse argument 2 as uint32_t!");
-		glSeedTbl[level] = parsedArg.value();
+		const auto seed = static_cast<uint32_t>(std::stoul(std::string(*it)));
+		glSeedTbl[level] = seed;
 	}
 
 	if (myPlayer.isOnLevel(level))
-		return StrCat(cmdLabel, "Unable to reset dungeon levels occupied by players!");
-	return StrCat(cmdLabel, "Successfully reset level ", level, ".");
+		return StrCat("Level ", level, " can't be cleaned, cause you still occupy it!");
+	return StrCat("Level ", level, " was restored and looks fabulous.");
 }
 
-std::string DebugCmdGodMode(const std::string_view parameter)
+std::string DebugCmdGodMode(const string_view parameter)
 {
-	std::string cmdLabel = "[god] ";
-
 	DebugGodMode = !DebugGodMode;
-
-	return StrCat(cmdLabel, "God mode: ", DebugGodMode ? "On" : "Off");
+	if (DebugGodMode)
+		return "A god descended.";
+	return "You are mortal, beware of the darkness.";
 }
 
-std::string DebugCmdLighting(const std::string_view parameter)
+std::string DebugCmdLighting(const string_view parameter)
 {
-	std::string cmdLabel = "[fullbright] ";
-
 	ToggleLighting();
 
-	return StrCat(cmdLabel, "Fullbright: ", DisableLighting ? "On" : "Off");
+	return "All raindrops are the same.";
 }
 
-std::string DebugCmdMapReveal(const std::string_view parameter)
+std::string DebugCmdMapReveal(const string_view parameter)
 {
-	std::string cmdLabel = "[givemap] ";
-
 	for (int x = 0; x < DMAXX; x++)
 		for (int y = 0; y < DMAXY; y++)
 			UpdateAutomapExplorer({ x, y }, MAP_EXP_SHRINE);
 
-	return StrCat(cmdLabel, "Automap fully explored.");
+	return "The way is made clear when viewed from above";
 }
 
-std::string DebugCmdMapHide(const std::string_view parameter)
+std::string DebugCmdMapHide(const string_view parameter)
 {
-	std::string cmdLabel = "[takemap] ";
-
 	for (int x = 0; x < DMAXX; x++)
 		for (int y = 0; y < DMAXY; y++)
 			AutomapView[x][y] = MAP_EXP_NONE;
 
-	return StrCat(cmdLabel, "Automap exploration removed.");
+	return "The way is made unclear when viewed from below";
 }
 
-std::string DebugCmdVision(const std::string_view parameter)
+std::string DebugCmdVision(const string_view parameter)
 {
-	std::string cmdLabel = "[drawvision] ";
-
 	DebugVision = !DebugVision;
+	if (DebugVision)
+		return "You see as I do.";
 
-	return StrCat(cmdLabel, "Vision highlighting: ", DebugVision ? "On" : "Off");
+	return "My path is set.";
 }
 
-std::string DebugCmdPath(const std::string_view parameter)
+std::string DebugCmdPath(const string_view parameter)
 {
-	std::string cmdLabel = "[drawpath] ";
-
 	DebugPath = !DebugPath;
+	if (DebugPath)
+		return "The mushroom trail.";
 
-	return StrCat(cmdLabel, "Path highlighting: ", DebugPath ? "On" : "Off");
+	return "The path is hidden.";
 }
 
-std::string DebugCmdQuest(const std::string_view parameter)
+std::string DebugCmdQuest(const string_view parameter)
 {
-	std::string cmdLabel = "[givequest] ";
-
 	if (parameter.empty()) {
-		std::string ret = StrCat(cmdLabel, "Missing quest id! (This can be: all)");
+		std::string ret = "You must provide an id. This could be: all";
 		for (auto &quest : Quests) {
 			if (IsNoneOf(quest._qactive, QUEST_NOTAVAIL, QUEST_INIT))
 				continue;
@@ -540,72 +486,55 @@ std::string DebugCmdQuest(const std::string_view parameter)
 			quest._qlog = true;
 		}
 
-		return StrCat(cmdLabel, "Activated all quests.");
+		return "Happy questing";
 	}
 
-	const ParseIntResult<int> parsedArg = ParseInt<int>(parameter, /*min=*/0);
-	if (!parsedArg.has_value())
-		return StrCat(cmdLabel, "Failed to parse argument as integer!");
-	const int questId = parsedArg.value();
+	int questId = atoi(parameter.data());
 
 	if (questId >= MAXQUESTS)
-		return StrCat(cmdLabel, "Quest ", questId, " does not exist!");
+		return StrCat("Quest ", questId, " is not known. Do you want to write a mod?");
 	auto &quest = Quests[questId];
 
 	if (IsNoneOf(quest._qactive, QUEST_NOTAVAIL, QUEST_INIT))
-		return StrCat(cmdLabel, QuestsData[questId]._qlstr, " is already active!");
+		return StrCat(QuestsData[questId]._qlstr, " was already given.");
 
 	quest._qactive = QUEST_ACTIVE;
 	quest._qlog = true;
 
-	return StrCat(cmdLabel, QuestsData[questId]._qlstr, " activated.");
+	return StrCat(QuestsData[questId]._qlstr, " enabled.");
 }
 
-std::string DebugCmdLevelUp(const std::string_view parameter)
+std::string DebugCmdLevelUp(const string_view parameter)
 {
-	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[givelvl] ";
-
-	const int levels = ParseInt<int>(parameter, /*min=*/1).value_or(1);
+	int levels = std::max(1, atoi(parameter.data()));
 	for (int i = 0; i < levels; i++)
 		NetSendCmd(true, CMD_CHEAT_EXPERIENCE);
-	return StrCat(cmdLabel, "New character level: ", myPlayer.getCharacterLevel());
+	return "New experience leads to new insights.";
 }
 
-std::string DebugCmdMaxStats(const std::string_view parameter)
+std::string DebugCmdMaxStats(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[maxstats] ";
-
 	ModifyPlrStr(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Strength) - myPlayer._pBaseStr);
 	ModifyPlrMag(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Magic) - myPlayer._pBaseMag);
 	ModifyPlrDex(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Dexterity) - myPlayer._pBaseDex);
 	ModifyPlrVit(myPlayer, myPlayer.GetMaximumAttributeValue(CharacterAttribute::Vitality) - myPlayer._pBaseVit);
-
-	return StrCat(cmdLabel, "Set all character base attributes to maximum.");
+	return "Who needs elixirs anyway?";
 }
 
-std::string DebugCmdMinStats(const std::string_view parameter)
+std::string DebugCmdMinStats(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[minstats] ";
-
 	ModifyPlrStr(myPlayer, -myPlayer._pBaseStr);
 	ModifyPlrMag(myPlayer, -myPlayer._pBaseMag);
 	ModifyPlrDex(myPlayer, -myPlayer._pBaseDex);
 	ModifyPlrVit(myPlayer, -myPlayer._pBaseVit);
-
-	return StrCat(cmdLabel, "Set all character base attributes to minimum.");
+	return "From hero to zero.";
 }
 
-std::string DebugCmdSetSpellsLevel(const std::string_view parameter)
+std::string DebugCmdSetSpellsLevel(const string_view parameter)
 {
-	std::string cmdLabel = "[setspells] ";
-
-	const ParseIntResult<uint8_t> parsedArg = ParseInt<uint8_t>(parameter);
-	if (!parsedArg.has_value())
-		return StrCat(cmdLabel, "Failed to parse argument as uint8_t!");
-	const uint8_t level = parsedArg.value();
+	uint8_t level = static_cast<uint8_t>(std::max(0, atoi(parameter.data())));
 	for (uint8_t i = static_cast<uint8_t>(SpellID::Firebolt); i < MAX_SPELLS; i++) {
 		if (GetSpellBookLevel(static_cast<SpellID>(i)) != -1) {
 			NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, i, level);
@@ -614,92 +543,85 @@ std::string DebugCmdSetSpellsLevel(const std::string_view parameter)
 	if (level == 0)
 		MyPlayer->_pMemSpells = 0;
 
-	return StrCat(cmdLabel, "Set all spell levels to ", level);
+	return "Knowledge is power.";
 }
 
-std::string DebugCmdRefillHealthMana(const std::string_view parameter)
+std::string DebugCmdRefillHealthMana(const string_view parameter)
 {
-	std::string cmdLabel = "[fill] ";
-
 	Player &myPlayer = *MyPlayer;
 	myPlayer.RestoreFullLife();
+
+	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
 	myPlayer.RestoreFullMana();
+
 	RedrawComponent(PanelDrawComponent::Health);
+
+	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
 	RedrawComponent(PanelDrawComponent::Mana);
 
-	return StrCat(cmdLabel, "Restored life and mana to full.");
+	return "Ready for more.";
 }
 
-std::string DebugCmdChangeHealth(const std::string_view parameter)
+std::string DebugCmdChangeHealth(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[changehp] ";
 	int change = -1;
 
-	if (!parameter.empty()) {
-		const ParseIntResult<int> parsedArg = ParseInt<int>(parameter);
-		if (!parsedArg.has_value())
-			return StrCat(cmdLabel, "Failed to parse argument as integer!");
-		change = parsedArg.value();
-	}
+	if (!parameter.empty())
+		change = atoi(parameter.data());
 
 	if (change == 0)
-		return StrCat(cmdLabel, "Enter a value not equal to 0 to change life!");
+		return "Health hasn't changed.";
 
 	int newHealth = myPlayer._pHitPoints + (change * 64);
 	SetPlayerHitPoints(myPlayer, newHealth);
 	if (newHealth <= 0)
 		SyncPlrKill(myPlayer, DeathReason::MonsterOrTrap);
 
-	return StrCat(cmdLabel, "Changed life by ", change);
+	return "Health has changed.";
 }
 
-std::string DebugCmdChangeMana(const std::string_view parameter)
+std::string DebugCmdChangeMana(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[changemana] ";
 	int change = -1;
 
-	if (!parameter.empty()) {
-		const ParseIntResult<int> parsedArg = ParseInt<int>(parameter);
-		if (!parsedArg.has_value())
-			return StrCat(cmdLabel, "Failed to parse argument as integer!");
-		change = parsedArg.value();
+	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16) {
+		if (!parameter.empty())
+			change = atoi(parameter.data());
+
+		if (change == 0)
+			return "Mana hasn't changed.";
+
+		int newMana = myPlayer._pMana + (change * 64);
+		myPlayer._pMana = newMana;
+		myPlayer._pManaBase = myPlayer._pMana + myPlayer._pMaxManaBase - myPlayer._pMaxMana;
+		RedrawComponent(PanelDrawComponent::Mana);
+
+		return "Mana has changed.";
 	}
-
-	if (change == 0)
-		return StrCat(cmdLabel, "Enter a value not equal to 0 to change mana!");
-
-	int newMana = myPlayer._pMana + (change * 64);
-	myPlayer._pMana = newMana;
-	myPlayer._pManaBase = myPlayer._pMana + myPlayer._pMaxManaBase - myPlayer._pMaxMana;
-	RedrawComponent(PanelDrawComponent::Mana);
-
-	return StrCat(cmdLabel, "Changed mana by ", change);
 }
 
-std::string DebugCmdGenerateUniqueItem(const std::string_view parameter)
+std::string DebugCmdGenerateUniqueItem(const string_view parameter)
 {
 	return DebugSpawnUniqueItem(parameter.data());
 }
 
-std::string DebugCmdGenerateItem(const std::string_view parameter)
+std::string DebugCmdGenerateItem(const string_view parameter)
 {
 	return DebugSpawnItem(parameter.data());
 }
 
-std::string DebugCmdExit(const std::string_view parameter)
+std::string DebugCmdExit(const string_view parameter)
 {
-	std::string cmdLabel = "[exit] ";
 	gbRunGame = false;
 	gbRunGameResult = false;
-	return StrCat(cmdLabel, "Exiting game.");
+	return "See you again my Lord.";
 }
 
-std::string DebugCmdArrow(const std::string_view parameter)
+std::string DebugCmdArrow(const string_view parameter)
 {
 	Player &myPlayer = *MyPlayer;
-	std::string cmdLabel = "[arrow] ";
 
 	myPlayer._pIFlags &= ~ItemSpecialEffect::FireArrows;
 	myPlayer._pIFlags &= ~ItemSpecialEffect::LightningArrows;
@@ -710,67 +632,65 @@ std::string DebugCmdArrow(const std::string_view parameter)
 		myPlayer._pIFlags |= ItemSpecialEffect::FireArrows;
 	} else if (parameter == "lightning") {
 		myPlayer._pIFlags |= ItemSpecialEffect::LightningArrows;
-	} else if (parameter == "spectral") {
+	} else if (parameter == "explosion") {
 		myPlayer._pIFlags |= (ItemSpecialEffect::FireArrows | ItemSpecialEffect::LightningArrows);
 	} else {
-		return StrCat(cmdLabel, "Invalid parameter!");
+		return "Unknown is sometimes similar to nothing (unkown effect).";
 	}
 
-	return StrCat(cmdLabel, "Arrows changed to: ", parameter);
+	return "I can shoot any arrow.";
 }
 
-std::string DebugCmdTalkToTowner(const std::string_view parameter)
+std::string DebugCmdTalkToTowner(const string_view parameter)
 {
-	std::string cmdLabel = "[talkto] ";
-
 	if (DebugTalkToTowner(parameter.data())) {
-		return StrCat(cmdLabel, "Opened ", parameter, " talk window.");
+		return "Hello from the other side.";
 	}
-	return StrCat(cmdLabel, "Towner not found!");
+	return "NPC not found.";
 }
 
-std::string DebugCmdShowGrid(const std::string_view parameter)
+std::string DebugCmdShowGrid(const string_view parameter)
 {
-	std::string cmdLabel = "[grid] ";
-
 	DebugGrid = !DebugGrid;
+	if (DebugGrid)
+		return "A basket full of rectangles and mushrooms.";
 
-	return StrCat(cmdLabel, "Tile grid highlighting: ", DebugGrid ? "On" : "Off");
+	return "Back to boring.";
 }
 
-std::string DebugCmdSpawnUniqueMonster(const std::string_view parameter)
+std::string DebugCmdLevelSeed(const string_view parameter)
 {
-	std::string cmdLabel = "[spawnu] ";
+	return StrCat("Seedinfo for level ", currlevel, "\nseed: ", glSeedTbl[currlevel], "\nMid1: ", glMid1Seed[currlevel], "\nMid2: ", glMid2Seed[currlevel], "\nMid3: ", glMid3Seed[currlevel], "\nEnd: ", glEndSeed[currlevel]);
+}
 
+std::string DebugCmdSpawnUniqueMonster(const string_view parameter)
+{
 	if (leveltype == DTYPE_TOWN)
-		return StrCat(cmdLabel, "This command is not available in Town!");
+		return "Do you want to kill the towners?!?";
 
 	std::string name;
 	int count = 1;
-	for (std::string_view arg : SplitByChar(parameter, ' ')) {
-		const ParseIntResult<int> parsedArg = ParseInt<int>(arg);
-		if (!parsedArg.has_value()) {
-			name.append(arg);
-			name += ' ';
-			continue;
-		}
-		const int num = parsedArg.value();
+	for (string_view arg : SplitByChar(parameter, ' ')) {
+		const int num = atoi(std::string(arg).c_str());
 		if (num > 0) {
 			count = num;
 			break;
 		}
+		AppendStrView(name, arg);
+		name += ' ';
 	}
 	if (name.empty())
-		return StrCat(cmdLabel, "Missing monster name!");
+		return "Monster name cannot be empty. Duh.";
 
 	name.pop_back(); // remove last space
-	AsciiStrToLower(name);
+	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
 
 	int mtype = -1;
 	UniqueMonsterType uniqueIndex = UniqueMonsterType::None;
 	for (size_t i = 0; UniqueMonstersData[i].mtype != MT_INVALID; i++) {
 		auto mondata = UniqueMonstersData[i];
-		const std::string monsterName = AsciiStrToLower(mondata.mName);
+		std::string monsterName(mondata.mName);
+		std::transform(monsterName.begin(), monsterName.end(), monsterName.begin(), [](unsigned char c) { return std::tolower(c); });
 		if (monsterName.find(name) == std::string::npos)
 			continue;
 		mtype = mondata.mtype;
@@ -780,12 +700,13 @@ std::string DebugCmdSpawnUniqueMonster(const std::string_view parameter)
 	}
 
 	if (mtype == -1)
-		return StrCat(cmdLabel, "Monster not found!");
+		return "Monster not found!";
 
 	size_t id = MaxLvlMTypes - 1;
 	bool found = false;
 
 	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
+	//	for (int i = 0; i < LevelMonsterTypeCount; i++) {
 		if (LevelMonsterTypes[i].type == mtype) {
 			id = i;
 			found = true;
@@ -815,55 +736,50 @@ std::string DebugCmdSpawnUniqueMonster(const std::string_view parameter)
 
 		Monster *monster = AddMonster(pos, myPlayer._pdir, id, true);
 		if (monster == nullptr)
-			return StrCat(cmdLabel, "Spawned ", spawnedMonster, " monsters. (Unable to spawn more)");
+			return StrCat("I could only summon ", spawnedMonster, " Monsters. The rest strike for shorter working hours.");
 		PrepareUniqueMonst(*monster, uniqueIndex, 0, 0, UniqueMonstersData[static_cast<size_t>(uniqueIndex)]);
 		monster->corpseId = 1;
 		spawnedMonster += 1;
 
 		if (spawnedMonster >= count)
-			return StrCat(cmdLabel, "Spawned ", spawnedMonster, " monsters.");
+			return "Let the fighting begin!";
 
 		return {};
 	});
 
 	if (!ret)
-		ret = StrCat(cmdLabel, "Spawned ", spawnedMonster, " monsters. (Unable to spawn more)");
+		ret = StrCat("I could only summon ", spawnedMonster, " Monsters. The rest strike for shorter working hours.");
 	return *ret;
 }
 
-std::string DebugCmdSpawnMonster(const std::string_view parameter)
+std::string DebugCmdSpawnMonster(const string_view parameter)
 {
-	std::string cmdLabel = "[spawn] ";
-
 	if (leveltype == DTYPE_TOWN)
-		return StrCat(cmdLabel, "This command is not available in Town!");
+		return "Do you want to kill the towners?!?";
 
 	std::string name;
 	int count = 1;
-	for (std::string_view arg : SplitByChar(parameter, ' ')) {
-		const ParseIntResult<int> parsedArg = ParseInt<int>(arg);
-		if (!parsedArg.has_value()) {
-			name.append(arg);
-			name += ' ';
-			continue;
-		}
-		const int num = parsedArg.value();
+	for (string_view arg : SplitByChar(parameter, ' ')) {
+		const int num = atoi(std::string(arg).c_str());
 		if (num > 0) {
 			count = num;
 			break;
 		}
+		AppendStrView(name, arg);
+		name += ' ';
 	}
 	if (name.empty())
-		return StrCat(cmdLabel, "Missing monster name!");
+		return "Monster name cannot be empty. Duh.";
 
 	name.pop_back(); // remove last space
-	AsciiStrToLower(name);
+	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
 
 	int mtype = -1;
 
 	for (int i = 0; i < NUM_MTYPES; i++) {
 		auto mondata = MonstersData[i];
-		const std::string monsterName = AsciiStrToLower(mondata.name);
+		std::string monsterName(mondata.name);
+		std::transform(monsterName.begin(), monsterName.end(), monsterName.begin(), [](unsigned char c) { return std::tolower(c); });
 		if (monsterName.find(name) == std::string::npos)
 			continue;
 		mtype = i;
@@ -872,12 +788,13 @@ std::string DebugCmdSpawnMonster(const std::string_view parameter)
 	}
 
 	if (mtype == -1)
-		return StrCat(cmdLabel, "Monster not found!");
+		return "Monster not found!";
 
 	size_t id = MaxLvlMTypes - 1;
 	bool found = false;
 
 	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
+	//	for (int i = 0; i < LevelMonsterTypeCount; i++) {
 		if (LevelMonsterTypes[i].type == mtype) {
 			id = i;
 			found = true;
@@ -906,24 +823,22 @@ std::string DebugCmdSpawnMonster(const std::string_view parameter)
 			return {};
 
 		if (AddMonster(pos, myPlayer._pdir, id, true) == nullptr)
-			return StrCat(cmdLabel, "Spawned ", spawnedMonster, " monsters. (Unable to spawn more)");
+			return StrCat("I could only summon ", spawnedMonster, " Monsters. The rest strike for shorter working hours.");
 		spawnedMonster += 1;
 
 		if (spawnedMonster >= count)
-			return StrCat(cmdLabel, "Spawned ", spawnedMonster, " monsters.");
+			return "Let the fighting begin!";
 
 		return {};
 	});
 
 	if (!ret)
-		return StrCat(cmdLabel, "Spawned ", spawnedMonster, " monsters. (Unable to spawn more)");
+		ret = StrCat("I could only summon ", spawnedMonster, " Monsters. The rest strike for shorter working hours.");
 	return *ret;
 }
 
-std::string DebugCmdShowTileData(const std::string_view parameter)
+std::string DebugCmdShowTileData(const string_view parameter)
 {
-	std::string cmdLabel = "[tiledata] ";
-
 	std::string paramList[] = {
 		"dPiece",
 		"dTransVal",
@@ -950,7 +865,7 @@ std::string DebugCmdShowTileData(const std::string_view parameter)
 
 	if (parameter == "clear") {
 		SelectedDebugGridTextItem = DebugGridTextItem::None;
-		return StrCat(cmdLabel, "Tile data cleared.");
+		return "Tile data cleared!";
 	}
 	if (parameter == "") {
 		std::string list = "clear";
@@ -969,32 +884,28 @@ std::string DebugCmdShowTileData(const std::string_view parameter)
 		auto newGridText = static_cast<DebugGridTextItem>(index);
 		if (newGridText == SelectedDebugGridTextItem) {
 			SelectedDebugGridTextItem = DebugGridTextItem::None;
-			return StrCat(cmdLabel, "Tile data: Off");
+			return "Tile data toggled... now you see nothing.";
 		}
 		SelectedDebugGridTextItem = newGridText;
 		break;
 	}
 	if (!found)
-		return StrCat(cmdLabel, "Invalid name! Check names using tiledata command.");
+		return "Invalid name. Check names using tiledata command.";
 
-	return StrCat(cmdLabel, "Tile data: On");
+	return "Special powers activated.";
 }
 
-std::string DebugCmdScrollView(const std::string_view parameter)
+std::string DebugCmdScrollView(const string_view parameter)
 {
-	std::string cmdLabel = "[scrollview] ";
-
 	DebugScrollViewEnabled = !DebugScrollViewEnabled;
 	if (DebugScrollViewEnabled)
-		return StrCat(cmdLabel, "Scroll view: On");
+		return "You can see as far as an eagle.";
 	InitMultiView();
-	return StrCat(cmdLabel, "Scroll view: Off");
+	return "If you want to see the world, you need to explore it yourself.";
 }
 
-std::string DebugCmdItemInfo(const std::string_view parameter)
+std::string DebugCmdItemInfo(const string_view parameter)
 {
-	std::string cmdLabel = "[iteminfo] ";
-
 	Player &myPlayer = *MyPlayer;
 	Item *pItem = nullptr;
 	if (!myPlayer.HoldItem.isEmpty()) {
@@ -1008,39 +919,15 @@ std::string DebugCmdItemInfo(const std::string_view parameter)
 		pItem = &Items[pcursitem];
 	}
 	if (pItem != nullptr) {
-		std::string_view netPackValidation { "N/A" };
-		if (gbIsMultiplayer) {
-			ItemNetPack itemPack;
-			Item unpacked;
-			PackNetItem(*pItem, itemPack);
-			netPackValidation = UnPackNetItem(myPlayer, itemPack, unpacked) ? "Success" : "Failure";
-		}
-		return StrCat("Name: ", pItem->_iIName,
-		    "\nIDidx: ", pItem->IDidx, " (", AllItemsList[pItem->IDidx].iName, ")",
-		    "\nSeed: ", pItem->_iSeed,
-		    "\nCreateInfo: ", pItem->_iCreateInfo,
-		    "\nLevel: ", pItem->_iCreateInfo & CF_LEVEL,
-		    "\nOnly Good: ", ((pItem->_iCreateInfo & CF_ONLYGOOD) == 0) ? "False" : "True",
-		    "\nUnique Monster: ", ((pItem->_iCreateInfo & CF_UPER15) == 0) ? "False" : "True",
-		    "\nDungeon Item: ", ((pItem->_iCreateInfo & CF_UPER1) == 0) ? "False" : "True",
-		    "\nUnique Item: ", ((pItem->_iCreateInfo & CF_UNIQUE) == 0) ? "False" : "True",
-		    "\nSmith: ", ((pItem->_iCreateInfo & CF_SMITH) == 0) ? "False" : "True",
-		    "\nSmith Premium: ", ((pItem->_iCreateInfo & CF_SMITHPREMIUM) == 0) ? "False" : "True",
-		    "\nBoy: ", ((pItem->_iCreateInfo & CF_BOY) == 0) ? "False" : "True",
-		    "\nWitch: ", ((pItem->_iCreateInfo & CF_WITCH) == 0) ? "False" : "True",
-		    "\nHealer: ", ((pItem->_iCreateInfo & CF_HEALER) == 0) ? "False" : "True",
-		    "\nPregen: ", ((pItem->_iCreateInfo & CF_PREGEN) == 0) ? "False" : "True",
-		    "\nNet Validation: ", netPackValidation);
+		return StrCat("Name: ", pItem->_iIName, "\nIDidx: ", pItem->IDidx, "\nSeed: ", pItem->_iSeed, "\nCreateInfo: ", pItem->_iCreateInfo);
 	}
-	return StrCat(cmdLabel, "Numitems: ", ActiveItemCount);
+	return StrCat("Numitems: ", ActiveItemCount);
 }
 
-std::string DebugCmdQuestInfo(const std::string_view parameter)
+std::string DebugCmdQuestInfo(const string_view parameter)
 {
-	std::string cmdLabel = "[questinfo] ";
-
 	if (parameter.empty()) {
-		std::string ret = StrCat(cmdLabel, "You must provide an id! This could be: ");
+		std::string ret = "You must provide an id. This could be:";
 		for (auto &quest : Quests) {
 			if (IsNoneOf(quest._qactive, QUEST_NOTAVAIL, QUEST_INIT))
 				continue;
@@ -1049,64 +936,47 @@ std::string DebugCmdQuestInfo(const std::string_view parameter)
 		return ret;
 	}
 
-	const ParseIntResult<int> parsedArg = ParseInt<int>(parameter, /*min=*/0);
-	if (!parsedArg.has_value())
-		return StrCat(cmdLabel, "Failed to parse argument as integer!");
-	const int questId = parsedArg.value();
+	int questId = atoi(parameter.data());
 
 	if (questId >= MAXQUESTS)
-		return StrCat(cmdLabel, "Quest ", questId, " does not exist!");
+		return StrCat("Quest ", questId, " is not known. Do you want to write a mod?");
 	auto &quest = Quests[questId];
-	return StrCat(cmdLabel, "\nQuest: ", QuestsData[quest._qidx]._qlstr, "\nActive: ", quest._qactive, " Var1: ", quest._qvar1, " Var2: ", quest._qvar2);
+	return StrCat("\nQuest: ", QuestsData[quest._qidx]._qlstr, "\nActive: ", quest._qactive, " Var1: ", quest._qvar1, " Var2: ", quest._qvar2);
 }
 
-std::string DebugCmdPlayerInfo(const std::string_view parameter)
+std::string DebugCmdPlayerInfo(const string_view parameter)
 {
-	std::string cmdLabel = "[playerinfo] ";
-
-	if (parameter.empty()) {
-		return StrCat(cmdLabel, "Provide a player ID between 0 and ", Players.size() - 1);
-	}
-	const ParseIntResult<size_t> parsedArg = ParseInt<size_t>(parameter);
-	if (!parsedArg.has_value()) {
-		return StrCat(cmdLabel, "Failed to parse argument as size_t in range!");
-	}
-	const size_t playerId = parsedArg.value();
+	int playerId = atoi(parameter.data());
 	if (static_cast<size_t>(playerId) >= Players.size())
-		return StrCat(cmdLabel, "Invalid playerId!");
+		return "My friend, we need a valid playerId.";
 	Player &player = Players[playerId];
 	if (!player.plractive)
-		return StrCat(cmdLabel, "Player is not active!");
+		return "Player is not active";
 
 	const Point target = player.GetTargetPosition();
-	return StrCat(cmdLabel, "Plr ", playerId, " is ", player._pName,
+	return StrCat("Plr ", playerId, " is ", player._pName,
 	    "\nLvl: ", player.plrlevel, " Changing: ", player._pLvlChanging,
 	    "\nTile.x: ", player.position.tile.x, " Tile.y: ", player.position.tile.y, " Target.x: ", target.x, " Target.y: ", target.y,
 	    "\nMode: ", player._pmode, " destAction: ", player.destAction, " walkpath[0]: ", player.walkpath[0],
 	    "\nInvincible:", player._pInvincible ? 1 : 0, " HitPoints:", player._pHitPoints);
 }
 
-std::string DebugCmdToggleFPS(const std::string_view parameter)
+std::string DebugCmdToggleFPS(const string_view parameter)
 {
-	std::string cmdLabel = "[fps] ";
-
 	frameflag = !frameflag;
-
-	return StrCat(cmdLabel, "FPS counter: ", frameflag ? "On" : "Off");
+	return "";
 }
 
-std::string DebugCmdChangeTRN(const std::string_view parameter)
+std::string DebugCmdChangeTRN(const string_view parameter)
 {
-	std::string cmdLabel = "[trn] ";
-
 	std::string out;
 	const auto parts = SplitByChar(parameter, ' ');
 	auto it = parts.begin();
 	if (it != parts.end()) {
-		const std::string_view first = *it;
+		const string_view first = *it;
 		if (++it != parts.end()) {
-			const std::string_view second = *it;
-			std::string_view prefix;
+			const string_view second = *it;
+			string_view prefix;
 			if (first == "mon") {
 				prefix = "monsters\\monsters\\";
 			} else if (first == "plr") {
@@ -1116,10 +986,10 @@ std::string DebugCmdChangeTRN(const std::string_view parameter)
 		} else {
 			debugTRN = StrCat(first, ".trn");
 		}
-		out = StrCat(cmdLabel, "TRN loaded: ", debugTRN);
+		out = fmt::format("I am a pretty butterfly. \n(Loading TRN: {:s})", debugTRN);
 	} else {
 		debugTRN = "";
-		out = StrCat(cmdLabel, "TRN disabled.");
+		out = "I am a big brown potato.";
 	}
 	auto &player = *MyPlayer;
 	InitPlayerGFX(player);
@@ -1127,72 +997,64 @@ std::string DebugCmdChangeTRN(const std::string_view parameter)
 	return out;
 }
 
-std::string DebugCmdSearchMonster(const std::string_view parameter)
+std::string DebugCmdSearchMonster(const string_view parameter)
 {
-	std::string cmdLabel = "[searchmonster] ";
-
 	if (parameter.empty()) {
-		std::string ret = StrCat(cmdLabel, "Missing monster name!");
+		std::string ret = "What should I search? I'm too lazy to search for everything... you must provide a monster name!";
 		return ret;
 	}
 
 	std::string name;
-	name.append(parameter);
-	AsciiStrToLower(name);
+	AppendStrView(name, parameter);
+	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
 	SearchMonsters.push_back(name);
 
-	return StrCat(cmdLabel, "Added automap marker for monster ", name, ".");
+	return "We will find this bastard!";
 }
 
-std::string DebugCmdSearchItem(const std::string_view parameter)
+std::string DebugCmdSearchItem(const string_view parameter)
 {
-	std::string cmdLabel = "[searchitem] ";
-
 	if (parameter.empty()) {
-		std::string ret = StrCat(cmdLabel, "Missing item name!");
+		std::string ret = "What should I search? I'm too lazy to search for everything... you must provide a item name!";
 		return ret;
 	}
 
 	std::string name;
-	name.append(parameter);
-	AsciiStrToLower(name);
+	AppendStrView(name, parameter);
+	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
 	SearchItems.push_back(name);
 
-	return StrCat(cmdLabel, "Added automap marker for item ", name, ".");
+	return "Are you greedy? Anyway I will help you.";
 }
 
-std::string DebugCmdSearchObject(const std::string_view parameter)
+std::string DebugCmdSearchObject(const string_view parameter)
 {
-	std::string cmdLabel = "[searchobject] ";
-
 	if (parameter.empty()) {
-		std::string ret = StrCat(cmdLabel, "Missing object name!");
+		std::string ret = "What should I search? I'm too lazy to search for everything... you must provide a object name!";
 		return ret;
 	}
 
 	std::string name;
-	name.append(parameter);
-	AsciiStrToLower(name);
+	AppendStrView(name, parameter);
+	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
 	SearchObjects.push_back(name);
 
-	return StrCat(cmdLabel, "Added automap marker for object ", name, ".");
+	return "I will look for the pyramids. Oh sorry, I'm looking for what you want, of course.";
 }
 
-std::string DebugCmdClearSearch(const std::string_view parameter)
+std::string DebugCmdClearSearch(const string_view parameter)
 {
-	std::string cmdLabel = "[clearsearch] ";
-
 	SearchMonsters.clear();
 	SearchItems.clear();
 	SearchObjects.clear();
 
-	return StrCat(cmdLabel, "Removed all automap search markers.");
+	return "Now you have to find it yourself.";
 }
 
 std::vector<DebugCmdItem> DebugCmdList = {
 	{ "help", "Prints help overview or help for a specific command.", "({command})", &DebugCmdHelp },
 	{ "givegold", "Fills the inventory with gold.", "", &DebugCmdGiveGoldCheat },
-	{ "givelvl", "Levels the player up (min 1 level or {levels}).", "({levels})", &DebugCmdLevelUp },
+	{ "givexp", "Levels the player up (min 1 level or {levels}).", "({levels})", &DebugCmdLevelUp },
 	{ "maxstats", "Sets all stat values to maximum.", "", &DebugCmdMaxStats },
 	{ "minstats", "Sets all stat values to minimum.", "", &DebugCmdMinStats },
 	{ "setspells", "Set spell level to {level} for all spells.", "{level}", &DebugCmdSetSpellsLevel },
@@ -1219,6 +1081,7 @@ std::vector<DebugCmdItem> DebugCmdList = {
 	{ "exit", "Exits the game.", "", &DebugCmdExit },
 	{ "arrow", "Changes arrow effect (normal, fire, lightning, explosion).", "{effect}", &DebugCmdArrow },
 	{ "grid", "Toggles showing grid.", "", &DebugCmdShowGrid },
+	{ "seedinfo", "Show seed infos for current level.", "", &DebugCmdLevelSeed },
 	{ "spawnu", "Spawns unique monster {name}.", "{name} ({count})", &DebugCmdSpawnUniqueMonster },
 	{ "spawn", "Spawns monster {name}.", "{name} ({count})", &DebugCmdSpawnMonster },
 	{ "tiledata", "Toggles showing tile data {name} (leave name empty to see a list).", "{name}", &DebugCmdShowTileData },
@@ -1250,7 +1113,7 @@ void GetDebugMonster()
 {
 	int monsterIndex = pcursmonst;
 	if (monsterIndex == -1)
-		monsterIndex = std::abs(dMonster[cursPosition.x][cursPosition.y]) - 1;
+		monsterIndex = abs(dMonster[cursPosition.x][cursPosition.y]) - 1;
 
 	if (monsterIndex == -1)
 		monsterIndex = DebugMonsterId;
@@ -1275,20 +1138,20 @@ void SetDebugLevelSeedInfos(uint32_t mid1Seed, uint32_t mid2Seed, uint32_t mid3S
 	glEndSeed[currlevel] = endSeed;
 }
 
-bool CheckDebugTextCommand(const std::string_view text)
+bool CheckDebugTextCommand(const string_view text)
 {
-	auto debugCmdIterator = c_find_if(DebugCmdList, [&](const DebugCmdItem &elem) { return text.find(elem.text) == 0 && (text.length() == elem.text.length() || text[elem.text.length()] == ' '); });
+	auto debugCmdIterator = std::find_if(DebugCmdList.begin(), DebugCmdList.end(), [&](const DebugCmdItem &elem) { return text.find(elem.text) == 0 && (text.length() == elem.text.length() || text[elem.text.length()] == ' '); });
 	if (debugCmdIterator == DebugCmdList.end())
 		return false;
 
 	auto &dbgCmd = *debugCmdIterator;
-	std::string_view parameter = "";
+	string_view parameter = "";
 	if (text.length() > (dbgCmd.text.length() + 1))
 		parameter = text.substr(dbgCmd.text.length() + 1);
 	const auto result = dbgCmd.actionProc(parameter);
 	Log("DebugCmd: {} Result: {}", text, result);
 	if (result != "")
-		EventPlrMsg(result, UiFlags::ColorRed);
+		InitDiabloMsg(result);
 	return true;
 }
 
@@ -1404,10 +1267,12 @@ bool IsDebugAutomapHighlightNeeded()
 
 bool ShouldHighlightDebugAutomapTile(Point position)
 {
-	auto matchesSearched = [](const std::string_view name, const std::vector<std::string> &searchedNames) {
-		const std::string lowercaseName = AsciiStrToLower(name);
+	auto matchesSearched = [](const string_view name, const std::vector<std::string> &searchedNames) {
+		std::string nameToLower;
+		StrAppend(nameToLower, name);
+		std::transform(nameToLower.begin(), nameToLower.end(), nameToLower.begin(), [](unsigned char c) { return std::tolower(c); });
 		for (const auto &searchedName : searchedNames) {
-			if (lowercaseName.find(searchedName) != std::string::npos) {
+			if (nameToLower.find(searchedName) != std::string::npos) {
 				return true;
 			}
 		}
@@ -1415,14 +1280,14 @@ bool ShouldHighlightDebugAutomapTile(Point position)
 	};
 
 	if (SearchMonsters.size() > 0 && dMonster[position.x][position.y] != 0) {
-		const int mi = std::abs(dMonster[position.x][position.y]) - 1;
+		const int mi = abs(dMonster[position.x][position.y]) - 1;
 		const Monster &monster = Monsters[mi];
 		if (matchesSearched(monster.name(), SearchMonsters))
 			return true;
 	}
 
 	if (SearchItems.size() > 0 && dItem[position.x][position.y] != 0) {
-		const int itemId = std::abs(dItem[position.x][position.y]) - 1;
+		const int itemId = abs(dItem[position.x][position.y]) - 1;
 		const Item &item = Items[itemId];
 		if (matchesSearched(item.getName(), SearchItems))
 			return true;

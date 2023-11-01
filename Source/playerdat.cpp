@@ -6,312 +6,118 @@
 
 #include "playerdat.hpp"
 
-#include <algorithm>
-#include <array>
-#include <bitset>
-#include <charconv>
 #include <cstdint>
-#include <vector>
 
-#include <expected.hpp>
-#include <fmt/format.h>
-
-#include "data/file.hpp"
 #include "items.h"
 #include "player.h"
 #include "textdat.h"
 #include "utils/language.h"
-#include "utils/static_vector.hpp"
-#include "utils/str_cat.hpp"
 
 namespace devilution {
 
-namespace {
-
-class ExperienceData {
-	/** Specifies the experience point limit of each level. */
-	std::vector<uint32_t> levelThresholds;
-
-public:
-	uint8_t getMaxLevel() const
-	{
-		return static_cast<uint8_t>(std::min<size_t>(levelThresholds.size(), std::numeric_limits<uint8_t>::max()));
-	}
-
-	DVL_REINITIALIZES void clear()
-	{
-		levelThresholds.clear();
-	}
-
-	[[nodiscard]] uint32_t getThresholdForLevel(unsigned level) const
-	{
-		if (level > 0)
-			return levelThresholds[std::min<unsigned>(level - 1, getMaxLevel())];
-
-		return 0;
-	}
-
-	void setThresholdForLevel(unsigned level, uint32_t experience)
-	{
-		if (level > 0) {
-			if (level > levelThresholds.size()) {
-				// To avoid ValidatePlayer() resetting players to 0 experience we need to use the maximum possible value here
-				// As long as the file has no gaps it'll get initialised properly.
-				levelThresholds.resize(level, std::numeric_limits<uint32_t>::max());
-			}
-
-			levelThresholds[static_cast<size_t>(level - 1)] = experience;
-		}
-	}
-} ExperienceData;
-
-enum class ExperienceColumn {
-	Level,
-	Experience,
-	LAST = Experience
+/** Specifies the experience point limit of each level. */
+const uint32_t ExpLvlsTbl[MaxCharacterLevel] = {
+	0,
+	1000,
+	2000,
+	3310,
+	4620,
+	6330,
+	8040,
+	10264,
+	12489,
+	15373,
+	18258,
+	21985,
+	25712,
+	30510,
+	35309,
+	41465,
+	47622,
+	55493,
+	63364,
+	73391,
+	83419,
+	96149,
+	108879,
+	124982,
+	141086,
+	161384,
+	181683,
+	206379,
+	231075,
+	272365,
+	313656,
+	368861,
+	424067,
+	497628,
+	571190,
+	668879,
+	766569,
+	895861,
+	1025154,
+	1195690,
+	1366227,
+	1590397,
+	1814568,
+	2108231,
+	2255063,
+	2401895,
+	2593584,
+	2785273,
+	2976962,
+	3168651,
+	3418038,
+	3667425,
+	3916812,
+	4166200,
+	4489530,
+	4812861,
+	5136192,
+	5459523,
+	5877266,
+	6295009,
+	6712752,
+	7130496,
+	7668340,
+	8206185,
+	8744029,
+	9281874,
+	9971928,
+	10661983,
+	11352037,
+	12042092,
+	12924326,
+	13806561,
+	14688796,
+	15571031,
+	16694998,
+	17818965,
+	18942932,
+	20066900,
+	21493776,
+	22920652,
+	24347528,
+	25774405,
+	27579403,
+	29384402,
+	31189400,
+	32994399,
+	35269599,
+	37544800,
+	39820001,
+	42095202,
+	44952854,
+	47810506,
+	50668158,
+	53525811,
+	57102162,
+	60678514,
+	67831218,
+	76750639,
+	107834823,
+	121554811
 };
-
-tl::expected<ExperienceColumn, ColumnDefinition::Error> mapExperienceColumnFromName(std::string_view name)
-{
-	if (name == "Level") {
-		return ExperienceColumn::Level;
-	}
-	if (name == "Experience") {
-		return ExperienceColumn::Experience;
-	}
-	return tl::unexpected { ColumnDefinition::Error::UnknownColumn };
-}
-
-void ReloadExperienceData()
-{
-	constexpr std::string_view filename = "txtdata\\Experience.tsv";
-	auto dataFileResult = DataFile::load(filename);
-	if (!dataFileResult.has_value()) {
-		DataFile::reportFatalError(dataFileResult.error(), filename);
-	}
-	DataFile &dataFile = dataFileResult.value();
-
-	constexpr unsigned ExpectedColumnCount = enum_size<ExperienceColumn>::value;
-
-	std::array<ColumnDefinition, ExpectedColumnCount> columns;
-	auto parseHeaderResult = dataFile.parseHeader<ExperienceColumn>(columns.data(), columns.data() + columns.size(), mapExperienceColumnFromName);
-
-	if (!parseHeaderResult.has_value()) {
-		DataFile::reportFatalError(parseHeaderResult.error(), filename);
-	}
-
-	ExperienceData.clear();
-	for (DataFileRecord record : dataFile) {
-		uint8_t level = 0;
-		uint32_t experience = 0;
-		bool skipRecord = false;
-
-		FieldIterator fieldIt = record.begin();
-		FieldIterator endField = record.end();
-		for (auto &column : columns) {
-			fieldIt += column.skipLength;
-
-			if (fieldIt == endField) {
-				DataFile::reportFatalError(DataFile::Error::NotEnoughColumns, filename);
-			}
-
-			DataFileField field = *fieldIt;
-
-			switch (static_cast<ExperienceColumn>(column)) {
-			case ExperienceColumn::Level: {
-				auto parseIntResult = field.parseInt(level);
-
-				if (!parseIntResult.has_value()) {
-					if (*field == "MaxLevel") {
-						skipRecord = true;
-					} else {
-						DataFile::reportFatalFieldError(parseIntResult.error(), filename, "Level", field);
-					}
-				}
-			} break;
-
-			case ExperienceColumn::Experience: {
-				auto parseIntResult = field.parseInt(experience);
-
-				if (!parseIntResult.has_value()) {
-					DataFile::reportFatalFieldError(parseIntResult.error(), filename, "Experience", field);
-				}
-			} break;
-
-			default:
-				break;
-			}
-
-			if (skipRecord)
-				break;
-
-			++fieldIt;
-		}
-
-		if (!skipRecord)
-			ExperienceData.setThresholdForLevel(level, experience);
-	}
-}
-
-void LoadClassData(std::string_view classPath, ClassAttributes &attributes, PlayerCombatData &combat)
-{
-	const std::string filename = StrCat("txtdata\\classes\\", classPath, "\\attributes.tsv");
-	tl::expected<DataFile, DataFile::Error> dataFileResult = DataFile::load(filename);
-	if (!dataFileResult.has_value()) {
-		DataFile::reportFatalError(dataFileResult.error(), filename);
-	}
-	DataFile &dataFile = dataFileResult.value();
-
-	if (tl::expected<void, DataFile::Error> result = dataFile.skipHeader();
-	    !result.has_value()) {
-		DataFile::reportFatalError(result.error(), filename);
-	}
-
-	auto recordIt = dataFile.begin();
-	const auto recordEnd = dataFile.end();
-
-	const auto getValueField = [&](std::string_view expectedKey) {
-		if (recordIt == recordEnd) {
-			app_fatal(fmt::format("Missing field {} in {}", expectedKey, filename));
-		}
-		DataFileRecord record = *recordIt;
-		FieldIterator fieldIt = record.begin();
-		const FieldIterator endField = record.end();
-
-		const std::string_view key = (*fieldIt).value();
-		if (key != expectedKey) {
-			app_fatal(fmt::format("Unexpected field in {}: got {}, expected {}", filename, key, expectedKey));
-		}
-
-		++fieldIt;
-		if (fieldIt == endField) {
-			DataFile::reportFatalError(DataFile::Error::NotEnoughColumns, filename);
-		}
-		return *fieldIt;
-	};
-
-	const auto valueReader = [&](auto &&readFn) {
-		return [&](std::string_view expectedKey, auto &outValue) {
-			DataFileField valueField = getValueField(expectedKey);
-			if (const tl::expected<void, devilution::DataFileField::Error> result = readFn(valueField, outValue);
-			    !result.has_value()) {
-				DataFile::reportFatalFieldError(result.error(), filename, "Value", valueField);
-			}
-			++recordIt;
-		};
-	};
-
-	const auto readInt = valueReader([](DataFileField &valueField, auto &outValue) {
-		return valueField.parseInt(outValue);
-	});
-	const auto readDecimal = valueReader([](DataFileField &valueField, auto &outValue) {
-		return valueField.parseFixed6(outValue);
-	});
-
-	readInt("baseStr", attributes.baseStr);
-	readInt("baseMag", attributes.baseMag);
-	readInt("baseDex", attributes.baseDex);
-	readInt("baseVit", attributes.baseVit);
-	readInt("maxStr", attributes.maxStr);
-	readInt("maxMag", attributes.maxMag);
-	readInt("maxDex", attributes.maxDex);
-	readInt("maxVit", attributes.maxVit);
-	readInt("blockBonus", combat.baseToBlock);
-	readDecimal("adjLife", attributes.adjLife);
-	readDecimal("adjMana", attributes.adjMana);
-	readDecimal("lvlLife", attributes.lvlLife);
-	readDecimal("lvlMana", attributes.lvlMana);
-	readDecimal("chrLife", attributes.chrLife);
-	readDecimal("chrMana", attributes.chrMana);
-	readDecimal("itmLife", attributes.itmLife);
-	readDecimal("itmMana", attributes.itmMana);
-	readInt("baseMagicToHit", combat.baseMagicToHit);
-	readInt("baseMeleeToHit", combat.baseMeleeToHit);
-	readInt("baseRangedToHit", combat.baseRangedToHit);
-}
-
-std::vector<ClassAttributes> ClassAttributesPerClass;
-
-std::vector<PlayerCombatData> PlayersCombatData;
-
-void LoadClassesAttributes()
-{
-	const std::array classPaths { "warrior", "rogue", "sorcerer", "monk", "bard", "barbarian", "paladin", "assassin", "battlemage", "kabbalist", "templar", "witch", "bloodmage", "sage", "warlock", "traveler", "cleric" };
-	ClassAttributesPerClass.clear();
-	ClassAttributesPerClass.reserve(classPaths.size());
-	PlayersCombatData.clear();
-	PlayersCombatData.reserve(classPaths.size());
-	for (std::string_view path : classPaths) {
-		LoadClassData(path, ClassAttributesPerClass.emplace_back(), PlayersCombatData.emplace_back());
-	}
-}
-
-/** Contains the data related to each player class. */
-const PlayerData PlayersData[] = {
-	// clang-format off
-// HeroClass                 className,       classPath,   baseStr, baseMag,    baseDex,   baseVit,    maxStr, maxMag,     maxDex,    maxVit, baseClasstype, blockBonus, lvlUpLife, lvlUpMana,  chrLife,                     chrMana,                     itmLife,                      itmMana, skill,     w, r, s, m, r, w, w, r, s, m // m, s,, w, r, m, s 16
-
-// TRANSLATORS: Player Block start
-/* HeroClass::Warrior */   { N_("Warrior"),   },
-/* HeroClass::Rogue */     { N_("Rogue"),     },
-/* HeroClass::Sorcerer */  { N_("Sorcerer"),  },
-/* HeroClass::Monk */      { N_("Monk"),      },
-/* HeroClass::Bard */      { N_("Bard"),      },
-/* HeroClass::Barbarian */ { N_("Barbarian"), },
-/* HeroClass::Warrior */   { N_("Paladin"),   },
-/* HeroClass::Rogue */     { N_("Assassin"),  },
-/* HeroClass::Sorcerer */  { N_("Battlemage"),},
-/* HeroClass::Monk */      { N_("Kabbalist"), },
-/* HeroClass::Warrior */   { N_("Templar"),   },
-/* HeroClass::Rogue */     { N_("Witch"),     },
-/* HeroClass::Monk */      { N_("Bloodmage"), },
-/* HeroClass::Monk */      { N_("Sage"),      }, //, SpellID::Magi
-/* HeroClass::Sorcerer */  { N_("Warlock"),   },
-/* HeroClass::Sorcerer */  { N_("Traveler"),  },
-/* HeroClass::Monk */      { N_("Cleric"),    },
-
-	// clang-format on
-};
-
-const std::array<PlayerStartingLoadoutData, enum_size<HeroClass>::value> PlayersStartingLoadoutData { {
-	// clang-format off
-// HeroClass                 skill,                  spell,             spellLevel,     items[0].diablo,       items[0].hellfire, items[1].diablo,  items[1].hellfire, items[2].diablo, items[2].hellfire, items[3].diablo, items[3].hellfire, items[4].diablo, items[4].hellfire, gold,
-/* HeroClass::Warrior   */ { SpellID::ItemRepair,    SpellID::Null,              0, { { { IDI_NONE,         IDI_NONE,    }, { IDI_NONE,   IDI_NONE,   }, { IDI_NONE,  IDI_NONE,   }, { IDI_NONE,    IDI_NONE,  }, { IDI_NONE,      IDI_NONE, }, }, },  1000, },
-/* HeroClass::Rogue     */ { SpellID::TrapDisarm,    SpellID::Null,              0, { { { IDI_NONE,           IDI_NONE,      }, { IDI_NONE,       IDI_NONE,       }, { IDI_NONE,      IDI_NONE,       }, { IDI_NONE,    IDI_NONE,  }, { IDI_NONE,      IDI_NONE, }, }, },  1000, },
-/* HeroClass::Sorcerer  */ { SpellID::StaffRecharge, SpellID::Fireball,          2, { { { IDI_NONE,		IDI_NONE,   }, { IDI_NONE,       IDI_NONE,       }, { IDI_NONE,      IDI_NONE,       }, { IDI_NONE,    IDI_NONE,  }, { IDI_NONE,      IDI_NONE, }, }, },  1000, },
-/* HeroClass::Monk      */ { SpellID::Search,        SpellID::Null,              0, { { { IDI_NONE,      IDI_NONE, }, { IDI_NONE,       IDI_NONE,       }, { IDI_NONE,      IDI_NONE,       }, { IDI_NONE,    IDI_NONE,  }, { IDI_NONE,      IDI_NONE, }, }, },  1000, },
-/* HeroClass::Bard      */ { SpellID::Identify,      SpellID::Null,              0, { { { IDI_NONE,       IDI_NONE,  }, { IDI_NONE, IDI_NONE, }, { IDI_NONE,      IDI_NONE,       }, { IDI_NONE,    IDI_NONE,  }, { IDI_NONE,      IDI_NONE, }, }, },  1000, },
-/* HeroClass::Barbarian */ { SpellID::Rage,          SpellID::Null,              0, { { { IDI_NONE,       IDI_NONE,  }, { IDI_NONE,   IDI_NONE,   }, { IDI_NONE,      IDI_NONE,       }, { IDI_NONE,    IDI_NONE,  }, { IDI_NONE,      IDI_NONE, }, }, },  1000, }
-	// clang-format on
-} };
-
-} // namespace
-
-const ClassAttributes &GetClassAttributes(HeroClass playerClass)
-{
-	return ClassAttributesPerClass[static_cast<size_t>(playerClass)];
-}
-
-void LoadPlayerDataFiles()
-{
-	ReloadExperienceData();
-	LoadClassesAttributes();
-}
-
-uint32_t GetNextExperienceThresholdForLevel(unsigned level)
-{
-	return ExperienceData.getThresholdForLevel(level);
-}
-
-uint8_t GetMaximumCharacterLevel()
-{
-	return ExperienceData.getMaxLevel();
-}
-
-const PlayerData &GetPlayerDataForClass(HeroClass playerClass)
-{
-	return PlayersData[static_cast<size_t>(playerClass)];
-}
 
 const _sfx_id herosounds[enum_size<HeroClass>::value][enum_size<HeroSpeech>::value] = {
 	// clang-format off
@@ -335,15 +141,32 @@ const _sfx_id herosounds[enum_size<HeroClass>::value][enum_size<HeroSpeech>::val
 	// clang-format on
 };
 
-const PlayerCombatData &GetPlayerCombatDataForClass(HeroClass clazz)
-{
-	return PlayersCombatData[static_cast<size_t>(clazz)];
-}
+/** Contains the data related to each player class. */
+const PlayerData PlayersData[] = {
+	// clang-format off
+// HeroClass                 className,       classPath,   baseStr, baseMag,    baseDex,   baseVit,    maxStr, maxMag,     maxDex,    maxVit, baseClasstype, blockBonus, lvlUpLife, lvlUpMana,  chrLife,                     chrMana,                     itmLife,                      itmMana, skill,     w, r, s, m, r, w, w, r, s, m // m, s,, w, r, m, s 16
 
-const PlayerStartingLoadoutData &GetPlayerStartingLoadoutForClass(HeroClass clazz)
-{
-	return PlayersStartingLoadoutData[static_cast<size_t>(clazz)];
-}
+// TRANSLATORS: Player Block start
+/* HeroClass::Warrior */   { N_("Warrior"),   "warrior",        35,      15,         25,        30,       250,     75,         96,        30, 1,        30,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (2 << 6), SpellID::ItemRepair    },
+/* HeroClass::Rogue */     { N_("Rogue"),     "rogue",          25,      15,         35,        30,        96,     75,        250,        30, 2,        20,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),  static_cast<int>(2 << 6), SpellID::SplitA    },
+/* HeroClass::Sorcerer */  { N_("Sorcerer"),  "sorceror",       15,      35,         25,        30,        75,    250,         96,        30, 3,        10,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (2 << 6), SpellID::Identify },
+/* HeroClass::Monk */      { N_("Monk"),      "monk",           30,      15,         30,        29,       153,    116,        153,        29, 4,       25,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),  static_cast<int>(2 << 6), SpellID::Warp       },
+/* HeroClass::Bard */      { N_("Bard"),      "rogue",          25,      25,         25,        40,       137,    137,        137,        40, 5,        25,  (2 << 6),  (0 << 6), (1 << 6), static_cast<int>(1 << 6), static_cast<int>(2 << 6), static_cast<int>(2 << 6), SpellID::Berserk      },
+/* HeroClass::Barbarian */ { N_("Barbarian"), "warrior",        40,       0,         25,        66,       255,      0,         96,        66, 6,        30,  (2 << 6),  (0 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),                     (2 << 6), SpellID::Rage          },
+/* HeroClass::Warrior */   { N_("Paladin"),   "warrior",        35,      25,         15,        30,       250,     96,         75,        30, 7,        30,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (2 << 6), SpellID::HealthRegen    },
+/* HeroClass::Rogue */     { N_("Assassin"),     "rogue",       30,      20,         30,        25,       153,    116,        153,        25, 8,        20,  (2 << 6),  (0 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),  static_cast<int>(2 << 6), SpellID::Teleport},
+/* HeroClass::Sorcerer */  { N_("Battlemage"),  "sorceror",     30,      30,         15,        29,       153,    153,        116,        29, 9,        10,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (2 << 6), SpellID::Teleport	},
+/* HeroClass::Monk */      { N_("Kabbalist"),      "monk",      25,      30,         20,        38,       137,    153,        137,        38, 10,        25,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),  static_cast<int>(2 << 6), SpellID::StaffRecharge      },
+/* HeroClass::Warrior */   { N_("Templar"),   "warrior",        40,      20,         15,        30,       255,     82,         75,        30, 11,         30,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (2 << 6), SpellID::ItemRepair    },
+/* HeroClass::Rogue */     { N_("Witch"),     "rogue",			20,      35,         25,        23,       82,    250,        96,        23, 12,        20,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),  static_cast<int>(2 << 6), SpellID::StaffRecharge    },
+/* HeroClass::Monk */      { N_("Bloodmage"),      "sorceror",    20,      30,         25,        38,        123,    153,         137,        38, 16,        25,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),  static_cast<int>(2 << 6), SpellID::Infravision       },
+/* HeroClass::Monk */      { N_("Sage"),      "monk",			15,      30,         30,        29,       116,    153,        153,        29, 14,        25,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6), static_cast<int>(2 << 6),  static_cast<int>(2 << 6), SpellID::Identify        }, //, SpellID::Magi
+/* HeroClass::Sorcerer */  { N_("Warlock"),  "sorceror",		25,      25,         25,        40,       137,    137,        137,        40, 15,        10,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (2 << 6), SpellID::Magi	},
+/* HeroClass::Sorcerer */  { N_("Traveler"),  "monk",      25,      35,         15,        30,        96,    250,         75,        30, 13,        10,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (2 << 6), SpellID::TownPortal	},
+/* HeroClass::Monk */      { N_("Cleric"),      "warrior",    30,      30,         20,        25,        153,    153,         123,        25, 16,        25,  (2 << 6),  (1 << 6), (1 << 6),                    (1 << 6),                    (2 << 6),                     (1 << 6), SpellID::HealthRegen       },
+
+	// clang-format on
+};
 
 /** Contains the data related to each player class. */
 const PlayerSpriteData PlayersSpriteData[] = {
@@ -351,23 +174,23 @@ const PlayerSpriteData PlayersSpriteData[] = {
 // HeroClass                   stand,   walk,   attack,   bow, swHit,   block,   lightning,   fire,   magic,   death
 
 // TRANSLATORS: Player Block
-/* HeroClass::Warrior */   {      "warrior", 96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Rogue */     {      "rouge", 96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Sorcerer */  {      "sorcerer", 96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
-/* HeroClass::Monk */      {     "monk", 112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
-/* HeroClass::Bard */      {      "bard", 96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Barbarian */ {      "barbarian", 96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Warrior */   {      "warrior", 96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Rogue */     {      "rouge", 96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Sorcerer */  {      "sorcerer", 96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
-/* HeroClass::Monk */      {     "monk", 112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
-/* HeroClass::Warrior */   {      "warrior", 96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Rogue */     {      "rouge", 96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Sorcerer */  {     "sorcerer", 112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
-/* HeroClass::Warrior */   {     "warrior", 112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
-/* HeroClass::Sorcerer */  {      "sorcerer", 96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
-/* HeroClass::Monk */      {      "monk", 96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
-/* HeroClass::Monk */      {      "monk", 96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
+/* HeroClass::Warrior */   {      96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Rogue */     {      96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Sorcerer */  {      96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
+/* HeroClass::Monk */      {     112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
+/* HeroClass::Bard */      {      96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Barbarian */ {      96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Warrior */   {      96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Rogue */     {      96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Sorcerer */  {      96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
+/* HeroClass::Monk */      {     112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
+/* HeroClass::Warrior */   {      96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Rogue */     {      96,     96,      128,   128,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Sorcerer */  {     112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
+/* HeroClass::Warrior */   {     112,    112,      130,   130,    98,      98,         114,    114,     114,     160 },
+/* HeroClass::Sorcerer */  {      96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
+/* HeroClass::Monk */      {      96,     96,      128,    96,    96,      96,          96,     96,      96,     128 },
+/* HeroClass::Monk */      {      96,     96,      128,   128,    96,      96,         128,    128,     128,     128 },
 	// clang-format on
 };
 
@@ -394,5 +217,19 @@ const PlayerAnimData PlayersAnimData[] = {
 
 	// clang-format on
 };
+
+//Backupdata
+/*
+const PlayerAnimData PlayersAnimData[] = {
+	// clang-format off
+// HeroClass                unarmedFrames, unarmedActionFrame, unarmedShieldFrames, unarmedShieldActionFrame, swordFrames, swordActionFrame, swordShieldFrames, swordShieldActionFrame, bowFrames, bowActionFrame, axeFrames, axeActionFrame, maceFrames, maceActionFrame, maceShieldFrames, maceShieldActionFrame, staffFrames, staffActionFrame, idleFrames,  walkingFrames, blockingFrames, deathFrames, castingFrames, recoveryFrames, townIdleFrames, townWalkingFrames, castingActionFrame
+ HeroClass::Warrior    {           16,                  9,                  16,                        9,          16,                9,                16,                      9,        16,             11,        20,             10,         16,               9,               16,                     9,          16,               11,         10,              8,              2,          20,            20,              6,             20,                 8,                 14 },
+ HeroClass::Rogue      {           18,                 10,                  18,                       10,          18,               10,                18,                     10,        12,              7,        22,             13,         18,              10,               18,                    10,          16,               11,          8,              8,              4,          20,            16,              7,             20,                 8,                 12 },
+ HeroClass::Sorcerer   {           20,                 12,                  16,                        9,          16,               12,                16,                     12,        20,             16,        24,             16,         16,              12,               16,                    12,          16,               12,          8,              8,              6,          20,            12,              8,             20,                 8,                  8 },
+ HeroClass::Monk       {           12,                  7,                  12,                        7,          16,               12,                16,                     12,        20,             14,        23,             14,         16,              12,               16,                    12,          13,                8,          8,              8,              3,          20,            18,              6,             20,                 8,                 13 },
+ HeroClass::Bard       {           18,                 10,                  18,                       10,          18,               10,                18,                     10,        12,             11,        22,             13,         18,              10,               18,                    10,          16,               11,          8,              8,              4,          20,            16,              7,             20,                 8,                 12 },
+ HeroClass::Barbarian  {           16,                  9,                  16,                        9,          16,                9,                16,                      9,        16,             11,        20,              8,         16,               8,               16,                     8,          16,               11,         10,              8,              2,          20,            20,              6,             20,                 8,                 14 },
+	// clang-format on
+};*/
 
 } // namespace devilution

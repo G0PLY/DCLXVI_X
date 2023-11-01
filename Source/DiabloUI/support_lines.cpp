@@ -6,7 +6,7 @@ namespace devilution {
 const char *const SupportLines[] = {
 	"",
 	N_("DCLXVI Mod by G0PLY"),
-	"	Using DevilutionX source version 1.5.1",
+	"	Using DevilutionX source version 1.4.1",
 	"",
 	N_("Diasurgical maintains a chat server at Discord.gg/YQKCAYQ Follow the links to join our community where we talk about things related to Diablo, and the Hellfire expansion."),
 	"",

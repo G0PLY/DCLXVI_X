@@ -3,14 +3,11 @@
  *
  * QoL feature for automatically picking up gold
  */
-#include "qol/autopickup.h"
-
-#include <algorithm>
 
 #include "inv_iterators.hpp"
 #include "options.h"
 #include "player.h"
-#include "utils/algorithm/container.hpp"
+#include <algorithm>
 
 namespace devilution {
 namespace {
@@ -37,8 +34,8 @@ bool HasRoomForGold()
 
 int NumMiscItemsInInv(int iMiscId)
 {
-	return c_count_if(InventoryAndBeltPlayerItemsRange { *MyPlayer },
-	    [iMiscId](const Item &item) { return item._iMiscId == iMiscId; });
+	InventoryAndBeltPlayerItemsRange items { *MyPlayer };
+	return std::count_if(items.begin(), items.end(), [iMiscId](const Item &item) { return item._iMiscId == iMiscId; });
 }
 
 bool DoPickup(Item item)
@@ -47,7 +44,7 @@ bool DoPickup(Item item)
 		return true;
 
 	if (item._itype == ItemType::Misc
-	    && (AutoPlaceItemInInventory(*MyPlayer, item) || AutoPlaceItemInBelt(*MyPlayer, item))) {
+	    && (AutoPlaceItemInInventory(*MyPlayer, item, false) || AutoPlaceItemInBelt(*MyPlayer, item, false))) {
 		switch (item._iMiscId) {
 		case IMISC_HEAL:
 			return *sgOptions.Gameplay.numHealPotionPickup > NumMiscItemsInInv(item._iMiscId);
@@ -68,17 +65,17 @@ bool DoPickup(Item item)
 			return *sgOptions.Gameplay.autoElixirPickup;
 		case IMISC_OILFIRST:
 		case IMISC_OILOF:
-		// case IMISC_OILACC:
+		//case IMISC_OILACC:
 		case IMISC_OILMAST:
-		// case IMISC_OILSHARP:
+		//case IMISC_OILSHARP:
 		case IMISC_OILDEATH:
 		case IMISC_CGEM:
-		// case IMISC_OILSKILL:
+		//case IMISC_OILSKILL:
 		case IMISC_OILBSMTH:
 		case IMISC_GEM:
 		case IMISC_OILFORT:
 		case IMISC_OILPERM:
-		// case IMISC_OILHARD:
+		//case IMISC_OILHARD:
 		case IMISC_OILIMP:
 		case IMISC_OILLAST:
 			return *sgOptions.Gameplay.autoOilPickup;

@@ -10,12 +10,8 @@
 #include <random>
 #endif
 
-#include <expected.hpp>
-
-#include "utils/algorithm/container.hpp"
-#include "utils/str_cat.hpp"
-
-namespace devilution::net {
+namespace devilution {
+namespace net {
 
 #ifdef PACKET_ENCRYPTION
 
@@ -84,42 +80,39 @@ const char *packet_type_to_string(uint8_t packetType)
 	}
 }
 
-PacketError PacketTypeError(std::uint8_t unknownPacketType)
+wrong_packet_type_exception::wrong_packet_type_exception(std::initializer_list<packet_type> expectedTypes, std::uint8_t actual)
 {
-	return PacketError(StrCat("Unknown packet type ", unknownPacketType));
-}
-
-PacketError PacketTypeError(std::initializer_list<packet_type> expectedTypes, std::uint8_t actual)
-{
-	std::string message = "Expected packet of type ";
-	const auto appendPacketType = [&](std::uint8_t t) {
+	message_ = "Expected packet of type ";
+	const auto appendPacketType = [this](std::uint8_t t) {
 		const char *typeStr = packet_type_to_string(t);
 		if (typeStr != nullptr)
-			message.append(typeStr);
+			message_.append(typeStr);
 		else
-			StrAppend(message, t);
+			message_.append(std::to_string(t));
 	};
 
 	constexpr char KJoinTypes[] = " or ";
 	for (const packet_type t : expectedTypes) {
 		appendPacketType(t);
-		message.append(KJoinTypes);
+		message_.append(KJoinTypes);
 	}
-	message.resize(message.size() - (sizeof(KJoinTypes) - 1));
-	message.append(", got");
+	message_.resize(message_.size() - (sizeof(KJoinTypes) - 1));
+	message_.append(", got");
 	appendPacketType(actual);
-	return PacketError(std::move(message));
 }
 
 namespace {
 
-tl::expected<void, PacketError> CheckPacketTypeOneOf(std::initializer_list<packet_type> expectedTypes, std::uint8_t actualType)
+void CheckPacketTypeOneOf(std::initializer_list<packet_type> expectedTypes, std::uint8_t actualType)
 {
-	if (c_none_of(expectedTypes,
-	        [actualType](uint8_t type) { return type == actualType; })) {
-		return tl::make_unexpected(PacketTypeError(expectedTypes, actualType));
-	}
-	return {};
+	for (std::uint8_t packetType : expectedTypes)
+		if (actualType == packetType)
+			return;
+#if DVL_EXCEPTIONS
+	throw wrong_packet_type_exception(expectedTypes, actualType);
+#else
+	app_fatal("wrong packet type");
+#endif
 }
 
 } // namespace
@@ -150,60 +143,64 @@ plr_t packet::Destination() const
 	return m_dest;
 }
 
-tl::expected<const buffer_t *, PacketError> packet::Message()
+const buffer_t &packet::Message()
 {
 	assert(have_decrypted);
-	return CheckPacketTypeOneOf({ PT_MESSAGE }, m_type)
-	    .transform([this]() { return &m_message; });
+	CheckPacketTypeOneOf({ PT_MESSAGE }, m_type);
+	return m_message;
 }
 
-tl::expected<turn_t, PacketError> packet::Turn()
+turn_t packet::Turn()
 {
 	assert(have_decrypted);
-	return CheckPacketTypeOneOf({ PT_TURN }, m_type)
-	    .transform([this]() { return m_turn; });
+	CheckPacketTypeOneOf({ PT_TURN }, m_type);
+	return m_turn;
 }
 
-tl::expected<cookie_t, PacketError> packet::Cookie()
+cookie_t packet::Cookie()
 {
 	assert(have_decrypted);
-	return CheckPacketTypeOneOf({ PT_JOIN_REQUEST, PT_JOIN_ACCEPT }, m_type)
-	    .transform([this]() { return m_cookie; });
+	CheckPacketTypeOneOf({ PT_JOIN_REQUEST, PT_JOIN_ACCEPT }, m_type);
+	return m_cookie;
 }
 
-tl::expected<plr_t, PacketError> packet::NewPlayer()
+plr_t packet::NewPlayer()
 {
 	assert(have_decrypted);
-	return CheckPacketTypeOneOf({ PT_JOIN_ACCEPT, PT_CONNECT, PT_DISCONNECT }, m_type)
-	    .transform([this]() { return m_newplr; });
+	CheckPacketTypeOneOf({ PT_JOIN_ACCEPT, PT_CONNECT, PT_DISCONNECT }, m_type);
+	return m_newplr;
 }
 
-tl::expected<timestamp_t, PacketError> packet::Time()
+timestamp_t packet::Time()
 {
 	assert(have_decrypted);
-	return CheckPacketTypeOneOf({ PT_ECHO_REQUEST, PT_ECHO_REPLY }, m_type)
-	    .transform([this]() { return m_time; });
+	CheckPacketTypeOneOf({ PT_ECHO_REQUEST, PT_ECHO_REPLY }, m_type);
+	return m_time;
 }
 
-tl::expected<const buffer_t *, PacketError> packet::Info()
+const buffer_t &packet::Info()
 {
 	assert(have_decrypted);
-	return CheckPacketTypeOneOf({ PT_JOIN_REQUEST, PT_JOIN_ACCEPT, PT_CONNECT, PT_INFO_REPLY }, m_type)
-	    .transform([this]() { return &m_info; });
+	CheckPacketTypeOneOf({ PT_JOIN_REQUEST, PT_JOIN_ACCEPT, PT_CONNECT, PT_INFO_REPLY }, m_type);
+	return m_info;
 }
 
-tl::expected<leaveinfo_t, PacketError> packet::LeaveInfo()
+leaveinfo_t packet::LeaveInfo()
 {
 	assert(have_decrypted);
-	return CheckPacketTypeOneOf({ PT_DISCONNECT }, m_type)
-	    .transform([this]() { return m_leaveinfo; });
+	CheckPacketTypeOneOf({ PT_DISCONNECT }, m_type);
+	return m_leaveinfo;
 }
 
-tl::expected<void, PacketError> packet_in::Create(buffer_t buf)
+void packet_in::Create(buffer_t buf)
 {
 	assert(!have_encrypted && !have_decrypted);
 	if (buf.size() < sizeof(packet_type) + 2 * sizeof(plr_t))
-		return tl::make_unexpected(PacketError());
+#if DVL_EXCEPTIONS
+		throw packet_exception();
+#else
+		app_fatal("invalid packet");
+#endif
 
 	decrypted_buffer = std::move(buf);
 	have_decrypted = true;
@@ -213,11 +210,10 @@ tl::expected<void, PacketError> packet_in::Create(buffer_t buf)
 	// we save a copy in encrypted_buffer anyway
 	encrypted_buffer = decrypted_buffer;
 	have_encrypted = true;
-	return {};
 }
 
 #ifdef PACKET_ENCRYPTION
-tl::expected<void, PacketError> packet_in::Decrypt(buffer_t buf)
+void packet_in::Decrypt(buffer_t buf)
 {
 	assert(!have_encrypted && !have_decrypted);
 	encrypted_buffer = std::move(buf);
@@ -226,7 +222,7 @@ tl::expected<void, PacketError> packet_in::Decrypt(buffer_t buf)
 	if (encrypted_buffer.size() < crypto_secretbox_NONCEBYTES
 	        + crypto_secretbox_MACBYTES
 	        + sizeof(packet_type) + 2 * sizeof(plr_t))
-		return tl::make_unexpected(PacketError());
+		throw packet_exception();
 	auto pktlen = (encrypted_buffer.size()
 	    - crypto_secretbox_NONCEBYTES
 	    - crypto_secretbox_MACBYTES);
@@ -238,10 +234,9 @@ tl::expected<void, PacketError> packet_in::Decrypt(buffer_t buf)
 	    encrypted_buffer.data(),
 	    key.data());
 	if (status != 0)
-		return tl::make_unexpected(PacketError());
+		throw packet_exception();
 
 	have_decrypted = true;
-	return {};
 }
 #endif
 
@@ -303,4 +298,5 @@ packet_factory::packet_factory(std::string pw)
 #endif
 }
 
-} // namespace devilution::net
+} // namespace net
+} // namespace devilution

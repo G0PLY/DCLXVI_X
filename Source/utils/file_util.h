@@ -4,7 +4,8 @@
 #include <cstdio>
 #include <memory>
 #include <string>
-#include <string_view>
+
+#include "utils/stdcompat/string_view.hpp"
 
 namespace devilution {
 
@@ -24,7 +25,7 @@ inline bool FileExists(const std::string &str)
 }
 
 bool DirectoryExists(const char *path);
-std::string_view Dirname(std::string_view path);
+string_view Dirname(string_view path);
 bool FileExistsAndIsWriteable(const char *path);
 bool GetFileSize(const char *path, std::uintmax_t *size);
 
@@ -42,8 +43,8 @@ void CopyFileOverwrite(const char *from, const char *to);
 void RemoveFile(const char *path);
 FILE *OpenFile(const char *path, const char *mode);
 
-#if defined(_WIN32) && !defined(DEVILUTIONX_WINDOWS_NO_WCHAR)
-std::unique_ptr<wchar_t[]> ToWideChar(std::string_view path);
+#if (defined(_WIN64) || defined(_WIN32)) && !defined(NXDK)
+std::unique_ptr<wchar_t[]> ToWideChar(string_view path);
 #endif
 
 } // namespace devilution

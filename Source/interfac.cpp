@@ -5,7 +5,6 @@
  */
 
 #include <cstdint>
-#include <optional>
 
 #include <SDL.h>
 
@@ -26,6 +25,7 @@
 #include "pfile.h"
 #include "plrmsg.h"
 #include "utils/sdl_geometry.h"
+#include "utils/stdcompat/optional.hpp"
 
 namespace devilution {
 
@@ -46,8 +46,8 @@ const int BarPos[3][2] = { { 53, 37 }, { 53, 421 }, { 53, 37 } };
 
 OptionalOwnedClxSpriteList ArtCutsceneWidescreen;
 
-uint16_t CustomEventsBegin = SDL_USEREVENT;
-constexpr uint16_t NumCustomEvents = WM_LAST - WM_FIRST + 1;
+uint32_t CustomEventsBegin = SDL_USEREVENT;
+constexpr uint32_t NumCustomEvents = WM_LAST - WM_FIRST + 1;
 
 Cutscenes GetCutSceneFromLevelType(dungeon_type type)
 {
@@ -152,13 +152,11 @@ void LoadCutsceneBackground(interface_mode uMsg)
 		progress_id = 1;
 		break;
 	case CutLevel5:
-		ArtCutsceneWidescreen = LoadOptionalClx("nlevels\\cutl5w.clx");
 		celPath = "nlevels\\cutl5";
 		palPath = "nlevels\\cutl5.pal";
 		progress_id = 1;
 		break;
 	case CutLevel6:
-		ArtCutsceneWidescreen = LoadOptionalClx("nlevels\\cutl6w.clx");
 		celPath = "nlevels\\cutl6";
 		palPath = "nlevels\\cutl6.pal";
 		progress_id = 1;
@@ -200,7 +198,6 @@ void DrawCutsceneBackground()
 {
 	const Rectangle &uiRectangle = GetUIRectangle();
 	const Surface &out = GlobalBackBuffer();
-	SDL_FillRect(out.surface, nullptr, 0x000000);
 	if (ArtCutsceneWidescreen) {
 		const ClxSprite sprite = (*ArtCutsceneWidescreen)[0];
 		RenderClxSprite(out, sprite, { uiRectangle.position.x - (sprite.width() - uiRectangle.size.width) / 2, uiRectangle.position.y });
@@ -234,17 +231,17 @@ void RegisterCustomEvents()
 #endif
 }
 
-bool IsCustomEvent(uint16_t eventType)
+bool IsCustomEvent(uint32_t eventType)
 {
 	return eventType >= CustomEventsBegin && eventType < CustomEventsBegin + NumCustomEvents;
 }
 
-interface_mode GetCustomEvent(uint16_t eventType)
+interface_mode GetCustomEvent(uint32_t eventType)
 {
 	return static_cast<interface_mode>(eventType - CustomEventsBegin);
 }
 
-uint16_t CustomEventToSdlEvent(interface_mode eventType)
+uint32_t CustomEventToSdlEvent(interface_mode eventType)
 {
 	return CustomEventsBegin + eventType;
 }
@@ -298,10 +295,6 @@ void ShowProgress(interface_mode uMsg)
 		interface_msg_pump();
 		ClearScreenBuffer();
 		scrollrt_draw_game_screen();
-
-		if (IsHardwareCursor())
-			SetHardwareCursorVisible(false);
-
 		BlackPalette();
 
 		// Blit the background once and then free it.
@@ -321,6 +314,9 @@ void ShowProgress(interface_mode uMsg)
 			}
 		}
 		FreeCutsceneBackground();
+
+		if (IsHardwareCursor())
+			SetHardwareCursorVisible(false);
 
 		PaletteFadeIn(8);
 		IncProgress();

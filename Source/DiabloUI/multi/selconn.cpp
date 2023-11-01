@@ -12,7 +12,7 @@ int provider;
 const char *ConnectionNames[] {
 	"ZeroTier",
 	N_("Client-Server (TCP)"),
-	N_("Offline"),
+	N_("DCLXVI"),
 };
 
 namespace {
@@ -52,6 +52,8 @@ void SelconnLoad()
 
 	const Point uiPosition = GetUIRectangle().position;
 
+	//SDL_Rect rect = { (Sint16)(uiPosition.x + 429), (Sint16)(uiPosition.y + 100), 140, 35 };
+	//vecSelConnDlg.push_back(std::make_unique<UiArtTextButton>(_("DCLXVI"), &UiFocusNavigationEsc, rect, UiFlags::AlignCenter | UiFlags::FontSize46 | UiFlags::ColorUiGold));
 	SDL_Rect rect = { (Sint16)(uiPosition.x + 200), (Sint16)(uiPosition.y + 100), 240, 120 };
 	vecSelConnDlg.push_back(std::make_unique<UiArtText>(_("DCLXVI").data(), rect, UiFlags::FontSize46 | UiFlags::ColorUiSilver | UiFlags::AlignCenter, 8));
 

@@ -56,9 +56,9 @@ uint8_t MixColorsWithAlpha(uint8_t first, uint8_t firstAlpha,
 	// To avoid the overflow we divide each term by `mixedAlpha` separately.
 	//
 	// This would be lower precision and could result in a negative overall result,
-	// so we do the rounding-up integer division for each term (instead of a truncating one):
+	// so we do the rounding integer division for each term (instead of a truncating one):
 	//
-	//    (a + (b - 1)) / b
+	//    (a + (a - 1)) / b`
 	return ToInt((secondWithAlpha - firstWithAlpha) * ((ratio + (mixedAlpha - 1)) / mixedAlpha)) + (firstWithAlpha + (mixedAlpha - 1)) / mixedAlpha;
 }
 
@@ -148,7 +148,7 @@ void BilinearScale32(SDL_Surface *src, SDL_Surface *dst)
 	}
 }
 
-void BilinearDownscaleByHalf8(const SDL_Surface *src, const Uint8 paletteBlendingTable[256][256], SDL_Surface *dst, uint8_t transparentIndex)
+void BilinearDownscaleByHalf8(const SDL_Surface *src, const std::array<std::array<Uint8, 256>, 256> &paletteBlendingTable, SDL_Surface *dst, uint8_t transparentIndex)
 {
 	const auto *const srcPixelsBegin = static_cast<const uint8_t *>(src->pixels)
 	    + static_cast<size_t>(src->clip_rect.y * src->pitch + src->clip_rect.x);

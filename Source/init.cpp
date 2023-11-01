@@ -12,7 +12,7 @@
 #include <SDL.h>
 #include <config.h>
 
-#if defined(_WIN32) && !defined(__UWP__) && !defined(DEVILUTIONX_WINDOWS_NO_WCHAR)
+#if (defined(_WIN64) || defined(_WIN32)) && !defined(__UWP__) && !defined(NXDK)
 #include <find_steam_game.h>
 #endif
 
@@ -33,7 +33,6 @@
 #include "utils/utf8.hpp"
 
 #ifndef UNPACKED_MPQS
-#include "mpq/mpq_common.hpp"
 #include "mpq/mpq_reader.hpp"
 #endif
 
@@ -77,10 +76,8 @@ std::optional<MpqArchive> font_mpq;
 
 namespace {
 
-constexpr char ExtraFontsVersion[] = "1\n";
-
 #ifdef UNPACKED_MPQS
-std::optional<std::string> FindUnpackedMpqData(const std::vector<std::string> &paths, std::string_view mpqName)
+std::optional<std::string> FindUnpackedMpqData(const std::vector<std::string> &paths, string_view mpqName)
 {
 	std::string targetPath;
 	for (const std::string &path : paths) {
@@ -95,7 +92,7 @@ std::optional<std::string> FindUnpackedMpqData(const std::vector<std::string> &p
 	return std::nullopt;
 }
 #else
-std::optional<MpqArchive> LoadMPQ(const std::vector<std::string> &paths, std::string_view mpqName)
+std::optional<MpqArchive> LoadMPQ(const std::vector<std::string> &paths, string_view mpqName)
 {
 	std::optional<MpqArchive> archive;
 	std::string mpqAbsPath;
@@ -134,7 +131,7 @@ std::vector<std::string> GetMPQSearchPaths()
 	// add `XDG_DATA_DIRS`.
 	const char *xdgDataDirs = std::getenv("XDG_DATA_DIRS");
 	if (xdgDataDirs != nullptr) {
-		for (const std::string_view path : SplitByChar(xdgDataDirs, ':')) {
+		for (const string_view path : SplitByChar(xdgDataDirs, ':')) {
 			std::string fullPath(path);
 			if (!path.empty() && path.back() != '/')
 				fullPath += '/';
@@ -147,7 +144,7 @@ std::vector<std::string> GetMPQSearchPaths()
 	}
 #elif defined(NXDK)
 	paths.emplace_back("D:\\");
-#elif defined(_WIN32) && !defined(__UWP__) && !defined(DEVILUTIONX_WINDOWS_NO_WCHAR)
+#elif (defined(_WIN64) || defined(_WIN32)) && !defined(__UWP__) && !defined(NXDK)
 	char gogpath[_FSG_PATH_MAX];
 	fsg_get_gog_game_path(gogpath, "1412601690");
 	if (strlen(gogpath) > 0) {
@@ -156,9 +153,7 @@ std::vector<std::string> GetMPQSearchPaths()
 	}
 #endif
 
-	if (paths.empty() || !paths.back().empty()) {
-		paths.emplace_back(); // PWD
-	}
+	paths.emplace_back(""); // PWD
 
 	if (SDL_LOG_PRIORITY_VERBOSE >= SDL_LogGetPriority(SDL_LOG_CATEGORY_APPLICATION)) {
 		LogVerbose("Paths:\n    base: {}\n    pref: {}\n  config: {}\n  assets: {}",
@@ -174,47 +169,7 @@ std::vector<std::string> GetMPQSearchPaths()
 	return paths;
 }
 
-bool CheckExtraFontsVersion(AssetRef &&ref)
-{
-	const size_t size = ref.size();
-	AssetHandle handle = OpenAsset(std::move(ref), false);
-	if (!handle.ok())
-		return true;
-
-	std::unique_ptr<char[]> version_contents { new char[size] };
-	if (!handle.read(version_contents.get(), size))
-		return true;
-
-	return std::string_view { version_contents.get(), size } != ExtraFontsVersion;
-}
-
 } // namespace
-
-#ifdef UNPACKED_MPQS
-bool AreExtraFontsOutOfDate(const std::string &path)
-{
-	const std::string versionPath = path + "fonts" DIRECTORY_SEPARATOR_STR "VERSION";
-	if (versionPath.size() + 1 > AssetRef::PathBufSize)
-		app_fatal("Path too long");
-	AssetRef ref;
-	*BufCopy(ref.path, versionPath) = '\0';
-	return CheckExtraFontsVersion(std::move(ref));
-}
-#else
-bool AreExtraFontsOutOfDate(MpqArchive &archive)
-{
-	const char filename[] = "fonts\\VERSION";
-	const MpqFileHash fileHash = CalculateMpqFileHash(filename);
-	uint32_t fileNumber;
-	if (!archive.GetFileNumber(fileHash, fileNumber))
-		return true;
-	AssetRef ref;
-	ref.archive = &archive;
-	ref.fileNumber = fileNumber;
-	ref.filename = filename;
-	return CheckExtraFontsVersion(std::move(ref));
-}
-#endif
 
 void init_cleanup()
 {
@@ -269,7 +224,7 @@ void LoadLanguageArchive()
 	lang_mpq = std::nullopt;
 #endif
 
-	std::string_view code = GetLanguageCode();
+	string_view code = GetLanguageCode();
 	if (code != "en") {
 		std::string langMpqName { code };
 #ifdef UNPACKED_MPQS
@@ -385,7 +340,6 @@ void MainWndProc(const SDL_Event &event)
 		break;
 	case SDL_WINDOWEVENT_SHOWN:
 	case SDL_WINDOWEVENT_EXPOSED:
-	case SDL_WINDOWEVENT_RESTORED:
 		gbActive = true;
 		RedrawEverything();
 		break;
@@ -407,7 +361,7 @@ void MainWndProc(const SDL_Event &event)
 		diablo_focus_unpause();
 		break;
 	default:
-		LogVerbose("Unhandled SDL_WINDOWEVENT event: {:d}", event.window.event);
+		LogVerbose("Unhandled SDL_WINDOWEVENT event: ", event.window.event);
 		break;
 	}
 #else

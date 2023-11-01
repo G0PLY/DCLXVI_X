@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
-#include <string_view>
 #include <vector>
 
 namespace devilution {
@@ -154,7 +153,7 @@ static int MpqFileRwClose(struct SDL_RWops *context)
 
 } // namespace
 
-SDL_RWops *SDL_RWops_FromMpqFile(MpqArchive &mpqArchive, uint32_t fileNumber, std::string_view filename, bool threadsafe)
+SDL_RWops *SDL_RWops_FromMpqFile(MpqArchive &mpqArchive, uint32_t fileNumber, const char *filename, bool threadsafe)
 {
 	auto result = std::make_unique<SDL_RWops>();
 	std::memset(result.get(), 0, sizeof(*result));

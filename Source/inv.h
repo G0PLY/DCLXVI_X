@@ -12,14 +12,12 @@
 #include "inv_iterators.hpp"
 #include "items.h"
 #include "player.h"
-#include "utils/algorithm/container.hpp"
 
 namespace devilution {
 
 #define INV_SLOT_SIZE_PX 28
 #define INV_SLOT_HALF_SIZE_PX (INV_SLOT_SIZE_PX / 2)
-constexpr Size InventorySizeInSlots { 10, 4 };
-#define INV_ROW_SLOT_SIZE InventorySizeInSlots.width
+#define INV_ROW_SLOT_SIZE 10
 constexpr Size InventorySlotSizeInPixels { INV_SLOT_SIZE_PX };
 
 enum inv_item : int8_t {
@@ -45,14 +43,12 @@ enum inv_item : int8_t {
 enum inv_xy_slot : uint8_t {
 	// clang-format off
 	SLOTXY_HEAD           = 0,
-	SLOTXY_EQUIPPED_FIRST = SLOTXY_HEAD,
 	SLOTXY_RING_LEFT      = 1,
 	SLOTXY_RING_RIGHT     = 2,
 	SLOTXY_AMULET         = 3,
 	SLOTXY_HAND_LEFT      = 4,
 	SLOTXY_HAND_RIGHT     = 5,
 	SLOTXY_CHEST          = 6,
-	SLOTXY_EQUIPPED_LAST  = SLOTXY_CHEST,
 
 	// regular inventory
 	SLOTXY_INV_FIRST      = 7,
@@ -83,7 +79,7 @@ enum item_color : uint8_t {
 };
 
 extern bool invflag;
-extern const Rectangle InvRect[NUM_XY_SLOTS];
+extern const Rectangle InvRect[73];
 
 void InvDrawSlotBack(const Surface &out, Point targetPosition, Size size, item_quality itemQuality);
 /**
@@ -92,7 +88,7 @@ void InvDrawSlotBack(const Surface &out, Point targetPosition, Size size, item_q
  * @param item The item to be checked.
  * @return 'True' in case the item can be placed on the belt and 'False' otherwise.
  */
-bool CanBePlacedOnBelt(const Player &player, const Item &item);
+bool CanBePlacedOnBelt(const Item &item);
 
 /**
  * @brief Function type which performs an operation on the given item.
@@ -100,7 +96,6 @@ bool CanBePlacedOnBelt(const Player &player, const Item &item);
 using ItemFunc = void (*)(Item &);
 
 void CloseInventory();
-void CloseStash();
 void FreeInvGFX();
 void InitInv();
 
@@ -134,11 +129,9 @@ bool AutoEquipEnabled(const Player &player, const Item &item);
  * @param item The item to equip.
  * @param persistItem Indicates whether or not the item should be persisted in the player's body. Pass 'False' to check
  * whether the player can equip the item but you don't want the item to actually be equipped. 'True' by default.
- * @param sendNetworkMessage Set to true if you want an equip sound and network message to be generated if the equipment
- * changes. Should only be set if a local player is equipping an item in a play session (not when creating a new game)
  * @return 'True' if the item was equipped and 'False' otherwise.
  */
-bool AutoEquip(Player &player, const Item &item, bool persistItem = true, bool sendNetworkMessage = false);
+bool AutoEquip(Player &player, const Item &item, bool persistItem = true);
 
 /**
  * @brief Checks whether the given item can be placed on the specified player's inventory.
@@ -146,11 +139,20 @@ bool AutoEquip(Player &player, const Item &item, bool persistItem = true, bool s
  * @param player The player whose inventory will be checked.
  * @param item The item to be checked.
  * @param persistItem Pass 'True' to actually place the item in the inventory. The default is 'False'.
- * @param sendNetworkMessage Set to true if you want a network message to be generated if the item is persisted.
- * Should only be set if a local player is placing an item in a play session (not when creating a new game)
  * @return 'True' in case the item can be placed on the player's inventory and 'False' otherwise.
  */
-bool AutoPlaceItemInInventory(Player &player, const Item &item, bool persistItem = false, bool sendNetworkMessage = false);
+bool AutoPlaceItemInInventory(Player &player, const Item &item, bool persistItem = false);
+
+/**
+ * @brief Checks whether the given item can be placed on the specified player's inventory slot.
+ * If 'persistItem' is 'True', the item is also placed in the inventory slot.
+ * @param player The player whose inventory will be checked.
+ * @param slotIndex The 0-based index of the slot to put the item on.
+ * @param item The item to be checked.
+ * @param persistItem Pass 'True' to actually place the item in the inventory slot. The default is 'False'.
+ * @return 'True' in case the item can be placed on the specified player's inventory slot and 'False' otherwise.
+ */
+bool AutoPlaceItemInInventorySlot(Player &player, int slotIndex, const Item &item, bool persistItem);
 
 /**
  * @brief Checks whether the given item can be placed on the specified player's belt. Returns 'True' when the item can be placed
@@ -159,11 +161,9 @@ bool AutoPlaceItemInInventory(Player &player, const Item &item, bool persistItem
  * @param player The player on whose belt will be checked.
  * @param item The item to be checked.
  * @param persistItem Pass 'True' to actually place the item in the belt. The default is 'False'.
- * @param sendNetworkMessage Set to true if you want a network message to be generated if the item is persisted.
- * Should only be set if a local player is placing an item in a play session (not when creating a new game)
  * @return 'True' in case the item can be placed on the player's belt and 'False' otherwise.
  */
-bool AutoPlaceItemInBelt(Player &player, const Item &item, bool persistItem = false, bool sendNetworkMessage = false);
+bool AutoPlaceItemInBelt(Player &player, const Item &item, bool persistItem = false);
 
 /**
  * @brief Calculate the maximum aditional gold that may fit in the user's inventory
@@ -218,11 +218,8 @@ void SyncGetItem(Point position, uint32_t iseed, _item_indexes idx, uint16_t ci)
  */
 bool CanPut(Point position);
 
-int ClampDurability(const Item &item, int durability);
-int16_t ClampToHit(const Item &item, int16_t toHit);
-uint8_t ClampMaxDam(const Item &item, uint8_t maxDam);
-int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int iseed, int id, int dur, int mdur, int ch, int mch, int ivalue, uint32_t ibuff, int toHit, int maxDam);
-int SyncDropEar(Point position, uint16_t icreateinfo, uint32_t iseed, uint8_t cursval, std::string_view heroname);
+int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int iseed, int id, int dur, int mdur, int ch, int mch, int ivalue, uint32_t ibuff, int toHit, int maxDam, int minStr, int minMag, int minDex, int ac);
+int SyncDropEar(Point position, uint16_t icreateinfo, uint32_t iseed, uint8_t cursval, string_view heroname);
 int8_t CheckInvHLight();
 bool CanUseScroll(Player &player, SpellID spell);
 void ConsumeStaffCharge(Player &player);
@@ -243,27 +240,27 @@ Size GetInventorySize(const Item &item);
  * @brief Checks whether the player has an inventory item matching the predicate.
  */
 template <typename Predicate>
-bool HasInventoryItem(const Player &player, Predicate &&predicate)
+bool HasInventoryItem(Player &player, Predicate &&predicate)
 {
 	const InventoryPlayerItemsRange items { player };
-	return c_find_if(items, std::forward<Predicate>(predicate)) != items.end();
+	return std::find_if(items.begin(), items.end(), std::forward<Predicate>(predicate)) != items.end();
 }
 
 /**
  * @brief Checks whether the player has a belt item matching the predicate.
  */
 template <typename Predicate>
-bool HasBeltItem(const Player &player, Predicate &&predicate)
+bool HasBeltItem(Player &player, Predicate &&predicate)
 {
 	const BeltPlayerItemsRange items { player };
-	return c_find_if(items, std::forward<Predicate>(predicate)) != items.end();
+	return std::find_if(items.begin(), items.end(), std::forward<Predicate>(predicate)) != items.end();
 }
 
 /**
  * @brief Checks whether the player has an inventory or a belt item matching the predicate.
  */
 template <typename Predicate>
-bool HasInventoryOrBeltItem(const Player &player, Predicate &&predicate)
+bool HasInventoryOrBeltItem(Player &player, Predicate &&predicate)
 {
 	return HasInventoryItem(player, predicate) || HasBeltItem(player, predicate);
 }
@@ -271,7 +268,7 @@ bool HasInventoryOrBeltItem(const Player &player, Predicate &&predicate)
 /**
  * @brief Checks whether the player has an inventory item with the given ID (IDidx).
  */
-inline bool HasInventoryItemWithId(const Player &player, _item_indexes id)
+inline bool HasInventoryItemWithId(Player &player, _item_indexes id)
 {
 	return HasInventoryItem(player, [id](const Item &item) {
 		return item.IDidx == id;
@@ -281,7 +278,7 @@ inline bool HasInventoryItemWithId(const Player &player, _item_indexes id)
 /**
  * @brief Checks whether the player has a belt item with the given ID (IDidx).
  */
-inline bool HasBeltItemWithId(const Player &player, _item_indexes id)
+inline bool HasBeltItemWithId(Player &player, _item_indexes id)
 {
 	return HasBeltItem(player, [id](const Item &item) {
 		return item.IDidx == id;
@@ -291,7 +288,7 @@ inline bool HasBeltItemWithId(const Player &player, _item_indexes id)
 /**
  * @brief Checks whether the player has an inventory or a belt item with the given ID (IDidx).
  */
-inline bool HasInventoryOrBeltItemWithId(const Player &player, _item_indexes id)
+inline bool HasInventoryOrBeltItemWithId(Player &player, _item_indexes id)
 {
 	return HasInventoryItemWithId(player, id) || HasBeltItemWithId(player, id);
 }
@@ -305,7 +302,7 @@ template <typename Predicate>
 bool RemoveInventoryItem(Player &player, Predicate &&predicate)
 {
 	const InventoryPlayerItemsRange items { player };
-	const auto it = c_find_if(items, std::forward<Predicate>(predicate));
+	const auto it = std::find_if(items.begin(), items.end(), std::forward<Predicate>(predicate));
 	if (it == items.end())
 		return false;
 	player.RemoveInvItem(static_cast<int>(it.index()));
@@ -321,7 +318,7 @@ template <typename Predicate>
 bool RemoveBeltItem(Player &player, Predicate &&predicate)
 {
 	const BeltPlayerItemsRange items { player };
-	const auto it = c_find_if(items, std::forward<Predicate>(predicate));
+	const auto it = std::find_if(items.begin(), items.end(), std::forward<Predicate>(predicate));
 	if (it == items.end())
 		return false;
 	player.RemoveSpdBarItem(static_cast<int>(it.index()));

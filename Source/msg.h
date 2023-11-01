@@ -436,6 +436,8 @@ enum _cmd_id : uint8_t {
 	//
 	// body (TFakeDropPlr)
 	FAKE_CMD_DROPID,
+	//CMD_SETAURA,
+	//CMD_REAuraSHIELD,
 	NUM_CMDS,
 	CMD_INVALID = 0xFF,
 };
@@ -555,6 +557,10 @@ struct TItem {
 	uint32_t dwBuff;
 	uint16_t wToHit;
 	uint16_t wMaxDam;
+	uint8_t bMinStr;
+	uint8_t bMinMag;
+	uint8_t bMinDex;
+	int16_t bAC;
 };
 
 struct TEar {
@@ -619,7 +625,6 @@ struct TCmdPItem {
 struct TCmdChItem {
 	_cmd_id bCmd;
 	uint8_t bLoc;
-	bool forceSpell;
 
 	union {
 		TItemDef def;
@@ -720,21 +725,18 @@ struct TPktHdr {
 
 struct TPkt {
 	TPktHdr hdr;
-	std::byte body[493];
+	byte body[493];
 };
 #pragma pack(pop)
 
 struct TBuffer {
 	uint32_t dwNextWriteOffset;
-	std::byte bData[4096];
+	byte bData[4096];
 };
 
 extern uint8_t gbBufferMsgs;
 extern int dwRecCount;
 
-void PrepareItemForNetwork(const Item &item, TItem &messageItem);
-void PrepareEarForNetwork(const Item &item, TEar &ear);
-void RecreateItem(const Player &player, const TItem &messageItem, Item &item);
 void msg_send_drop_pkt(int pnum, int reason);
 bool msg_wait_resync();
 void run_delta_info();
@@ -768,7 +770,7 @@ void NetSendCmdQuest(bool bHiPri, const Quest &quest);
 void NetSendCmdGItem(bool bHiPri, _cmd_id bCmd, uint8_t pnum, uint8_t ii);
 void NetSendCmdPItem(bool bHiPri, _cmd_id bCmd, Point position, const Item &item);
 void NetSyncInvItem(const Player &player, int invListIndex);
-void NetSendCmdChItem(bool bHiPri, uint8_t bLoc, bool forceSpellChange = false);
+void NetSendCmdChItem(bool bHiPri, uint8_t bLoc);
 void NetSendCmdDelItem(bool bHiPri, uint8_t bLoc);
 void NetSendCmdChInvItem(bool bHiPri, int invGridIndex);
 void NetSendCmdChBeltItem(bool bHiPri, int invGridIndex);

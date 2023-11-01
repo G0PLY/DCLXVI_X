@@ -36,7 +36,7 @@ extern std::array<SDL_Color, 256> logical_palette;
 extern std::array<SDL_Color, 256> system_palette;
 extern std::array<SDL_Color, 256> orig_palette;
 /** Lookup table for transparency */
-extern Uint8 paletteTransparencyLookup[256][256];
+extern std::array<std::array<Uint8, 256>, 256> paletteTransparencyLookup;
 
 #if DEVILUTIONX_PALETTE_TRANSPARENCY_BLACK_16_LUT
 /**
@@ -60,7 +60,7 @@ void ApplyGamma(std::array<SDL_Color, 256> &dst, const std::array<SDL_Color, 256
 void DecreaseGamma();
 int UpdateGamma(int gamma);
 void BlackPalette();
-void SetFadeLevel(int fadeval, bool updateHardwareCursor = true);
+void SetFadeLevel(int fadeval);
 /**
  * @brief Fade screen from black
  * @param fr Steps per 50ms

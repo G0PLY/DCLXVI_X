@@ -5,8 +5,9 @@
  */
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
+
+#include "utils/stdcompat/cstddef.hpp"
 
 namespace devilution {
 

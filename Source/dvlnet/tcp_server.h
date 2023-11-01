@@ -4,17 +4,6 @@
 #include <memory>
 #include <string>
 
-// This header must be included before any 3DS code
-// because 3DS SDK defines a macro with the same name
-// as an fmt template parameter in some versions of fmt.
-// See https://github.com/fmtlib/fmt/issues/3632
-//
-// 3DS uses some custom ASIO code that transitively includes
-// the 3DS SDK.
-#include <fmt/core.h>
-
-#include <expected.hpp>
-
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/internet.hpp>
 #include <asio/ts/io_context.hpp>
@@ -25,12 +14,16 @@
 #include "dvlnet/packet.h"
 #include "multi.h"
 
-namespace devilution::net {
+namespace devilution {
+namespace net {
 
-inline PacketError ServerError()
-{
-	return PacketError("Invalid player ID");
-}
+class server_exception : public dvlnet_exception {
+public:
+	const char *what() const throw() override
+	{
+		return "Invalid player ID";
+	}
+};
 
 class tcp_server {
 public:
@@ -73,9 +66,9 @@ private:
 	void HandleAccept(const scc &con, const asio::error_code &ec);
 	void StartReceive(const scc &con);
 	void HandleReceive(const scc &con, const asio::error_code &ec, size_t bytesRead);
-	tl::expected<void, PacketError> HandleReceiveNewPlayer(const scc &con, packet &pkt);
-	tl::expected<void, PacketError> HandleReceivePacket(packet &pkt);
-	tl::expected<void, PacketError> SendPacket(packet &pkt);
+	void HandleReceiveNewPlayer(const scc &con, packet &pkt);
+	void HandleReceivePacket(packet &pkt);
+	void SendPacket(packet &pkt);
 	void StartSend(const scc &con, packet &pkt);
 	void HandleSend(const scc &con, const asio::error_code &ec, size_t bytesSent);
 	void StartTimeout(const scc &con);
@@ -83,4 +76,5 @@ private:
 	void DropConnection(const scc &con);
 };
 
-} // namespace devilution::net
+} // namespace net
+} // namespace devilution

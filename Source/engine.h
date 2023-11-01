@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <memory>
+#include <tuple>
 #include <utility>
 
 // We include `cinttypes` here so that it is included before `inttypes.h`
@@ -24,7 +25,6 @@
 // defines for `PRIuMAX` et al. SDL transitively includes `inttypes.h`.
 // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97044
 #include <cinttypes>
-#include <cstddef>
 
 #include <SDL.h>
 
@@ -36,24 +36,50 @@
 #include "engine/point.hpp"
 #include "engine/size.hpp"
 #include "engine/surface.hpp"
-#include "utils/attributes.h"
+#include "utils/stdcompat/cstddef.hpp"
 
 #define TILE_WIDTH 64
 #define TILE_HEIGHT 32
 
 namespace devilution {
 
+#if __cplusplus >= 201703L
 template <typename V, typename X, typename... Xs>
-DVL_ALWAYS_INLINE constexpr bool IsAnyOf(const V &v, X x, Xs... xs)
+constexpr bool IsAnyOf(const V &v, X x, Xs... xs)
 {
 	return v == x || ((v == xs) || ...);
 }
 
 template <typename V, typename X, typename... Xs>
-DVL_ALWAYS_INLINE constexpr bool IsNoneOf(const V &v, X x, Xs... xs)
+constexpr bool IsNoneOf(const V &v, X x, Xs... xs)
 {
 	return v != x && ((v != xs) && ...);
 }
+#else
+template <typename V, typename X>
+constexpr bool IsAnyOf(const V &v, X x)
+{
+	return v == x;
+}
+
+template <typename V, typename X, typename... Xs>
+constexpr bool IsAnyOf(const V &v, X x, Xs... xs)
+{
+	return IsAnyOf(v, x) || IsAnyOf(v, xs...);
+}
+
+template <typename V, typename X>
+constexpr bool IsNoneOf(const V &v, X x)
+{
+	return v != x;
+}
+
+template <typename V, typename X, typename... Xs>
+constexpr bool IsNoneOf(const V &v, X x, Xs... xs)
+{
+	return IsNoneOf(v, x) && IsNoneOf(v, xs...);
+}
+#endif
 
 /**
  * @brief Draw a horizontal line segment in the target buffer (left to right)

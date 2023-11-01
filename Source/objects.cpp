@@ -4,7 +4,6 @@
  * Implementation of object functionality, interaction, spawning, loading, etc.
  */
 #include <climits>
-#include <cmath>
 #include <cstdint>
 #include <ctime>
 
@@ -36,11 +35,9 @@
 #include "missiles.h"
 #include "monster.h"
 #include "options.h"
-#include "qol/stash.h"
 #include "stores.h"
 #include "towners.h"
 #include "track.h"
-#include "utils/algorithm/container.hpp"
 #include "utils/language.h"
 #include "utils/log.hpp"
 #include "utils/str_cat.hpp"
@@ -156,6 +153,83 @@ const char *const ShrineNames[] = {
 	// TRANSLATORS: Shrine Name Block end
 	N_("Murphy's"),
 };
+/** Specifies the minimum dungeon level on which each shrine will appear. */
+char shrinemin[] = {
+	1, // Mysterious
+	1, // Hidden
+	1, // Gloomy
+	1, // Weird
+	1, // Magical
+	1, // Stone
+	1, // Religious
+	1, // Enchanted
+	1, // Thaumaturgic
+	1, // Fascinating
+	1, // Cryptic
+	1, // Magical
+	1, // Eldritch
+	1, // Eerie
+	1, // Divine
+	1, // Holy
+	1, // Sacred
+	1, // Spiritual
+	1, // Spooky
+	1, // Abandoned
+	1, // Creepy
+	1, // Quiet
+	1, // Secluded
+	1, // Ornate
+	1, // Glimmering
+	1, // Tainted
+	1, // Oily
+	1, // Glowing
+	1, // Mendicant's
+	1, // Sparkling
+	1, // Town
+	1, // Shimmering
+	1, // Solar,
+	1, // Murphy's
+};
+
+#define MAX_LVLS 24
+
+/** Specifies the maximum dungeon level on which each shrine will appear. */
+char shrinemax[] = {
+	MAX_LVLS, // Mysterious
+	MAX_LVLS, // Hidden
+	MAX_LVLS, // Gloomy
+	MAX_LVLS, // Weird
+	MAX_LVLS, // Magical
+	MAX_LVLS, // Stone
+	MAX_LVLS, // Religious
+	8,        // Enchanted
+	MAX_LVLS, // Thaumaturgic
+	MAX_LVLS, // Fascinating
+	MAX_LVLS, // Cryptic
+	MAX_LVLS, // Magical
+	MAX_LVLS, // Eldritch
+	MAX_LVLS, // Eerie
+	MAX_LVLS, // Divine
+	MAX_LVLS, // Holy
+	MAX_LVLS, // Sacred
+	MAX_LVLS, // Spiritual
+	MAX_LVLS, // Spooky
+	MAX_LVLS, // Abandoned
+	MAX_LVLS, // Creepy
+	MAX_LVLS, // Quiet
+	MAX_LVLS, // Secluded
+	MAX_LVLS, // Ornate
+	MAX_LVLS, // Glimmering
+	MAX_LVLS, // Tainted
+	MAX_LVLS, // Oily
+	MAX_LVLS, // Glowing
+	MAX_LVLS, // Mendicant's
+	MAX_LVLS, // Sparkling
+	MAX_LVLS, // Town
+	MAX_LVLS, // Shimmering
+	MAX_LVLS, // Solar,
+	MAX_LVLS, // Murphy's
+};
 
 /**
  * Specifies the game type for which each shrine may appear.
@@ -231,24 +305,19 @@ _speech_id StoryText[3][3] = {
 	{ TEXT_BOOK31, TEXT_BOOK32, TEXT_BOOK33 }
 };
 
-bool RndLocOk(Point p)
+bool RndLocOk(int xp, int yp)
 {
-	if (dMonster[p.x][p.y] != 0)
+	if (dMonster[xp][yp] != 0)
 		return false;
-	if (dPlayer[p.x][p.y] != 0)
+	if (dPlayer[xp][yp] != 0)
 		return false;
-	if (IsObjectAtPosition(p))
+	if (IsObjectAtPosition({ xp, yp }))
 		return false;
-	if (TileContainsSetPiece(p))
+	if (TileContainsSetPiece({ xp, yp }))
 		return false;
-	if (TileHasAny(dPiece[p.x][p.y], TileProperties::Solid))
+	if (TileHasAny(dPiece[xp][yp], TileProperties::Solid))
 		return false;
-	return IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CRYPT) || dPiece[p.x][p.y] <= 125 || dPiece[p.x][p.y] >= 143;
-}
-
-bool IsAreaOk(Rectangle rect)
-{
-	return c_all_of(PointsInRectangle(rect), &RndLocOk);
+	return IsNoneOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CRYPT) || dPiece[xp][yp] <= 125 || dPiece[xp][yp] >= 143;
 }
 
 bool CanPlaceWallTrap(int xp, int yp)
@@ -269,7 +338,15 @@ void InitRndLocObj(int min, int max, _object_id objtype)
 		while (true) {
 			int xp = GenerateRnd(80) + 16;
 			int yp = GenerateRnd(80) + 16;
-			if (IsAreaOk(Rectangle { { xp - 1, yp - 1 }, { 3, 3 } })) {
+			if (RndLocOk(xp - 1, yp - 1)
+			    && RndLocOk(xp, yp - 1)
+			    && RndLocOk(xp + 1, yp - 1)
+			    && RndLocOk(xp - 1, yp)
+			    && RndLocOk(xp, yp)
+			    && RndLocOk(xp + 1, yp)
+			    && RndLocOk(xp - 1, yp + 1)
+			    && RndLocOk(xp, yp + 1)
+			    && RndLocOk(xp + 1, yp + 1)) {
 				AddObject(objtype, { xp, yp });
 				break;
 			}
@@ -284,7 +361,18 @@ void InitRndLocBigObj(int min, int max, _object_id objtype)
 		while (true) {
 			int xp = GenerateRnd(80) + 16;
 			int yp = GenerateRnd(80) + 16;
-			if (IsAreaOk(Rectangle { { xp - 1, yp - 2 }, { 3, 4 } })) {
+			if (RndLocOk(xp - 1, yp - 2)
+			    && RndLocOk(xp, yp - 2)
+			    && RndLocOk(xp + 1, yp - 2)
+			    && RndLocOk(xp - 1, yp - 1)
+			    && RndLocOk(xp, yp - 1)
+			    && RndLocOk(xp + 1, yp - 1)
+			    && RndLocOk(xp - 1, yp)
+			    && RndLocOk(xp, yp)
+			    && RndLocOk(xp + 1, yp)
+			    && RndLocOk(xp - 1, yp + 1)
+			    && RndLocOk(xp, yp + 1)
+			    && RndLocOk(xp + 1, yp + 1)) {
 				AddObject(objtype, { xp, yp });
 				break;
 			}
@@ -294,8 +382,14 @@ void InitRndLocBigObj(int min, int max, _object_id objtype)
 
 bool CanPlaceRandomObject(Point position, Displacement standoff)
 {
-	return IsAreaOk(Rectangle { position - standoff,
-	    Size { standoff.deltaX * 2 + 1, standoff.deltaY * 2 + 1 } });
+	for (int yy = -standoff.deltaY; yy <= standoff.deltaY; yy++) {
+		for (int xx = -standoff.deltaX; xx <= standoff.deltaX; xx++) {
+			Point tile = position + Displacement { xx, yy };
+			if (!RndLocOk(tile.x, tile.y))
+				return false;
+		}
+	}
+	return true;
 }
 
 std::optional<Point> GetRandomObjectPosition(Displacement standoff)
@@ -411,7 +505,7 @@ void InitRndBarrels()
 		do {
 			xp = GenerateRnd(80) + 16;
 			yp = GenerateRnd(80) + 16;
-		} while (!RndLocOk({ xp, yp }));
+		} while (!RndLocOk(xp, yp));
 		_object_id o = FlipCoin(4) ? explosiveBarrelId : barrelId;
 		AddObject(o, { xp, yp });
 		bool found = true;
@@ -429,7 +523,7 @@ void InitRndBarrels()
 				int dir = GenerateRnd(8);
 				xp += bxadd[dir];
 				yp += byadd[dir];
-				found = RndLocOk({ xp, yp });
+				found = RndLocOk(xp, yp);
 				t++;
 				if (found)
 					break;
@@ -689,9 +783,10 @@ void AddCryptObject(Object &object, int a2)
 				object._oVar2 = TEXT_BBOOKC;
 				break;
 			}
-			object._oVar3 = 15;
-			object._oVar8 = a2;
+			break;
 		}
+		object._oVar3 = 15;
+		object._oVar8 = a2;
 	} else {
 		object._oVar2 = a2 + TEXT_SKLJRN;
 		object._oVar3 = a2 + 9;
@@ -710,7 +805,7 @@ void SetupObject(Object &object, Point position, _object_id ot)
 	object.position = position;
 
 	if (!HeadlessMode) {
-		const auto &found = c_find(ObjFileList, ofi);
+		const auto &found = std::find(std::begin(ObjFileList), std::end(ObjFileList), ofi);
 		if (found == std::end(ObjFileList)) {
 			LogCritical("Unable to find object_graphic_id {} in list of objects to load, level generation error.", static_cast<int>(ofi));
 			return;
@@ -782,7 +877,15 @@ void AddNakrulLever()
 	while (true) {
 		int xp = GenerateRnd(80) + 16;
 		int yp = GenerateRnd(80) + 16;
-		if (IsAreaOk(Rectangle { { xp - 1, yp - 1 }, { 3, 3 } })) {
+		if (RndLocOk(xp - 1, yp - 1)
+		    && RndLocOk(xp, yp - 1)
+		    && RndLocOk(xp + 1, yp - 1)
+		    && RndLocOk(xp - 1, yp)
+		    && RndLocOk(xp, yp)
+		    && RndLocOk(xp + 1, yp)
+		    && RndLocOk(xp - 1, yp + 1)
+		    && RndLocOk(xp, yp + 1)
+		    && RndLocOk(xp + 1, yp + 1)) {
 			break;
 		}
 	}
@@ -855,7 +958,7 @@ void AddHookedBodies(int freq)
 			if (dungeon[i][j] != 1 && dungeon[i][j] != 2)
 				continue;
 			//if (!FlipCoin(freq))
-				//continue;
+			//	continue;
 			if (IsNearThemeRoom({ i, j }))
 				continue;
 			if (dungeon[i][j] == 1 && dungeon[i + 1][j] == 6) {
@@ -898,18 +1001,23 @@ void AddLazStand()
 	int cnt = 0;
 	int xp;
 	int yp;
-	while (true) {
+	bool found = false;
+	while (!found) {
+		found = true;
 		xp = GenerateRnd(80) + 16;
 		yp = GenerateRnd(80) + 16;
-
-		if (!IsAreaOk(Rectangle { { xp - 2, yp - 3 }, { 6, 7 } })) {
+		for (int yy = -3; yy <= 3; yy++) {
+			for (int xx = -2; xx <= 3; xx++) {
+				if (!RndLocOk(xp + xx, yp + yy))
+					found = false;
+			}
+		}
+		if (!found) {
 			cnt++;
 			if (cnt > 10000) {
 				InitRndLocObj(1, 1, OBJ_LAZSTAND);
 				return;
 			}
-		} else {
-			break;
 		}
 	}
 	AddObject(OBJ_LAZSTAND, { xp, yp });
@@ -1329,7 +1437,7 @@ void AddShrine(Object &shrine)
 	int shrines = gbIsHellfire ? NumberOfShrineTypes : 26;
 
 	for (int j = 0; j < shrines; j++) {
-		slist[j] = j != ShrineEnchanted || IsAnyOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CATACOMBS);
+		slist[j] = currlevel >= shrinemin[j] && currlevel <= shrinemax[j];
 		if (gbIsMultiplayer && shrineavail[j] == ShrineTypeSingle) {
 			slist[j] = false;
 		} else if (!gbIsMultiplayer && shrineavail[j] == ShrineTypeMulti) {
@@ -1452,7 +1560,13 @@ Point GetRndObjLoc(int randarea)
 			randarea--;
 		x = GenerateRnd(MAXDUNX);
 		y = GenerateRnd(MAXDUNY);
-		if (IsAreaOk(Rectangle { { x, y }, { randarea, randarea } }))
+		bool failed = false;
+		for (int i = 0; i < randarea && !failed; i++) {
+			for (int j = 0; j < randarea && !failed; j++) {
+				failed = !RndLocOk(i + x, j + y);
+			}
+		}
+		if (!failed)
 			break;
 	}
 	return { x, y };
@@ -1852,7 +1966,6 @@ void OperateLever(Object &object, bool sendmsg)
 	if (currlevel == 24) {
 		PlaySfxLoc(IS_CROPEN, { UberRow, UberCol });
 		Quests[Q_NAKRUL]._qactive = QUEST_DONE;
-		NetSendCmdQuest(true, Quests[Q_NAKRUL]);
 	}
 
 	if (sendmsg)
@@ -1901,19 +2014,8 @@ void OperateBook(Player &player, Object &book, bool sendmsg)
 	if (setlvlnum == SL_BONECHAMB) {
 		if (sendmsg) {
 			uint8_t newSpellLevel = player._pSplLvl[static_cast<int8_t>(SpellID::Guardian)] + 1;
-			if (newSpellLevel <= MaxSpellLevel) {
-				player._pSplLvl[static_cast<int8_t>(SpellID::Guardian)] = newSpellLevel;
+			if (newSpellLevel <= MaxSpellLevel)
 				NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, static_cast<uint16_t>(SpellID::Guardian), newSpellLevel);
-			}
-
-			if (&player == MyPlayer) {
-				for (Item &item : InventoryPlayerItemsRange { player }) {
-					item.updateRequiredStatsCacheForPlayer(player);
-				}
-				if (IsStashOpen) {
-					Stash.RefreshItemStatFlags();
-				}
-			}
 
 			Quests[Q_SCHAMB]._qactive = QUEST_DONE;
 			NetSendCmdQuest(true, Quests[Q_SCHAMB]);
@@ -1972,7 +2074,7 @@ void OperateBookLever(Object &questBook, bool sendmsg)
 				ObjChangeMap(questBook._oVar1, questBook._oVar2, questBook._oVar3, questBook._oVar4);
 			if (questBook._otype == OBJ_BLINDBOOK) {
 				if (sendmsg)
-					SpawnUnique(UITEM_OPTAMULET, SetPiece.position.megaToWorld() + Displacement { 5, 5 }, std::nullopt, true, true);
+					SpawnUnique(UITEM_OPTAMULET, SetPiece.position.megaToWorld() + Displacement { 5, 5 });
 				auto tren = TransVal;
 				TransVal = 9;
 				DRLG_MRectTrans(WorldTilePosition(questBook._oVar1, questBook._oVar2), WorldTilePosition(questBook._oVar3, questBook._oVar4));
@@ -2040,8 +2142,8 @@ void OperateChamberOfBoneBook(Object &questBook, bool sendmsg)
 		Quests[Q_SCHAMB]._qmsg = textdef;
 		NetSendCmdQuest(true, Quests[Q_SCHAMB]);
 		NetSendCmdLoc(MyPlayerId, false, CMD_OPERATEOBJ, questBook.position);
-		InitQTextMsg(textdef);
 	}
+	InitQTextMsg(textdef);
 }
 
 void OperateChest(const Player &player, Object &chest, bool sendLootMsg)
@@ -2179,6 +2281,28 @@ void OperateSlainHero(const Player &player, Object &corpse, bool sendmsg)
 		CreateMagicWeapon(corpse.position, ItemType::Sword, ICURS_BASTARD_SWORD, sendmsg, false);
 	} else if (player._pClass == HeroClass::Barbarian) {
 		CreateMagicWeapon(corpse.position, ItemType::Axe, ICURS_BATTLE_AXE, sendmsg, false);
+	} else if (player._pClass == HeroClass::Paladin) {
+		CreateMagicArmor(corpse.position, ItemType::HeavyArmor, ICURS_BREAST_PLATE, sendmsg, false);
+	} else if (player._pClass == HeroClass::Traveler) {
+		CreateSpellBook(corpse.position, SpellID::TownPortal, sendmsg, false);
+	} else if (player._pClass == HeroClass::Battlemage) {
+		CreateMagicWeapon(corpse.position, ItemType::Staff, ICURS_WAR_STAFF, sendmsg, false);
+	} else if (player._pClass == HeroClass::Assassin) {
+		CreateMagicWeapon(corpse.position, ItemType::Bow, ICURS_LONG_BATTLE_BOW, sendmsg, false);
+	} else if (player._pClass == HeroClass::Templar) {
+		CreateMagicArmor(corpse.position, ItemType::HeavyArmor, ICURS_BREAST_PLATE, sendmsg, false);
+	} else if (player._pClass == HeroClass::Witch) {
+		CreateMagicWeapon(corpse.position, ItemType::Bow, ICURS_LONG_BATTLE_BOW, sendmsg, false);
+	} else if (player._pClass == HeroClass::Kabbalist) {
+		CreateSpellBook(corpse.position, SpellID::Golem, sendmsg, false);
+	} else if (player._pClass == HeroClass::Warlock) {
+		CreateMagicWeapon(corpse.position, ItemType::Staff, ICURS_WAR_STAFF, sendmsg, false);
+	} else if (player._pClass == HeroClass::Sage) {
+		CreateSpellBook(corpse.position, SpellID::Identify, sendmsg, false);
+	} else if (player._pClass == HeroClass::Psychokineticist) {
+		CreateMagicWeapon(corpse.position, ItemType::Staff, ICURS_WAR_STAFF, sendmsg, false);
+	} else if (player._pClass == HeroClass::Cleric) {
+		CreateMagicArmor(corpse.position, ItemType::HeavyArmor, ICURS_BREAST_PLATE, sendmsg, false);
 	}*/
 	MyPlayer->Say(HeroSpeech::RestInPeaceMyFriend);
 	if (sendmsg)
@@ -2270,7 +2394,7 @@ void OperatePedestal(Player &player, Object &pedestal, bool sendmsg)
 		ObjChangeMap(pedestal._oVar1, pedestal._oVar2, pedestal._oVar3, pedestal._oVar4);
 		LoadMapObjects("levels\\l2data\\blood2.dun", SetPiece.position.megaToWorld());
 		if (sendmsg)
-			SpawnUnique(UITEM_ARMOFVAL, SetPiece.position.megaToWorld() + Displacement { 9, 3 }, std::nullopt, true, true);
+			SpawnUnique(UITEM_ARMOFVAL, SetPiece.position.megaToWorld() + Displacement { 9, 3 });
 		pedestal._oSelFlag = 0;
 	}
 }
@@ -2445,8 +2569,6 @@ void OperateShrineStone(Player &player)
 			item._iCharges = item._iMaxCharges;
 	}
 
-	CalcPlrInv(player, true);
-
 	RedrawEverything();
 
 	InitDiabloMsg(EMSG_SHRINE_STONE);
@@ -2472,7 +2594,7 @@ void OperateShrineEnchanted(Player &player)
 	int cnt = 0;
 	uint64_t spell = 1;
 	uint8_t maxSpells = MAX_SPELLS;
-	 //gbIsHellfire ?: 37;
+	//gbIsHellfire ?: 37;
 	uint64_t spells = player._pMemSpells;
 	for (uint16_t j = 0; j < maxSpells; j++) {
 		if ((spell & spells) != 0)
@@ -2486,29 +2608,15 @@ void OperateShrineEnchanted(Player &player)
 		} while ((player._pMemSpells & GetSpellBitmask(static_cast<SpellID>(spellToReduce))) == 0);
 
 		spell = 1;
-		for (uint8_t j = static_cast<uint8_t>(SpellID::Firebolt); j < maxSpells; j++) {
+		for (uint8_t j = static_cast<uint8_t>(SpellID::Firebolt); j < maxSpells; j++) { // BUGFIX: < MAX_SPELLS, there is no spell with MAX_SPELLS index (fixed)
 			if ((player._pMemSpells & spell) != 0 && player._pSplLvl[j] < MaxSpellLevel && j != spellToReduce) {
-				uint8_t newSpellLevel = static_cast<uint8_t>(player._pSplLvl[j] + 1);
-				player._pSplLvl[j] = newSpellLevel;
-				NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, j, newSpellLevel);
+				NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, j, static_cast<uint8_t>(player._pSplLvl[j] + 1));
 			}
 			spell *= 2;
 		}
 
-		if (player._pSplLvl[spellToReduce] > 0) {
-			uint8_t newSpellLevel = static_cast<uint8_t>(player._pSplLvl[spellToReduce] - 1);
-			player._pSplLvl[spellToReduce] = newSpellLevel;
-			NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, spellToReduce, newSpellLevel);
-		}
-
-		if (&player == MyPlayer) {
-			for (Item &item : InventoryPlayerItemsRange { player }) {
-				item.updateRequiredStatsCacheForPlayer(player);
-			}
-			if (IsStashOpen) {
-				Stash.RefreshItemStatFlags();
-			}
-		}
+		if (player._pSplLvl[spellToReduce] > 0)
+			NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, spellToReduce, player._pSplLvl[spellToReduce] - 1);
 	}
 
 	InitDiabloMsg(EMSG_SHRINE_ENCHANTED);
@@ -2541,17 +2649,7 @@ void OperateShrineCostOfWisdom(Player &player, SpellID spellId, diablo_message m
 	uint8_t curSpellLevel = player._pSplLvl[static_cast<int8_t>(spellId)];
 	if (curSpellLevel < MaxSpellLevel) {
 		uint8_t newSpellLevel = std::min(static_cast<uint8_t>(curSpellLevel + 2), MaxSpellLevel);
-		player._pSplLvl[static_cast<int8_t>(spellId)] = newSpellLevel;
 		NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, static_cast<uint16_t>(spellId), newSpellLevel);
-	}
-
-	if (&player == MyPlayer) {
-		for (Item &item : InventoryPlayerItemsRange { player }) {
-			item.updateRequiredStatsCacheForPlayer(player);
-		}
-		if (IsStashOpen) {
-			Stash.RefreshItemStatFlags();
-		}
 	}
 
 	uint32_t t = player._pMaxManaBase / 10;
@@ -2656,11 +2754,11 @@ void OperateShrineDivine(Player &player, Point spawnPosition)
 		return;
 
 	if (currlevel < 4) {
-		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLMANA, false, false, true);
-		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLHEAL, false, false, true);
+		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLMANA, false, true);
+		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLHEAL, false, true);
 	} else {
-		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLREJUV, false, false, true);
-		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLREJUV, false, false, true);
+		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLREJUV, false, true);
+		CreateTypeItem(spawnPosition, false, ItemType::Misc, IMISC_FULLREJUV, false, true);
 	}
 
 	player._pMana = player._pMaxMana;
@@ -2906,7 +3004,7 @@ void OperateShrineMendicant(Player &player)
 		return;
 
 	int gold = player._pGold / 2;
-	player.addExperience(gold);
+	AddPlrExperience(player, player._pLevel, gold);
 	TakePlrsMoney(gold);
 
 	RedrawEverything();
@@ -2915,7 +3013,7 @@ void OperateShrineMendicant(Player &player)
 }
 
 /**
- * @brief Grants experience to the player based on the current dungeon level while also triggering a magic trap
+ * @brief Grants experience to the player based on their current level while also triggering a magic trap
  * @param player The player that will be affected by the shrine
  * @param spawnPosition The trap results in casting flash from this location targeting the player
  */
@@ -2924,7 +3022,7 @@ void OperateShrineSparkling(Player &player, Point spawnPosition)
 	if (&player != MyPlayer)
 		return;
 
-	player.addExperience(1000 * currlevel);
+	AddPlrExperience(player, player._pLevel, 1000 * currlevel);
 
 	AddMissile(
 	    spawnPosition,
@@ -3191,8 +3289,7 @@ void OperateBookcase(Object &bookcase, bool sendmsg, bool sendLootMsg)
 			zhar.talkMsg = TEXT_ZHAR2;
 			M_StartStand(zhar, zhar.direction); // BUGFIX: first parameter in call to M_StartStand should be MAX_PLRS, not 0. (fixed)
 			zhar.goal = MonsterGoal::Attack;
-			if (sendmsg)
-				zhar.mode = MonsterMode::Talk;
+			zhar.mode = MonsterMode::Talk;
 		}
 	}
 	if (sendmsg)
@@ -3237,7 +3334,7 @@ int FindValidShrine()
 {
 	for (;;) {
 		int rv = GenerateRnd(gbIsHellfire ? NumberOfShrineTypes : 26);
-		if ((rv == ShrineEnchanted && !IsAnyOf(leveltype, DTYPE_CATHEDRAL, DTYPE_CATACOMBS)) || rv == ShrineThaumaturgic)
+		if (currlevel < shrinemin[rv] || currlevel > shrinemax[rv] || rv == ShrineThaumaturgic)
 			continue;
 		if (gbIsMultiplayer && shrineavail[rv] == ShrineTypeSingle)
 			continue;
@@ -3330,26 +3427,26 @@ bool OperateFountains(Player &player, Object &fountain)
 		if (&player != MyPlayer)
 			return false;
 
-		const unsigned randomValue = (fountain._oRndSeed >> 16) % 12;
-		const unsigned fromStat = randomValue / 3;
+		unsigned randomValue = (fountain._oRndSeed >> 16) % 12;
+		unsigned fromStat = randomValue / 3;
 		unsigned toStat = randomValue % 3;
 		if (toStat >= fromStat)
 			toStat++;
 
-		const std::pair<unsigned, int> alterations[] = { { fromStat, -1 }, { toStat, 1 } };
-		for (const auto &[stat, delta] : alterations) {
-			switch (stat) {
+		std::pair<unsigned, int> alterations[] = { { fromStat, -1 }, { toStat, 1 } };
+		for (auto alteration : alterations) {
+			switch (alteration.first) {
 			case 0:
-				ModifyPlrStr(player, delta);
+				ModifyPlrStr(player, alteration.second);
 				break;
 			case 1:
-				ModifyPlrMag(player, delta);
+				ModifyPlrMag(player, alteration.second);
 				break;
 			case 2:
-				ModifyPlrDex(player, delta);
+				ModifyPlrDex(player, alteration.second);
 				break;
 			case 3:
-				ModifyPlrVit(player, delta);
+				ModifyPlrVit(player, alteration.second);
 				break;
 			}
 		}
@@ -3433,7 +3530,6 @@ void OperateStoryBook(Object &storyBook)
 		Quests[Q_NAKRUL]._qactive = QUEST_ACTIVE;
 		Quests[Q_NAKRUL]._qlog = true;
 		Quests[Q_NAKRUL]._qmsg = msg;
-		NetSendCmdQuest(true, Quests[Q_NAKRUL]);
 	}
 	InitQTextMsg(msg);
 	NetSendCmdLoc(MyPlayerId, false, CMD_OPERATEOBJ, storyBook.position);
@@ -3480,11 +3576,8 @@ bool AreAllCruxesOfTypeBroken(int cruxType)
 	return true;
 }
 
-void BreakCrux(Object &crux, bool sendmsg)
+void BreakCrux(const Player *player, Object &crux)
 {
-	if (crux._oSelFlag == 0)
-		return;
-
 	crux._oAnimFlag = true;
 	crux._oAnimFrame = 1;
 	crux._oAnimDelay = 1;
@@ -3493,7 +3586,7 @@ void BreakCrux(Object &crux, bool sendmsg)
 	crux._oBreak = -1;
 	crux._oSelFlag = 0;
 
-	if (sendmsg)
+	if (player == MyPlayer || player == nullptr)
 		NetSendCmdLoc(MyPlayerId, false, CMD_BREAKOBJ, crux.position);
 
 	if (!AreAllCruxesOfTypeBroken(crux._oVar8))
@@ -3635,7 +3728,7 @@ void ResyncDoors(WorldTilePosition p1, WorldTilePosition p2, bool sendmsg)
 	const WorldTileSize size { static_cast<WorldTileCoord>(p2.x - p1.x), static_cast<WorldTileCoord>(p2.y - p1.y) };
 	const WorldTileRectangle area { p1, size };
 
-	for (const WorldTilePosition p : PointsInRectangle { area }) {
+	for (WorldTilePosition p : PointsInRectangleRange<WorldTileCoord> { area }) {
 		Object *obj = FindObjectAtPosition(p);
 		if (obj == nullptr)
 			continue;
@@ -3664,7 +3757,7 @@ void UpdateState(Object &object, int frame)
 
 unsigned int Object::GetId() const
 {
-	return std::abs(dObject[position.x][position.y]) - 1;
+	return abs(dObject[position.x][position.y]) - 1;
 }
 
 bool Object::IsDisabled() const
@@ -3678,7 +3771,7 @@ bool Object::IsDisabled() const
 	if (!IsShrine()) {
 		return false;
 	}
-	return IsAnyOf(static_cast<shrine_type>(_oVar1), shrine_type::ShrineFascinating, shrine_type::ShrineOrnate, shrine_type::ShrineSacred, shrine_type::ShrineMurphys);
+	return IsAnyOf(static_cast<shrine_type>(_oVar1), shrine_type::ShrineFascinating, shrine_type::ShrineOrnate, shrine_type::ShrineSacred);
 }
 
 Object *FindObjectAtPosition(Point position, bool considerLargeObjects)
@@ -3690,7 +3783,7 @@ Object *FindObjectAtPosition(Point position, bool considerLargeObjects)
 	auto objectId = dObject[position.x][position.y];
 
 	if (objectId > 0 || (considerLargeObjects && objectId != 0)) {
-		return &Objects[std::abs(objectId) - 1];
+		return &Objects[abs(objectId) - 1];
 	}
 
 	// nothing at this position, return a nullptr
@@ -4011,7 +4104,7 @@ void InitObjects()
 				AddBookLever(OBJ_STEELTOME, SetPiece, spId);
 				LoadMapObjects("levels\\l4data\\warlord.dun", SetPiece.position.megaToWorld());
 			}
-			if (Quests[Q_BETRAYER].IsAvailable() && !UseMultiplayerQuests())
+			if (Quests[Q_BETRAYER].IsAvailable()) //&& !UseMultiplayerQuests()
 				AddLazStand();
 			InitRndBarrels();
 			AddL4Goodies();
@@ -4615,10 +4708,6 @@ void DeltaSyncOpObject(Object &object)
 	case OBJ_CAULDRON:
 		UpdateState(object, 3);
 		break;
-	case OBJ_STORYBOOK:
-	case OBJ_L5BOOKS:
-		object._oAnimFrame = object._oVar4;
-		break;
 	case OBJ_MUSHPATCH:
 		if (Quests[Q_MUSHROOM]._qvar1 >= QS_MUSHSPAWNED) {
 			UpdateState(object, object._oAnimFrame + 1);
@@ -4757,14 +4846,14 @@ void SyncOpObject(Player &player, int cmd, Object &object)
 void BreakObjectMissile(const Player *player, Object &object)
 {
 	if (object.IsCrux())
-		BreakCrux(object, true);
+		BreakCrux(player, object);
 }
 void BreakObject(const Player &player, Object &object)
 {
 	if (object.IsBarrel()) {
 		BreakBarrel(player, object, false, true);
 	} else if (object.IsCrux()) {
-		BreakCrux(object, true);
+		BreakCrux(&player, object);
 	}
 }
 
@@ -4791,8 +4880,6 @@ void SyncBreakObj(const Player &player, Object &object)
 {
 	if (object.IsBarrel()) {
 		BreakBarrel(player, object, true, false);
-	} else if (object.IsCrux()) {
-		BreakCrux(object, false);
 	}
 }
 
@@ -4801,7 +4888,7 @@ void SyncObjectAnim(Object &object)
 	object_graphic_id index = AllObjects[object._otype].ofindex;
 
 	if (!HeadlessMode) {
-		const auto &found = c_find(ObjFileList, index);
+		const auto &found = std::find(std::begin(ObjFileList), std::end(ObjFileList), index);
 		if (found == std::end(ObjFileList)) {
 			LogCritical("Unable to find object_graphic_id {} in list of objects to load, level generation error.", static_cast<int>(index));
 			return;
@@ -4965,7 +5052,7 @@ StringOrView Object::name() const
 	default:
 		break;
 	}
-	return std::string_view();
+	return string_view();
 }
 
 void GetObjectStr(const Object &object)

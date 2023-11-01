@@ -5,7 +5,6 @@
  */
 #include <array>
 #include <cstdint>
-#include <string_view>
 
 #include <fmt/format.h>
 
@@ -23,7 +22,7 @@
 #include "controls/plrctrls.h"
 #include "controls/remap_keyboard.h"
 #include "diablo.h"
-#include "discord/discord.h"
+//#include "discord/discord.h"
 #include "doom.h"
 #include "encrypt.h"
 #include "engine/backbuffer_state.hpp"
@@ -64,7 +63,6 @@
 #include "panels/spell_book.hpp"
 #include "panels/spell_list.hpp"
 #include "pfile.h"
-#include "playerdat.hpp"
 #include "plrmsg.h"
 #include "qol/chatlog.h"
 #include "qol/floatingnumbers.h"
@@ -81,8 +79,8 @@
 #include "utils/console.h"
 #include "utils/display.h"
 #include "utils/language.h"
-#include "utils/parse_int.hpp"
 #include "utils/paths.h"
+#include "utils/stdcompat/string_view.hpp"
 #include "utils/str_cat.hpp"
 #include "utils/utf8.hpp"
 
@@ -116,7 +114,7 @@ bool gbBarbarian;
 bool HeadlessMode = false;
 clicktype sgbMouseDown;
 uint16_t gnTickDelay = 50;
-char gszProductName[64] = "DevilutionX vUnknown";
+char gszProductName[64] = "DCLXVI_X 0.x";
 
 #ifdef _DEBUG
 bool DebugDisableNetworkTimeout = false;
@@ -193,7 +191,6 @@ void FreeGame()
 	FreeDebugGFX();
 #endif
 	FreeGameMem();
-	stream_stop();
 	music_stop();
 }
 
@@ -230,7 +227,7 @@ void LeftMouseCmd(bool bShift)
 
 	if (leveltype == DTYPE_TOWN) {
 		CloseGoldWithdraw();
-		CloseStash();
+		IsStashOpen = false;
 		if (pcursitem != -1 && pcurs == CURSOR_HAND)
 			NetSendCmdLocParam1(true, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursPosition, pcursitem);
 		if (pcursmonst != -1)
@@ -415,12 +412,6 @@ void RightMouseDown(bool isShiftHeld)
 		return;
 	}
 
-	if (qtextflag) {
-		qtextflag = false;
-		stream_stop();
-		return;
-	}
-
 	if (DoomFlag) {
 		doom_close();
 		return;
@@ -449,7 +440,7 @@ void RightMouseDown(bool isShiftHeld)
 void ReleaseKey(SDL_Keycode vkey)
 {
 	remap_keyboard_key(&vkey);
-	if (sgnTimeoutCurs != CURSOR_NONE)
+	if ((sgnTimeoutCurs != CURSOR_NONE || dropGoldFlag) && vkey != SDLK_PRINTSCREEN)
 		return;
 	sgOptions.Keymapper.KeyReleased(vkey);
 }
@@ -554,7 +545,7 @@ void PressKey(SDL_Keycode vkey, uint16_t modState)
 		}
 		return;
 #ifdef _DEBUG
-	case SDLK_v:
+	case SDLK_m:
 		if ((modState & KMOD_SHIFT) != 0)
 			NextDebugMonster();
 		else
@@ -669,11 +660,11 @@ void HandleMouseButtonUp(Uint8 button, uint16_t modState)
 		LastMouseButtonAction = MouseActionType::None;
 		sgbMouseDown = CLICK_NONE;
 	} else {
-		sgOptions.Keymapper.KeyReleased(static_cast<SDL_Keycode>(button | KeymapperMouseButtonMask));
+		sgOptions.Keymapper.KeyReleased(button | KeymapperMouseButtonMask);
 	}
 }
 
-bool HandleTextInput(std::string_view text)
+bool HandleTextInput(string_view text)
 {
 	if (IsTalkActive()) {
 		control_new_text(text);
@@ -820,7 +811,7 @@ void RunGameLoop(interface_mode uMsg)
 	gbGameLoopStartup = true;
 	nthread_ignore_mutex(false);
 
-	discord_manager::StartGame();
+//	discord_manager::StartGame();
 #ifdef GPERF_HEAP_FIRST_GAME_ITERATION
 	unsigned run_game_iteration = 0;
 #endif
@@ -855,7 +846,7 @@ void RunGameLoop(interface_mode uMsg)
 		if (demo::IsRecording())
 			demo::RecordGameLoopResult(runGameLoop);
 
-		discord_manager::UpdateGame();
+	//	discord_manager::UpdateGame();
 
 		if (!runGameLoop) {
 			if (processInput)
@@ -901,7 +892,7 @@ void RunGameLoop(interface_mode uMsg)
 	}
 }
 
-void PrintWithRightPadding(std::string_view str, size_t width)
+void PrintWithRightPadding(string_view str, size_t width)
 {
 	printInConsole(str);
 	if (str.size() >= width)
@@ -909,7 +900,7 @@ void PrintWithRightPadding(std::string_view str, size_t width)
 	printInConsole(std::string(width - str.size(), ' '));
 }
 
-void PrintHelpOption(std::string_view flags, std::string_view description)
+void PrintHelpOption(string_view flags, string_view description)
 {
 	printInConsole("    ");
 	PrintWithRightPadding(flags, 20);
@@ -957,16 +948,11 @@ void PrintHelpOption(std::string_view flags, std::string_view description)
 	diablo_quit(0);
 }
 
-void PrintFlagMessage(std::string_view flag, std::string_view message)
+void PrintFlagsRequiresArgument(string_view flag)
 {
 	printInConsole(flag);
-	printInConsole(message);
+	printInConsole(" requires an argument");
 	printNewlineInConsole();
-}
-
-void PrintFlagRequiresArgument(std::string_view flag)
-{
-	PrintFlagMessage(flag, " requires an argument");
 }
 
 void DiabloParseFlags(int argc, char **argv)
@@ -982,7 +968,7 @@ void DiabloParseFlags(int argc, char **argv)
 	bool createDemoReference = false;
 #endif
 	for (int i = 1; i < argc; i++) {
-		const std::string_view arg = argv[i];
+		const string_view arg = argv[i];
 		if (arg == "-h" || arg == "--help") {
 			PrintHelpAndExit();
 		} else if (arg == "--version") {
@@ -993,54 +979,44 @@ void DiabloParseFlags(int argc, char **argv)
 			diablo_quit(0);
 		} else if (arg == "--data-dir") {
 			if (i + 1 == argc) {
-				PrintFlagRequiresArgument("--data-dir");
+				PrintFlagsRequiresArgument("--data-dir");
 				diablo_quit(64);
 			}
 			paths::SetBasePath(argv[++i]);
 		} else if (arg == "--save-dir") {
 			if (i + 1 == argc) {
-				PrintFlagRequiresArgument("--save-dir");
+				PrintFlagsRequiresArgument("--save-dir");
 				diablo_quit(64);
 			}
 			paths::SetPrefPath(argv[++i]);
 		} else if (arg == "--config-dir") {
 			if (i + 1 == argc) {
-				PrintFlagRequiresArgument("--config-dir");
+				PrintFlagsRequiresArgument("--config-dir");
 				diablo_quit(64);
 			}
 			paths::SetConfigPath(argv[++i]);
 		} else if (arg == "--lang") {
 			if (i + 1 == argc) {
-				PrintFlagRequiresArgument("--lang");
+				PrintFlagsRequiresArgument("--lang");
 				diablo_quit(64);
 			}
 			forceLocale = argv[++i];
 #ifndef DISABLE_DEMOMODE
 		} else if (arg == "--demo") {
 			if (i + 1 == argc) {
-				PrintFlagRequiresArgument("--demo");
+				PrintFlagsRequiresArgument("--demo");
 				diablo_quit(64);
 			}
-			ParseIntResult<int> parsedParam = ParseInt<int>(argv[++i]);
-			if (!parsedParam.has_value()) {
-				PrintFlagMessage("--demo", " must be a number");
-				diablo_quit(64);
-			}
-			demoNumber = parsedParam.value();
+			demoNumber = SDL_atoi(argv[++i]);
 			gbShowIntro = false;
 		} else if (arg == "--timedemo") {
 			timedemo = true;
 		} else if (arg == "--record") {
 			if (i + 1 == argc) {
-				PrintFlagRequiresArgument("--record");
+				PrintFlagsRequiresArgument("--record");
 				diablo_quit(64);
 			}
-			ParseIntResult<int> parsedParam = ParseInt<int>(argv[++i]);
-			if (!parsedParam.has_value()) {
-				PrintFlagMessage("--record", " must be a number");
-				diablo_quit(64);
-			}
-			recordNumber = parsedParam.value();
+			recordNumber = SDL_atoi(argv[++i]);
 		} else if (arg == "--create-reference") {
 			createDemoReference = true;
 #else
@@ -1117,10 +1093,11 @@ void CheckArchivesUpToDate()
 {
 #ifdef UNPACKED_MPQS
 	const bool devilutionxMpqOutOfDate = false;
+	const bool fontsMpqOutOfDate = font_data_path && !FileExists(*font_data_path + "fonts" + DirectorySeparator + "12-4e.clx");
 #else
-	const bool devilutionxMpqOutOfDate = devilutionx_mpq && (!devilutionx_mpq->HasFile("data\\charbg.clx") || devilutionx_mpq->HasFile("fonts\\12-00.bin"));
+	const bool devilutionxMpqOutOfDate = devilutionx_mpq && !devilutionx_mpq->HasFile("data\\charbg.clx");
+	const bool fontsMpqOutOfDate = font_mpq && !font_mpq->HasFile("fonts\\12-4e.clx");
 #endif
-	const bool fontsMpqOutOfDate = AreExtraFontsOutOfDate();
 
 	if (devilutionxMpqOutOfDate && fontsMpqOutOfDate) {
 		app_fatal(_("Please update devilutionx.mpq and fonts.mpq to the latest version"));
@@ -1361,6 +1338,7 @@ void UnstuckChargers()
 		}
 	}
 	for (size_t i = 0; i < ActiveMonsterCount; i++) {
+	//	for (int i = 0; i < ActiveMonsterCount; i++) {
 		auto &monster = Monsters[ActiveMonsters[i]];
 		if (monster.mode == MonsterMode::Charge)
 			monster.mode = MonsterMode::Stand;
@@ -1370,6 +1348,7 @@ void UnstuckChargers()
 void UpdateMonsterLights()
 {
 	for (size_t i = 0; i < ActiveMonsterCount; i++) {
+	//	for (int i = 0; i < ActiveMonsterCount; i++) {
 		auto &monster = Monsters[ActiveMonsters[i]];
 
 		if ((monster.flags & MFLAG_BERSERK) != 0) {
@@ -1442,7 +1421,7 @@ void TimeoutCursor(bool bTimeout)
 		if (sgnTimeoutCurs == CURSOR_NONE && sgbMouseDown == CLICK_NONE) {
 			sgnTimeoutCurs = pcurs;
 			multi_net_ping();
-			InfoString = StringOrView {};
+			InfoString = {};
 			AddPanelString(_("-- Network timeout --"));
 			AddPanelString(_("-- Waiting for players --"));
 			NewCursor(CURSOR_HOURGLASS);
@@ -1456,7 +1435,7 @@ void TimeoutCursor(bool bTimeout)
 		if (pcurs == CURSOR_HOURGLASS)
 			NewCursor(sgnTimeoutCurs);
 		sgnTimeoutCurs = CURSOR_NONE;
-		InfoString = StringOrView {};
+		InfoString = {};
 		RedrawEverything();
 	}
 }
@@ -1466,7 +1445,7 @@ void HelpKeyPressed()
 	if (HelpFlag) {
 		HelpFlag = false;
 	} else if (stextflag != TalkID::None) {
-		InfoString = StringOrView {};
+		InfoString = {};
 		AddPanelString(_("No help available")); /// BUGFIX: message isn't displayed
 		AddPanelString(_("while in stores"));
 		LastMouseButtonAction = MouseActionType::None;
@@ -1505,7 +1484,7 @@ void InventoryKeyPressed()
 	}
 	sbookflag = false;
 	CloseGoldWithdraw();
-	CloseStash();
+	IsStashOpen = false;
 }
 
 void CharacterSheetKeyPressed()
@@ -1548,7 +1527,7 @@ void QuestLogKeyPressed()
 	}
 	CloseCharPanel();
 	CloseGoldWithdraw();
-	CloseStash();
+	IsStashOpen = false;
 }
 
 void DisplaySpellsKeyPressed()
@@ -1701,8 +1680,8 @@ void InitKeymapActions()
 	    N_("Item highlighting"),
 	    N_("Show/hide items on ground."),
 	    SDLK_LALT,
-	    [] { HighlightKeyPressed(true); },
-	    [] { HighlightKeyPressed(false); });
+	    [] { AltPressed(true); },
+	    [] { AltPressed(false); });
 	sgOptions.Keymapper.AddAction(
 	    "Toggle Item Highlighting",
 	    N_("Toggle item highlighting"),
@@ -1716,14 +1695,6 @@ void InitKeymapActions()
 	    N_("Toggles if automap is displayed."),
 	    SDLK_TAB,
 	    DoAutoMap,
-	    nullptr,
-	    IsGameRunning);
-	sgOptions.Keymapper.AddAction(
-	    "CycleAutomapType",
-	    N_("Cycle map type"),
-	    N_("Opaque -> Transparent -> Minimap -> None"),
-	    SDLK_m,
-	    CycleAutomapType,
 	    nullptr,
 	    IsGameRunning);
 
@@ -2229,8 +2200,8 @@ void InitPadmapActions()
 	    N_("Item highlighting"),
 	    N_("Show/hide items on ground."),
 	    ControllerButton_NONE,
-	    [] { HighlightKeyPressed(true); },
-	    [] { HighlightKeyPressed(false); });
+	    [] { AltPressed(true); },
+	    [] { AltPressed(false); });
 	sgOptions.Padmapper.AddAction(
 	    "Toggle Item Highlighting",
 	    N_("Toggle item highlighting"),
@@ -2450,9 +2421,6 @@ int DiabloMain(int argc, char **argv)
 	// Finally load game data
 	LoadGameArchives();
 
-	// Load dynamic data before we go into the menu as we need to initialise player characters in memory pretty early.
-	LoadPlayerDataFiles();
-
 	DiabloInit();
 #ifdef __UWP__
 	onInitialized();
@@ -2511,7 +2479,7 @@ bool TryIconCurs()
 			DoRepair(myPlayer, pcursinvitem);
 		else if (pcursstashitem != StashStruct::EmptyCell) {
 			Item &item = Stash.stashList[pcursstashitem];
-			RepairItem(item, myPlayer.getCharacterLevel());
+			RepairItem(item, myPlayer._pLevel);
 		}
 		NewCursor(CURSOR_HAND);
 		return true;
@@ -2764,10 +2732,7 @@ void LoadGameLevel(bool firstflag, lvl_entry lvldir)
 	}
 
 	if (firstflag || lvldir == ENTRY_LOAD) {
-		bool isHellfireSaveGame = gbIsHellfireSaveGame;
-		gbIsHellfireSaveGame = gbIsHellfire;
 		LoadStash();
-		gbIsHellfireSaveGame = isHellfireSaveGame;
 	}
 
 	IncProgress();

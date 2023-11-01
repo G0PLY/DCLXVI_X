@@ -10,10 +10,6 @@
 #include <SDL_version.h>
 
 #include "options.h"
-#include "utils/log.hpp"
-
-// Set this to 1 to log the hardware cursor state changes.
-#define LOG_HWCURSOR 0
 
 namespace devilution {
 
@@ -22,6 +18,18 @@ inline bool IsHardwareCursorEnabled()
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	return *sgOptions.Graphics.hardwareCursor && HardwareCursorSupported();
+#else
+	return false;
+#endif
+}
+
+/**
+ * @return Whether the cursor was previously visible.
+ */
+inline bool SetHardwareCursorVisible(bool visible)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	return SDL_ShowCursor(visible ? SDL_ENABLE : SDL_DISABLE) == 1;
 #else
 	return false;
 #endif
@@ -69,27 +77,7 @@ public:
 
 	void SetEnabled(bool value)
 	{
-#if LOG_HWCURSOR
-		if (enabled_ != value) {
-			Log("hwcursor: SetEnabled {}", value);
-		}
-#endif
 		enabled_ = value;
-	}
-
-	[[nodiscard]] bool needsReinitialization()
-	{
-		return needs_reinitialization_;
-	}
-
-	void setNeedsReinitialization(bool value)
-	{
-#if LOG_HWCURSOR
-		if (needs_reinitialization_ != value) {
-			Log("hwcursor: setNeedsReinitialization {}", value);
-		}
-#endif
-		needs_reinitialization_ = value;
 	}
 
 	bool operator==(const CursorInfo &other) const
@@ -115,11 +103,9 @@ private:
 	int id_;
 
 	bool enabled_ = false;
-
-	bool needs_reinitialization_ = false;
 };
 
-CursorInfo &GetCurrentCursorInfo();
+CursorInfo GetCurrentCursorInfo();
 
 // Whether the current cursor is a hardware cursor.
 inline bool IsHardwareCursor()
@@ -129,48 +115,9 @@ inline bool IsHardwareCursor()
 
 void SetHardwareCursor(CursorInfo cursorInfo);
 
-inline void DoReinitializeHardwareCursor()
-{
-#if LOG_HWCURSOR
-	Log("hwcursor: DoReinitializeHardwareCursor");
-#endif
-	SetHardwareCursor(GetCurrentCursorInfo());
-}
-
-inline bool IsHardwareCursorVisible()
-{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	return SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE;
-#else
-	return false;
-#endif
-}
-
-inline void SetHardwareCursorVisible(bool visible)
-{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	if (IsHardwareCursorVisible() == visible)
-		return;
-	if (visible && GetCurrentCursorInfo().needsReinitialization()) {
-		DoReinitializeHardwareCursor();
-	}
-#if LOG_HWCURSOR
-	Log("hwcursor: SetHardwareCursorVisible {}", visible);
-#endif
-	if (SDL_ShowCursor(visible ? SDL_ENABLE : SDL_DISABLE) < 0) {
-		LogError("{}", SDL_GetError());
-		SDL_ClearError();
-	}
-#endif
-}
-
 inline void ReinitializeHardwareCursor()
 {
-	if (IsHardwareCursorVisible()) {
-		DoReinitializeHardwareCursor();
-	} else {
-		GetCurrentCursorInfo().setNeedsReinitialization(true);
-	}
+	SetHardwareCursor(GetCurrentCursorInfo());
 }
 
 } // namespace devilution

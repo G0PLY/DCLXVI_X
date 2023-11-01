@@ -66,6 +66,7 @@ bool InitMenu(_selhero_selections type)
 bool InitSinglePlayerMenu()
 {
 	//gbIsMultiplayer = false;
+	//gbIsMultiplayer = true;
 	//return InitMenu(SELHERO_NEW_DUNGEON);
 }
 
@@ -159,8 +160,8 @@ void mainmenu_loop()
 		case MAINMENU_NONE:
 			break;
 		//case MAINMENU_SINGLE_PLAYER:
-		//	if (!InitSinglePlayerMenu())
-		//		done = true;
+			//if (!InitSinglePlayerMenu())
+			//	done = true;
 		//	break;
 		case MAINMENU_MULTIPLAYER:
 			if (!InitMultiPlayerMenu())

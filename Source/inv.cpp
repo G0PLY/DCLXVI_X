@@ -4,9 +4,7 @@
  * Implementation of player inventory.
  */
 #include <algorithm>
-#include <cmath>
 #include <cstdint>
-#include <optional>
 #include <utility>
 
 #include <fmt/format.h>
@@ -33,6 +31,7 @@
 #include "utils/format_int.hpp"
 #include "utils/language.h"
 #include "utils/sdl_geometry.h"
+#include "utils/stdcompat/optional.hpp"
 #include "utils/str_cat.hpp"
 #include "utils/utf8.hpp"
 
@@ -45,21 +44,21 @@ bool invflag;
  * arranged as follows:
  *
  * @code{.unparsed}
- *                          00 00
- *                          00 00   03
+ *                          00 01
+ *                          02 03   06
  *
- *              04 04       06 06       05 05
- *              04 04       06 06       05 05
- *              04 04       06 06       05 05
+ *              07 08       19 20       13 14
+ *              09 10       21 22       15 16
+ *              11 12       23 24       17 18
  *
- *                 01                   02
+ *                 04                   05
  *
- *              07 08 09 10 11 12 13 14 15 16
- *              17 18 19 20 21 22 23 24 25 26
- *              27 28 29 30 31 32 33 34 35 36
- *              37 38 39 40 41 42 43 44 45 46
+ *              25 26 27 28 29 30 31 32 33 34
+ *              35 36 37 38 39 40 41 42 43 44
+ *              45 46 47 48 49 50 51 52 53 54
+ *              55 56 57 58 59 60 61 62 63 64
  *
- * 47 48 49 50 51 52 53 54
+ * 65 66 67 68 69 70 71 72
  * @endcode
  */
 const Rectangle InvRect[] = {
@@ -134,7 +133,7 @@ OptionalOwnedClxSpriteList pInvCels;
  * @param invListIndex The item's InvList index (it's expected this already has +1 added to it since InvGrid can't store a 0 index)
  * @param itemSize Size of item
  */
-void AddItemToInvGrid(Player &player, int invGridIndex, int invListIndex, Size itemSize, bool sendNetworkMessage)
+void AddItemToInvGrid(Player &player, int invGridIndex, int invListIndex, Size itemSize)
 {
 	const int pitch = 10;
 	for (int y = 0; y < itemSize.height; y++) {
@@ -147,7 +146,7 @@ void AddItemToInvGrid(Player &player, int invGridIndex, int invListIndex, Size i
 		}
 	}
 
-	if (sendNetworkMessage) {
+	if (&player == MyPlayer) {
 		NetSendCmdChInvItem(false, invGridIndex);
 	}
 }
@@ -256,25 +255,25 @@ bool CanEquip(Player &player, const Item &item, inv_body_loc bodyLocation)
 	}
 }
 
-void ChangeEquipment(Player &player, inv_body_loc bodyLocation, const Item &item, bool sendNetworkMessage)
+void ChangeEquipment(Player &player, inv_body_loc bodyLocation, const Item &item)
 {
 	player.InvBody[bodyLocation] = item;
 
-	if (sendNetworkMessage) {
-		NetSendCmdChItem(false, bodyLocation, true);
+	if (&player == MyPlayer) {
+		NetSendCmdChItem(false, bodyLocation);
 	}
 }
 
-bool AutoEquip(Player &player, const Item &item, inv_body_loc bodyLocation, bool persistItem, bool sendNetworkMessage)
+bool AutoEquip(Player &player, const Item &item, inv_body_loc bodyLocation, bool persistItem)
 {
 	if (!CanEquip(player, item, bodyLocation)) {
 		return false;
 	}
 
 	if (persistItem) {
-		ChangeEquipment(player, bodyLocation, item, sendNetworkMessage);
+		ChangeEquipment(player, bodyLocation, item);
 
-		if (sendNetworkMessage && *sgOptions.Audio.autoEquipSound) {
+		if (*sgOptions.Audio.autoEquipSound && &player == MyPlayer) {
 			PlaySFX(ItemInvSnds[ItemCAnimTbl[item._iCurs]]);
 		}
 
@@ -284,43 +283,36 @@ bool AutoEquip(Player &player, const Item &item, inv_body_loc bodyLocation, bool
 	return true;
 }
 
-int FindTargetSlotUnderItemCursor(Point cursorPosition, Size itemSize)
+int FindSlotUnderCursor(Point cursorPosition, Size itemSize)
 {
-	Displacement panelOffset = Point { 0, 0 } - GetRightPanel().position;
-	for (int r = SLOTXY_EQUIPPED_FIRST; r <= SLOTXY_EQUIPPED_LAST; r++) {
-		if (InvRect[r].contains(cursorPosition + panelOffset))
-			return r;
-	}
-	for (int r = SLOTXY_INV_FIRST; r <= SLOTXY_INV_LAST; r++) {
-		if (InvRect[r].contains(cursorPosition + panelOffset)) {
-			// When trying to paste into the inventory we need to determine the top left cell of the nearest area that could fit the item, not the slot under the center/hot pixel.
-			if (itemSize.height <= 1 && itemSize.width <= 1) {
-				// top left cell of a 1x1 item is the same cell as the hot pixel, no work to do
-				return r;
-			}
-			// Otherwise work out how far the central cell is from the top-left cell
-			Displacement hotPixelCellOffset = { (itemSize.width - 1) / 2, (itemSize.height - 1) / 2 };
-			// For even dimension items we need to work out if the cursor is in the left/right (or top/bottom) half of the central cell and adjust the offset so the item lands in the area most covered by the cursor.
-			if (itemSize.width % 2 == 0 && InvRect[r].contains(cursorPosition + panelOffset + Displacement { INV_SLOT_HALF_SIZE_PX, 0 })) {
-				// hot pixel was in the left half of the cell, so we want to increase the offset to preference the column to the left
-				hotPixelCellOffset.deltaX++;
-			}
-			if (itemSize.height % 2 == 0 && InvRect[r].contains(cursorPosition + panelOffset + Displacement { 0, INV_SLOT_HALF_SIZE_PX })) {
-				// hot pixel was in the top half of the cell, so we want to increase the offset to preference the row above
-				hotPixelCellOffset.deltaY++;
-			}
-			// Then work out the top left cell of the nearest area that could fit this item (as pasting on the edge of the inventory would otherwise put it out of bounds)
-			int hotPixelCell = r - SLOTXY_INV_FIRST;
-			int targetRow = std::clamp((hotPixelCell / InventorySizeInSlots.width) - hotPixelCellOffset.deltaY, 0, InventorySizeInSlots.height - itemSize.height);
-			int targetColumn = std::clamp((hotPixelCell % InventorySizeInSlots.width) - hotPixelCellOffset.deltaX, 0, InventorySizeInSlots.width - itemSize.width);
-			return SLOTXY_INV_FIRST + targetRow * InventorySizeInSlots.width + targetColumn;
-		}
+	int i = cursorPosition.x;
+	int j = cursorPosition.y;
+
+	if (!IsHardwareCursor()) {
+		// offset the cursor position to match the hot pixel we'd use for a hardware cursor
+		i += itemSize.width * INV_SLOT_HALF_SIZE_PX;
+		j += itemSize.height * INV_SLOT_HALF_SIZE_PX;
 	}
 
-	panelOffset = Point { 0, 0 } - GetMainPanel().position;
-	for (int r = SLOTXY_BELT_FIRST; r <= SLOTXY_BELT_LAST; r++) {
-		if (InvRect[r].contains(cursorPosition + panelOffset))
+	for (int r = 0; r < NUM_XY_SLOTS; r++) {
+		int xo = GetRightPanel().position.x;
+		int yo = GetRightPanel().position.y;
+		if (r >= SLOTXY_BELT_FIRST) {
+			xo = GetMainPanel().position.x;
+			yo = GetMainPanel().position.y;
+		}
+
+		if (r == SLOTXY_INV_FIRST) {
+			if (itemSize.width % 2 == 0)
+				i -= INV_SLOT_HALF_SIZE_PX;
+			if (itemSize.height % 2 == 0)
+				j -= INV_SLOT_HALF_SIZE_PX;
+		}
+		if (InvRect[r].contains(i - xo, j - yo)) {
 			return r;
+		}
+		if (r == SLOTXY_INV_LAST && itemSize.height % 2 == 0)
+			j += INV_SLOT_HALF_SIZE_PX;
 	}
 	return NUM_XY_SLOTS;
 }
@@ -329,7 +321,7 @@ void CheckInvPaste(Player &player, Point cursorPosition)
 {
 	Size itemSize = GetInventorySize(player.HoldItem);
 
-	int slot = FindTargetSlotUnderItemCursor(cursorPosition, itemSize);
+	int slot = FindSlotUnderCursor(cursorPosition, itemSize);
 	if (slot == NUM_XY_SLOTS)
 		return;
 
@@ -366,29 +358,30 @@ void CheckInvPaste(Player &player, Point cursorPosition)
 				}
 			}
 		} else {
-			// check that the item we're pasting only overlaps one other item (or is going into empty space)
-			unsigned originCell = static_cast<unsigned>(slot - SLOTXY_INV_FIRST);
-			for (unsigned rowOffset = 0; rowOffset < static_cast<unsigned>(itemSize.height * InventorySizeInSlots.width); rowOffset += InventorySizeInSlots.width) {
-				for (unsigned columnOffset = 0; columnOffset < static_cast<unsigned>(itemSize.width); columnOffset++) {
-					unsigned testCell = originCell + rowOffset + columnOffset;
-					// FindTargetSlotUnderItemCursor returns the top left slot of the inventory region that fits the item, we can be confident this calculation is not going to read out of range.
-					assert(testCell < sizeof(player.InvGrid));
-					if (player.InvGrid[testCell] != 0) {
-						int8_t iv = std::abs(player.InvGrid[testCell]);
+			int yy = std::max(INV_ROW_SLOT_SIZE * ((ii / INV_ROW_SLOT_SIZE) - ((itemSize.height - 1) / 2)), 0);
+			for (int j = 0; j < itemSize.height; j++) {
+				if (yy >= InventoryGridCells)
+					return;
+				int xx = std::max((ii % INV_ROW_SLOT_SIZE) - ((itemSize.width - 1) / 2), 0);
+				for (int i = 0; i < itemSize.width; i++) {
+					if (xx >= INV_ROW_SLOT_SIZE)
+						return;
+					if (player.InvGrid[xx + yy] != 0) {
+						int8_t iv = abs(player.InvGrid[xx + yy]);
 						if (it != 0) {
-							if (it != iv) {
-								// Found two different items that would be displaced by the held item, can't paste the item here.
+							if (it != iv)
 								return;
-							}
 						} else {
 							it = iv;
 						}
 					}
+					xx++;
 				}
+				yy += INV_ROW_SLOT_SIZE;
 			}
 		}
 	} else if (il == ILOC_BELT) {
-		if (!CanBePlacedOnBelt(player, player.HoldItem))
+		if (!CanBePlacedOnBelt(player.HoldItem))
 			return;
 	} else if (desiredIl != il) {
 		return;
@@ -426,7 +419,7 @@ void CheckInvPaste(Player &player, Point cursorPosition)
 		};
 		inv_body_loc slot = iLocToInvLoc(il);
 		Item previouslyEquippedItem = player.InvBody[slot];
-		ChangeEquipment(player, slot, player.HoldItem.pop(), &player == MyPlayer);
+		ChangeEquipment(player, slot, player.HoldItem.pop());
 		if (!previouslyEquippedItem.isEmpty()) {
 			player.HoldItem = previouslyEquippedItem;
 		}
@@ -449,7 +442,7 @@ void CheckInvPaste(Player &player, Point cursorPosition)
 		if (dequipTwoHandedWeapon) {
 			RemoveEquipment(player, otherHand, false);
 		}
-		ChangeEquipment(player, pasteHand, player.HoldItem.pop(), &player == MyPlayer);
+		ChangeEquipment(player, pasteHand, player.HoldItem.pop());
 		if (!previouslyEquippedItem.isEmpty()) {
 			player.HoldItem = previouslyEquippedItem;
 		}
@@ -475,14 +468,14 @@ void CheckInvPaste(Player &player, Point cursorPosition)
 
 		if (player.InvBody[INVLOC_HAND_RIGHT].isEmpty()) {
 			Item previouslyEquippedItem = player.InvBody[INVLOC_HAND_LEFT];
-			ChangeEquipment(player, INVLOC_HAND_LEFT, player.HoldItem.pop(), &player == MyPlayer);
+			ChangeEquipment(player, INVLOC_HAND_LEFT, player.HoldItem.pop());
 			if (!previouslyEquippedItem.isEmpty()) {
 				player.HoldItem = previouslyEquippedItem;
 			}
 		} else {
 			Item previouslyEquippedItem = player.InvBody[INVLOC_HAND_RIGHT];
 			RemoveEquipment(player, INVLOC_HAND_RIGHT, false);
-			ChangeEquipment(player, INVLOC_HAND_LEFT, player.HoldItem, &player == MyPlayer);
+			ChangeEquipment(player, INVLOC_HAND_LEFT, player.HoldItem);
 			player.HoldItem = previouslyEquippedItem;
 		}
 		break;
@@ -535,8 +528,13 @@ void CheckInvPaste(Player &player, Point cursorPosition)
 						itemIndex = 0;
 				}
 			}
+			int ii = slot - SLOTXY_INV_FIRST;
 
-			AddItemToInvGrid(player, slot - SLOTXY_INV_FIRST, it, itemSize, &player == MyPlayer);
+			// Calculate top-left position of item for InvGrid and then add item to InvGrid
+
+			int xx = std::max(ii % INV_ROW_SLOT_SIZE - ((itemSize.width - 1) / 2), 0);
+			int yy = std::max(INV_ROW_SLOT_SIZE * (ii / INV_ROW_SLOT_SIZE - ((itemSize.height - 1) / 2)), 0);
+			AddItemToInvGrid(player, xx + yy, it, itemSize);
 		}
 		break;
 	case ILOC_BELT: {
@@ -559,6 +557,8 @@ void CheckInvPaste(Player &player, Point cursorPosition)
 	}
 	CalcPlrInv(player, true);
 	if (&player == MyPlayer) {
+		if (player.HoldItem.isEmpty() && !IsHardwareCursor())
+			SetCursorPos(MousePosition + Displacement { itemSize * INV_SLOT_HALF_SIZE_PX });
 		NewCursor(player.HoldItem);
 	}
 }
@@ -700,8 +700,8 @@ void CheckInvCut(Player &player, Point cursorPosition, bool automaticMove, bool 
 
 			holdItem = player.InvList[iv - 1];
 			if (automaticMove) {
-				if (CanBePlacedOnBelt(player, holdItem)) {
-					automaticallyMoved = AutoPlaceItemInBelt(player, holdItem, true, &player == MyPlayer);
+				if (CanBePlacedOnBelt(holdItem)) {
+					automaticallyMoved = AutoPlaceItemInBelt(player, holdItem, true);
 				} else if (CanEquip(holdItem)) {
 					/*
 					 * Move the respective InvBodyItem to inventory before moving the item from inventory
@@ -771,7 +771,7 @@ void CheckInvCut(Player &player, Point cursorPosition, bool automaticMove, bool 
 						}
 					}
 					holdItem = player.InvList[iv - 1];
-					automaticallyMoved = automaticallyEquipped = AutoEquip(player, holdItem, true, &player == MyPlayer);
+					automaticallyMoved = automaticallyEquipped = AutoEquip(player, holdItem);
 				}
 			}
 
@@ -812,7 +812,7 @@ void CheckInvCut(Player &player, Point cursorPosition, bool automaticMove, bool 
 
 			if (automaticMove) {
 				if (!automaticallyMoved) {
-					if (CanBePlacedOnBelt(player, holdItem) || automaticallyUnequip) {
+					if (CanBePlacedOnBelt(holdItem) || automaticallyUnequip) {
 						player.SaySpecific(HeroSpeech::IHaveNoRoom);
 					} else {
 						player.SaySpecific(HeroSpeech::ICantDoThat);
@@ -822,6 +822,11 @@ void CheckInvCut(Player &player, Point cursorPosition, bool automaticMove, bool 
 				holdItem.clear();
 			} else {
 				NewCursor(holdItem);
+				if (!IsHardwareCursor() && !dropItem) {
+					// For a hardware cursor, we set the "hot point" to the center of the item instead.
+					Size cursSize = GetInvItemSize(holdItem._iCurs + CURSOR_FIRSTITEM);
+					SetCursorPos(cursorPosition - Displacement(cursSize / 2));
+				}
 			}
 		}
 	}
@@ -865,9 +870,7 @@ void CheckQuestItem(Player &player, Item &questItem)
 {
 	Player &myPlayer = *MyPlayer;
 
-	if (Quests[Q_BLIND]._qactive == QUEST_ACTIVE
-	    && (questItem.IDidx == IDI_OPTAMULET
-	        || (Quests[Q_BLIND].IsAvailable() && questItem.position == (SetPiece.position.megaToWorld() + Displacement { 5, 5 })))) {
+	if (questItem.IDidx == IDI_OPTAMULET && Quests[Q_BLIND]._qactive == QUEST_ACTIVE) {
 		Quests[Q_BLIND]._qactive = QUEST_DONE;
 		NetSendCmdQuest(true, Quests[Q_BLIND]);
 	}
@@ -902,15 +905,14 @@ void CheckQuestItem(Player &player, Item &questItem)
 		}
 	}
 
-	if (Quests[Q_BLOOD]._qactive == QUEST_ACTIVE
-	    && (questItem.IDidx == IDI_ARMOFVAL
-	        || (Quests[Q_BLOOD].IsAvailable() && questItem.position == (SetPiece.position.megaToWorld() + Displacement { 9, 3 })))) {
+	if (questItem.IDidx == IDI_ARMOFVAL && Quests[Q_BLOOD]._qactive == QUEST_ACTIVE) {
 		Quests[Q_BLOOD]._qactive = QUEST_DONE;
 		NetSendCmdQuest(true, Quests[Q_BLOOD]);
 		myPlayer.Say(HeroSpeech::MayTheSpiritOfArkaineProtectMe, 20);
 	}
 
 	if (questItem.IDidx == IDI_MAPOFDOOM) {
+		Quests[Q_GRAVE]._qlog = false;
 		Quests[Q_GRAVE]._qactive = QUEST_ACTIVE;
 		if (Quests[Q_GRAVE]._qvar1 != 1) {
 			MyPlayer->Say(HeroSpeech::UhHuh, 10);
@@ -1032,11 +1034,11 @@ void InvDrawSlotBack(const Surface &out, Point targetPosition, Size size, item_q
 	}
 }
 
-bool CanBePlacedOnBelt(const Player &player, const Item &item)
+bool CanBePlacedOnBelt(const Item &item)
 {
 	return FitsInBeltSlot(item)
 	    && item._itype != ItemType::Gold
-	    && player.CanUseItem(item)
+	    && MyPlayer->CanUseItem(item)
 	    && item.isUsable();
 }
 
@@ -1146,7 +1148,7 @@ void DrawInv(const Surface &out)
 			    out,
 			    GetPanelPosition(UiPanels::Inventory, InvRect[i + SLOTXY_INV_FIRST].position) + Displacement { 0, InventorySlotSizeInPixels.height },
 			    InventorySlotSizeInPixels,
-			    myPlayer.InvList[std::abs(myPlayer.InvGrid[i]) - 1]._iMagical);
+			    myPlayer.InvList[abs(myPlayer.InvGrid[i]) - 1]._iMagical);
 		}
 	}
 
@@ -1213,9 +1215,9 @@ void RemoveEquipment(Player &player, inv_body_loc bodyLocation, bool hiPri)
 	player.InvBody[bodyLocation].clear();
 }
 
-bool AutoPlaceItemInBelt(Player &player, const Item &item, bool persistItem, bool sendNetworkMessage)
+bool AutoPlaceItemInBelt(Player &player, const Item &item, bool persistItem)
 {
-	if (!CanBePlacedOnBelt(player, item)) {
+	if (!CanBePlacedOnBelt(item)) {
 		return false;
 	}
 
@@ -1225,7 +1227,7 @@ bool AutoPlaceItemInBelt(Player &player, const Item &item, bool persistItem, boo
 				beltItem = item;
 				player.CalcScrolls();
 				RedrawComponent(PanelDrawComponent::Belt);
-				if (sendNetworkMessage) {
+				if (&player == MyPlayer) {
 					size_t beltIndex = std::distance<const Item *>(&player.SpdList[0], &beltItem);
 					NetSendCmdChBeltItem(false, beltIndex);
 				}
@@ -1238,14 +1240,14 @@ bool AutoPlaceItemInBelt(Player &player, const Item &item, bool persistItem, boo
 	return false;
 }
 
-bool AutoEquip(Player &player, const Item &item, bool persistItem, bool sendNetworkMessage)
+bool AutoEquip(Player &player, const Item &item, bool persistItem)
 {
 	if (!CanEquip(item)) {
 		return false;
 	}
 
 	for (int bodyLocation = INVLOC_HEAD; bodyLocation < NUM_INVLOC; bodyLocation++) {
-		if (AutoEquip(player, item, (inv_body_loc)bodyLocation, persistItem, sendNetworkMessage)) {
+		if (AutoEquip(player, item, (inv_body_loc)bodyLocation, persistItem)) {
 			return true;
 		}
 	}
@@ -1280,17 +1282,67 @@ bool AutoEquipEnabled(const Player &player, const Item &item)
 	return true;
 }
 
-namespace {
-/**
- * @brief Checks whether the given item can be placed on the specified player's inventory slot.
- * If 'persistItem' is 'True', the item is also placed in the inventory slot.
- * @param player The player whose inventory will be checked.
- * @param slotIndex The 0-based index of the slot to put the item on.
- * @param item The item to be checked.
- * @param persistItem Pass 'True' to actually place the item in the inventory slot. The default is 'False'.
- * @return 'True' in case the item can be placed on the specified player's inventory slot and 'False' otherwise.
- */
-bool AutoPlaceItemInInventorySlot(Player &player, int slotIndex, const Item &item, bool persistItem, bool sendNetworkMessage)
+bool AutoPlaceItemInInventory(Player &player, const Item &item, bool persistItem)
+{
+	Size itemSize = GetInventorySize(item);
+
+	if (itemSize.height == 1) {
+		for (int i = 30; i <= 39; i++) {
+			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem))
+				return true;
+		}
+		for (int x = 9; x >= 0; x--) {
+			for (int y = 2; y >= 0; y--) {
+				if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem))
+					return true;
+			}
+		}
+		return false;
+	}
+
+	if (itemSize.height == 2) {
+		for (int x = 10 - itemSize.width; x >= 0; x -= itemSize.width) {
+			for (int y = 0; y < 3; y++) {
+				if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem))
+					return true;
+			}
+		}
+		if (itemSize.width == 2) {
+			for (int x = 7; x >= 0; x -= 2) {
+				for (int y = 0; y < 3; y++) {
+					if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem))
+						return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	if (itemSize == Size { 1, 3 }) {
+		for (int i = 0; i < 20; i++) {
+			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem))
+				return true;
+		}
+		return false;
+	}
+
+	if (itemSize == Size { 2, 3 }) {
+		for (int i = 0; i < 9; i++) {
+			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem))
+				return true;
+		}
+
+		for (int i = 10; i < 19; i++) {
+			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem))
+				return true;
+		}
+		return false;
+	}
+
+	app_fatal(StrCat("Unknown item size: ", itemSize.width, "x", itemSize.height));
+}
+
+bool AutoPlaceItemInInventorySlot(Player &player, int slotIndex, const Item &item, bool persistItem)
 {
 	int yy = (slotIndex > 0) ? (10 * (slotIndex / 10)) : 0;
 
@@ -1313,72 +1365,11 @@ bool AutoPlaceItemInInventorySlot(Player &player, int slotIndex, const Item &ite
 		player.InvList[player._pNumInv] = item;
 		player._pNumInv++;
 
-		AddItemToInvGrid(player, slotIndex, player._pNumInv, itemSize, sendNetworkMessage);
+		AddItemToInvGrid(player, slotIndex, player._pNumInv, itemSize);
 		player.CalcScrolls();
 	}
 
 	return true;
-}
-} // namespace
-
-bool AutoPlaceItemInInventory(Player &player, const Item &item, bool persistItem, bool sendNetworkMessage)
-{
-	Size itemSize = GetInventorySize(item);
-
-	if (itemSize.height == 1) {
-		for (int i = 30; i <= 39; i++) {
-			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem, sendNetworkMessage))
-				return true;
-		}
-		for (int x = 9; x >= 0; x--) {
-			for (int y = 2; y >= 0; y--) {
-				if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem, sendNetworkMessage))
-					return true;
-			}
-		}
-		return false;
-	}
-
-	if (itemSize.height == 2) {
-		for (int x = 10 - itemSize.width; x >= 0; x -= itemSize.width) {
-			for (int y = 0; y < 3; y++) {
-				if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem, sendNetworkMessage))
-					return true;
-			}
-		}
-		if (itemSize.width == 2) {
-			for (int x = 7; x >= 0; x -= 2) {
-				for (int y = 0; y < 3; y++) {
-					if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem, sendNetworkMessage))
-						return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	if (itemSize == Size { 1, 3 }) {
-		for (int i = 0; i < 20; i++) {
-			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem, sendNetworkMessage))
-				return true;
-		}
-		return false;
-	}
-
-	if (itemSize == Size { 2, 3 }) {
-		for (int i = 0; i < 9; i++) {
-			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem, sendNetworkMessage))
-				return true;
-		}
-
-		for (int i = 10; i < 19; i++) {
-			if (AutoPlaceItemInInventorySlot(player, i, item, persistItem, sendNetworkMessage))
-				return true;
-		}
-		return false;
-	}
-
-	app_fatal(StrCat("Unknown item size: ", itemSize.width, "x", itemSize.height));
 }
 
 int RoomForGold()
@@ -1481,7 +1472,7 @@ void CheckInvSwap(Player &player, const Item &item, int invGridIndex)
 			for (int x = 0; x < itemSize.width; x++) {
 				int gridIndex = rowGridIndex + x;
 				if (player.InvGrid[gridIndex] != 0)
-					return std::abs(player.InvGrid[gridIndex]);
+					return abs(player.InvGrid[gridIndex]);
 			}
 		}
 		player._pNumInv++;
@@ -1514,7 +1505,7 @@ void CheckInvSwap(Player &player, const Item &item, int invGridIndex)
 
 void CheckInvRemove(Player &player, int invGridIndex)
 {
-	int invListIndex = std::abs(player.InvGrid[invGridIndex]) - 1;
+	int invListIndex = abs(player.InvGrid[invGridIndex]) - 1;
 
 	if (invListIndex >= 0) {
 		player.RemoveInvItem(invListIndex);
@@ -1664,16 +1655,16 @@ void AutoGetItem(Player &player, Item *itemPointer, int ii)
 			SetPlrHandGoldCurs(item);
 		}
 	} else {
-		done = AutoEquipEnabled(player, item) && AutoEquip(player, item, true, &player == MyPlayer);
+		done = AutoEquipEnabled(player, item) && AutoEquip(player, item);
 		if (done) {
 			autoEquipped = true;
 		}
 
 		if (!done) {
-			done = AutoPlaceItemInBelt(player, item, true, &player == MyPlayer);
+			done = AutoPlaceItemInBelt(player, item, true);
 		}
 		if (!done) {
-			done = AutoPlaceItemInInventory(player, item, true, &player == MyPlayer);
+			done = AutoPlaceItemInInventory(player, item, true);
 		}
 	}
 
@@ -1766,31 +1757,7 @@ bool CanPut(Point position)
 	return true;
 }
 
-int ClampDurability(const Item &item, int durability)
-{
-	if (item._iMaxDur == 0)
-		return 0;
-
-	return std::clamp<int>(durability, 1, item._iMaxDur);
-}
-
-int16_t ClampToHit(const Item &item, int16_t toHit)
-{
-	if (toHit < item._iPLToHit || toHit > 51)
-		return item._iPLToHit;
-
-	return toHit;
-}
-
-uint8_t ClampMaxDam(const Item &item, uint8_t maxDam)
-{
-	if (maxDam < item._iMaxDam || maxDam - item._iMinDam > 30)
-		return item._iMaxDam;
-
-	return maxDam;
-}
-
-int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int iseed, int id, int dur, int mdur, int ch, int mch, int ivalue, uint32_t ibuff, int toHit, int maxDam)
+int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int iseed, int id, int dur, int mdur, int ch, int mch, int ivalue, uint32_t ibuff, int toHit, int maxDam, int minStr, int minMag, int minDex, int ac)
 {
 	if (ActiveItemCount >= MAXITEMS)
 		return -1;
@@ -1800,20 +1767,22 @@ int SyncDropItem(Point position, _item_indexes idx, uint16_t icreateinfo, int is
 	RecreateItem(*MyPlayer, item, idx, icreateinfo, iseed, ivalue, (ibuff & CF_HELLFIRE) != 0);
 	if (id != 0)
 		item._iIdentified = true;
+	item._iDurability = dur;
 	item._iMaxDur = mdur;
-	item._iDurability = ClampDurability(item, dur);
-	item._iMaxCharges = std::clamp<int>(mch, 0, item._iMaxCharges);
-	item._iCharges = std::clamp<int>(ch, 0, item._iMaxCharges);
-	if (gbIsHellfire) {
-		item._iPLToHit = ClampToHit(item, toHit);
-		item._iMaxDam = ClampMaxDam(item, maxDam);
-	}
+	item._iCharges = ch;
+	item._iMaxCharges = mch;
+	item._iPLToHit = toHit;
+	item._iMaxDam = maxDam;
+	item._iMinStr = minStr;
+	item._iMinMag = minMag;
+	item._iMinDex = minDex;
+	item._iAC = ac;
 	item.dwBuff = ibuff;
 
 	return PlaceItemInWorld(std::move(item), position);
 }
 
-int SyncDropEar(Point position, uint16_t icreateinfo, uint32_t iseed, uint8_t cursval, std::string_view heroname)
+int SyncDropEar(Point position, uint16_t icreateinfo, uint32_t iseed, uint8_t cursval, string_view heroname)
 {
 	if (ActiveItemCount >= MAXITEMS)
 		return -1;
@@ -1875,7 +1844,7 @@ int8_t CheckInvHLight()
 		rv = INVLOC_CHEST;
 		pi = &myPlayer.InvBody[rv];
 	} else if (r >= SLOTXY_INV_FIRST && r <= SLOTXY_INV_LAST) {
-		int8_t itemId = std::abs(myPlayer.InvGrid[r - SLOTXY_INV_FIRST]);
+		int8_t itemId = abs(myPlayer.InvGrid[r - SLOTXY_INV_FIRST]);
 		if (itemId == 0)
 			return -1;
 		int ii = itemId - 1;
@@ -2123,35 +2092,8 @@ bool UseInvItem(int cii)
 void CloseInventory()
 {
 	CloseGoldWithdraw();
-	CloseStash();
-	invflag = false;
-}
-
-void CloseStash()
-{
-	if (!IsStashOpen)
-		return;
-
-	Player &myPlayer = *MyPlayer;
-	if (!myPlayer.HoldItem.isEmpty()) {
-		std::optional<Point> itemTile = FindAdjacentPositionForItem(myPlayer.position.future, myPlayer._pdir);
-		if (itemTile) {
-			NetSendCmdPItem(true, CMD_PUTITEM, *itemTile, myPlayer.HoldItem);
-		} else {
-			if (!AutoPlaceItemInBelt(myPlayer, myPlayer.HoldItem, true, true)
-			    && !AutoPlaceItemInInventory(myPlayer, myPlayer.HoldItem, true, true)
-			    && !AutoPlaceItemInStash(myPlayer, myPlayer.HoldItem, true)) {
-				// This can fail for max gold, arena potions and a stash that has been arranged
-				// to not have room for the item all 3 cases are extremely unlikely
-				app_fatal(_("No room for item"));
-			}
-			PlaySFX(ItemInvSnds[ItemCAnimTbl[myPlayer.HoldItem._iCurs]]);
-		}
-		myPlayer.HoldItem.clear();
-		NewCursor(CURSOR_HAND);
-	}
-
 	IsStashOpen = false;
+	invflag = false;
 }
 
 void DoTelekinesis()

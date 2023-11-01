@@ -11,7 +11,6 @@
 #include "controls/game_controls.h"
 #include "controls/plrctrls.h"
 #include "controls/touch/gamepad.h"
-#include "engine/demomode.h"
 #include "options.h"
 #include "utils/log.hpp"
 
@@ -48,7 +47,7 @@ void ScaleJoystickAxes(float *x, float *y, float deadzone)
 		analogX = (analogX * scalingFactor);
 		analogY = (analogY * scalingFactor);
 
-		// std::clamp to ensure results will never exceed the max_axis value
+		// clamp to ensure results will never exceed the max_axis value
 		float clampingFactor = 1.F;
 		float absAnalogX = std::fabs(analogX);
 		float absAnalogY = std::fabs(analogY);
@@ -70,7 +69,7 @@ void ScaleJoystickAxes(float *x, float *y, float deadzone)
 bool IsMovementOverriddenByPadmapper(ControllerButton button)
 {
 	ControllerButtonEvent releaseEvent { button, true };
-	std::string_view actionName = sgOptions.Padmapper.ActionNameTriggeredByButtonEvent(releaseEvent);
+	string_view actionName = sgOptions.Padmapper.ActionNameTriggeredByButtonEvent(releaseEvent);
 	ControllerButtonCombo buttonCombo = sgOptions.Padmapper.ButtonComboForAction(actionName);
 	return buttonCombo.modifier != ControllerButton_NONE;
 }
@@ -78,12 +77,12 @@ bool IsMovementOverriddenByPadmapper(ControllerButton button)
 bool TriggersQuickSpellAction(ControllerButton button)
 {
 	ControllerButtonEvent releaseEvent { button, true };
-	std::string_view actionName = sgOptions.Padmapper.ActionNameTriggeredByButtonEvent(releaseEvent);
+	string_view actionName = sgOptions.Padmapper.ActionNameTriggeredByButtonEvent(releaseEvent);
 
-	std::string_view prefix { "QuickSpell" };
+	string_view prefix { "QuickSpell" };
 	if (actionName.size() < prefix.size())
 		return false;
-	std::string_view truncatedActionName { actionName.data(), prefix.size() };
+	string_view truncatedActionName { actionName.data(), prefix.size() };
 	return truncatedActionName == prefix;
 }
 
@@ -248,7 +247,7 @@ void SimulateRightStickWithPadmapper(ControllerButtonEvent ctrlEvent)
 	if (!ctrlEvent.up && ctrlEvent.button == SuppressedButton)
 		return;
 
-	std::string_view actionName = sgOptions.Padmapper.ActionNameTriggeredByButtonEvent(ctrlEvent);
+	string_view actionName = sgOptions.Padmapper.ActionNameTriggeredByButtonEvent(ctrlEvent);
 	bool upTriggered = actionName == "MouseUp";
 	bool downTriggered = actionName == "MouseDown";
 	bool leftTriggered = actionName == "MouseLeft";

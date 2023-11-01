@@ -35,13 +35,13 @@ void MainmenuEsc()
 
 void MainmenuLoad(const char *name)
 {
-	//vecMenuItems.push_back(std::make_unique<UiListItem>(_("Single Player"), MAINMENU_SINGLE_PLAYER));
-	vecMenuItems.push_back(std::make_unique<UiListItem>(_("Multi Player"), MAINMENU_MULTIPLAYER));
+	//vecMenuItems.push_back(std::make_unique<UiListItem>(_("Singleplayer"), MAINMENU_SINGLE_PLAYER));
+	vecMenuItems.push_back(std::make_unique<UiListItem>(_("Venture"), MAINMENU_MULTIPLAYER));
 	vecMenuItems.push_back(std::make_unique<UiListItem>(_("Settings"), MAINMENU_SETTINGS));
 	vecMenuItems.push_back(std::make_unique<UiListItem>(_("Support"), MAINMENU_SHOW_SUPPORT));
-	vecMenuItems.push_back(std::make_unique<UiListItem>(_("Show Credits"), MAINMENU_SHOW_CREDITS));
+	vecMenuItems.push_back(std::make_unique<UiListItem>(_("Credits"), MAINMENU_SHOW_CREDITS));
 #ifndef NOEXIT
-	vecMenuItems.push_back(std::make_unique<UiListItem>(gbIsHellfire ? _("Exit Hellfire") : _("Exit Diablo"), MAINMENU_EXIT_DIABLO));
+	vecMenuItems.push_back(std::make_unique<UiListItem>(gbIsHellfire ? _("Exit") : _("Exit"), MAINMENU_EXIT_DIABLO));
 #endif
 
 /* if (!gbIsSpawn || gbIsHellfire) {
@@ -57,9 +57,17 @@ void MainmenuLoad(const char *name)
 
 	const Point uiPosition = GetUIRectangle().position;
 
-		SDL_Rect rect = { (Sint16)(uiPosition.x + 200), (Sint16)(uiPosition.y + 115), 240, 120 };
-		vecMainMenuDialog.push_back(std::make_unique<UiArtText>(_("|DCLXVI|").data(), rect, UiFlags::FontSize46 | UiFlags::ColorUiSilver | UiFlags::AlignCenter, 8));
-
+	//SDL_Rect rect = { (Sint16)(uiPosition.x), (Sint16)(uiPosition.y + 75), 140, 60 };
+	//SDL_Rect rect = { (Sint16)(uiPosition.x), (Sint16)(uiPosition.y + 145), 640, 30 };
+	//vecMainMenuDialog.push_back(std::make_unique<UiArtText>(_("Shareware").data(), rect, UiFlags::FontSize46 | UiFlags::ColorUiGold | UiFlags::AlignCenter, 8));
+	//vecMainMenuDialog.push_back(std::make_unique<UiArtTextButton>(_("DCLXVI"), rect, UiFlags::AlignCenter | UiFlags::FontSize46 | UiFlags::ColorUiSilver));
+	//SDL_Rect rect = { (Sint16)(uiPosition.x), (Sint16)(uiPosition.y + 145), 640, 30 };
+	//SDL_Rect recth = { (Sint16)(uiPosition.x + 195), (Sint16)(uiPosition.y + 65), 240, 120 };
+	//vecMainMenuDialog.push_back(std::make_unique<UiArtText>(_("-------").data(), recth, UiFlags::FontSize46 | UiFlags::ColorUiSilver | UiFlags::AlignCenter, 8));
+	SDL_Rect rect = { (Sint16)(uiPosition.x + 200), (Sint16)(uiPosition.y + 115), 240, 120 };
+	vecMainMenuDialog.push_back(std::make_unique<UiArtText>(_("|DCLXVI|").data(), rect, UiFlags::FontSize46 | UiFlags::ColorUiSilver | UiFlags::AlignCenter, 8));
+	//SDL_Rect rectl = { (Sint16)(uiPosition.x + 195), (Sint16)(uiPosition.y + 104), 240, 120 };
+	//vecMainMenuDialog.push_back(std::make_unique<UiArtText>(_("_______").data(), rectl, UiFlags::FontSize46 | UiFlags::ColorUiSilver | UiFlags::AlignCenter, 8));
 	if (gbIsSpawn && gbIsHellfire) {
 		SDL_Rect rect1 = { (Sint16)(uiPosition.x), (Sint16)(uiPosition.y + 145), 640, 30 };
 		vecMainMenuDialog.push_back(std::make_unique<UiArtText>(_("Shareware").data(), rect1, UiFlags::FontSize30 | UiFlags::ColorUiSilver | UiFlags::AlignCenter, 8));

@@ -8,8 +8,6 @@
 #include "controls/devices/joystick.h"
 #include "controls/devices/kbcontroller.h"
 
-#include "engine/demomode.h"
-
 namespace devilution {
 
 void UnlockControllerState(const SDL_Event &event)
@@ -41,11 +39,9 @@ StaticVector<ControllerButtonEvent, 4> ToControllerButtonEvents(const SDL_Event 
 		break;
 	}
 #if HAS_KBCTRL == 1
-	if (!demo::IsRunning()) {
-		result.button = KbCtrlToControllerButton(event);
-		if (result.button != ControllerButton_NONE)
-			return { result };
-	}
+	result.button = KbCtrlToControllerButton(event);
+	if (result.button != ControllerButton_NONE)
+		return { result };
 #endif
 #ifndef USE_SDL1
 	GameController *const controller = GameController::Get(event);
@@ -75,7 +71,7 @@ bool IsControllerButtonPressed(ControllerButton button)
 		return true;
 #endif
 #if HAS_KBCTRL == 1
-	if (!demo::IsRunning() && IsKbCtrlButtonPressed(button))
+	if (IsKbCtrlButtonPressed(button))
 		return true;
 #endif
 	return Joystick::IsPressedOnAnyJoystick(button);

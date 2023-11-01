@@ -5,13 +5,12 @@
 #include <memory>
 #include <utility>
 
-#include <expected.hpp>
-
 #include "dvlnet/base.h"
 #include "player.h"
 #include "utils/log.hpp"
 
-namespace devilution::net {
+namespace devilution {
+namespace net {
 
 tcp_server::tcp_server(asio::io_context &ioc, const std::string &bindaddr,
     unsigned short port, packet_factory &pktfty)
@@ -79,25 +78,18 @@ void tcp_server::HandleReceive(const scc &con, const asio::error_code &ec,
 	con->recv_buffer.resize(frame_queue::max_frame_size);
 	try {
 		while (con->recv_queue.PacketReady()) {
-			tl::expected<std::unique_ptr<packet>, PacketError> pkt = pktfty.make_packet(con->recv_queue.ReadPacket());
-			if (!pkt.has_value()) {
-				Log("make_packet: {}", pkt.error().what());
+			try {
+				auto pkt = pktfty.make_packet(con->recv_queue.ReadPacket());
+				if (con->plr == PLR_BROADCAST) {
+					HandleReceiveNewPlayer(con, *pkt);
+				} else {
+					con->timeout = timeout_active;
+					HandleReceivePacket(*pkt);
+				}
+			} catch (dvlnet_exception &e) {
+				Log("Network error: {}", e.what());
 				DropConnection(con);
 				return;
-			}
-			if (con->plr == PLR_BROADCAST) {
-				if (tl::expected<void, PacketError> result = HandleReceiveNewPlayer(con, **pkt); !result.has_value()) {
-					Log("HandleReceiveNewPlayer: {}", result.error().what());
-					DropConnection(con);
-					return;
-				}
-			} else {
-				con->timeout = timeout_active;
-				if (tl::expected<void, PacketError> result = HandleReceivePacket(**pkt); !result.has_value()) {
-					Log("Network error: {}", result.error().what());
-					DropConnection(con);
-					return;
-				}
 			}
 		}
 	} catch (frame_queue_exception &e) {
@@ -108,60 +100,40 @@ void tcp_server::HandleReceive(const scc &con, const asio::error_code &ec,
 	StartReceive(con);
 }
 
-tl::expected<void, PacketError> tcp_server::HandleReceiveNewPlayer(const scc &con, packet &inPkt)
+void tcp_server::HandleReceiveNewPlayer(const scc &con, packet &pkt)
 {
 	auto newplr = NextFree();
 	if (newplr == PLR_BROADCAST)
-		return tl::make_unexpected(ServerError());
+		throw server_exception();
 
-	if (Empty()) {
-		tl::expected<const buffer_t *, PacketError> pktInfo = inPkt.Info();
-		if (!pktInfo.has_value())
-			return tl::make_unexpected(pktInfo.error());
-		game_init_info = **pktInfo;
-	}
+	if (Empty())
+		game_init_info = pkt.Info();
 
 	for (plr_t player = 0; player < Players.size(); player++) {
 		if (connections[player]) {
-			{
-				tl::expected<std::unique_ptr<packet>, PacketError> pkt
-				    = pktfty.make_packet<PT_CONNECT>(PLR_MASTER, PLR_BROADCAST, newplr);
-				if (!pkt.has_value())
-					return tl::make_unexpected(pkt.error());
-				StartSend(connections[player], **pkt);
-			}
+			auto playerPacket = pktfty.make_packet<PT_CONNECT>(PLR_MASTER, PLR_BROADCAST, newplr);
+			StartSend(connections[player], *playerPacket);
 
-			{
-				tl::expected<std::unique_ptr<packet>, PacketError> pkt
-				    = pktfty.make_packet<PT_CONNECT>(PLR_MASTER, PLR_BROADCAST, player);
-				if (!pkt.has_value())
-					return tl::make_unexpected(pkt.error());
-				StartSend(con, **pkt);
-			}
+			auto newplrPacket = pktfty.make_packet<PT_CONNECT>(PLR_MASTER, PLR_BROADCAST, player);
+			StartSend(con, *newplrPacket);
 		}
 	}
 
-	tl::expected<cookie_t, PacketError> cookie = inPkt.Cookie();
-	if (!cookie.has_value())
-		return tl::make_unexpected(cookie.error());
-	tl::expected<std::unique_ptr<packet>, PacketError> pkt
-	    = pktfty.make_packet<PT_JOIN_ACCEPT>(PLR_MASTER, PLR_BROADCAST,
-	        *cookie, newplr, game_init_info);
-	if (!pkt.has_value())
-		return tl::make_unexpected(pkt.error());
-	StartSend(con, **pkt);
+	auto reply = pktfty.make_packet<PT_JOIN_ACCEPT>(PLR_MASTER, PLR_BROADCAST,
+	    pkt.Cookie(), newplr,
+	    game_init_info);
+	StartSend(con, *reply);
 	con->plr = newplr;
 	connections[newplr] = con;
 	con->timeout = timeout_active;
-	return {};
 }
 
-tl::expected<void, PacketError> tcp_server::HandleReceivePacket(packet &pkt)
+void tcp_server::HandleReceivePacket(packet &pkt)
 {
-	return SendPacket(pkt);
+	SendPacket(pkt);
 }
 
-tl::expected<void, PacketError> tcp_server::SendPacket(packet &pkt)
+void tcp_server::SendPacket(packet &pkt)
 {
 	if (pkt.Destination() == PLR_BROADCAST) {
 		for (size_t i = 0; i < Players.size(); ++i)
@@ -169,11 +141,10 @@ tl::expected<void, PacketError> tcp_server::SendPacket(packet &pkt)
 				StartSend(connections[i], pkt);
 	} else {
 		if (pkt.Destination() >= MAX_PLRS)
-			return tl::make_unexpected(ServerError());
+			throw server_exception();
 		if ((pkt.Destination() != pkt.Source()) && connections[pkt.Destination()])
 			StartSend(connections[pkt.Destination()], pkt);
 	}
-	return {};
 }
 
 void tcp_server::StartSend(const scc &con, packet &pkt)
@@ -207,11 +178,8 @@ void tcp_server::HandleAccept(const scc &con, const asio::error_code &ec)
 	if (NextFree() == PLR_BROADCAST) {
 		DropConnection(con);
 	} else {
-		asio::error_code errorCode;
 		asio::ip::tcp::no_delay option(true);
-		con->socket.set_option(option, errorCode);
-		if (errorCode)
-			LogError("Server error setting socket option: {}", errorCode.message());
+		con->socket.set_option(option);
 		con->timeout = timeout_connect;
 		StartReceive(con);
 		StartTimeout(con);
@@ -245,15 +213,10 @@ void tcp_server::HandleTimeout(const scc &con, const asio::error_code &ec)
 void tcp_server::DropConnection(const scc &con)
 {
 	if (con->plr != PLR_BROADCAST) {
-		tl::expected<std::unique_ptr<packet>, PacketError> pkt
-		    = pktfty.make_packet<PT_DISCONNECT>(PLR_MASTER, PLR_BROADCAST,
-		        con->plr, LEAVE_DROP);
+		auto pkt = pktfty.make_packet<PT_DISCONNECT>(PLR_MASTER, PLR_BROADCAST,
+		    con->plr, LEAVE_DROP);
 		connections[con->plr] = nullptr;
-		if (pkt.has_value()) {
-			SendPacket(**pkt);
-		} else {
-			LogError("make_packet<PT_DISCONNECT>: {}", pkt.error().what());
-		}
+		SendPacket(*pkt);
 		// TODO: investigate if it is really ok for the server to
 		//       drop a client directly.
 	}
@@ -269,4 +232,5 @@ void tcp_server::Close()
 tcp_server::~tcp_server()
     = default;
 
-} // namespace devilution::net
+} // namespace net
+} // namespace devilution

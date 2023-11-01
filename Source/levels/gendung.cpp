@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <stack>
-#include <vector>
 
 #include "engine/load_file.hpp"
 #include "engine/random.hpp"
@@ -26,8 +25,8 @@ WorldTileRectangle SetPiece;
 std::unique_ptr<uint16_t[]> pSetPiece;
 OptionalOwnedClxSpriteList pSpecialCels;
 std::unique_ptr<MegaTile[]> pMegaTiles;
-std::unique_ptr<std::byte[]> pDungeonCels;
-TileProperties SOLData[MAXTILES];
+std::unique_ptr<byte[]> pDungeonCels;
+std::array<TileProperties, MAXTILES> SOLData;
 WorldTilePosition dminPosition;
 WorldTilePosition dmaxPosition;
 dungeon_type leveltype;
@@ -46,7 +45,12 @@ uint8_t dLight[MAXDUNX][MAXDUNY];
 uint8_t dPreLight[MAXDUNX][MAXDUNY];
 DungeonFlag dFlags[MAXDUNX][MAXDUNY];
 int8_t dPlayer[MAXDUNX][MAXDUNY];
+//int16_t dMonster[MAXDUNX][MAXDUNY];
+//int16_t dMonster[DMAXXe][DMAXYe];
 int16_t dMonster[DMAXXe][DMAXYe];
+//int dMonster[DMAXXe][DMAXYe];
+//int dMonster[MAXDUNXe][MAXDUNYe];
+//int ddMonster[MAXDUNX][MAXDUNY];
 int8_t dCorpse[MAXDUNX][MAXDUNY];
 int8_t dObject[MAXDUNX][MAXDUNY];
 int8_t dSpecial[MAXDUNX][MAXDUNY];
@@ -266,22 +270,17 @@ void FindTransparencyValues(Point floor, uint8_t floorID)
 	// Algorithm adapted from https://en.wikipedia.org/wiki/Flood_fill#Span_Filling
 	// Modified to include diagonally adjacent tiles that would otherwise not be visited
 	// Also, Wikipedia's selection for the initial seed is incorrect
-	struct Seed {
-		int scanStart;
-		int scanEnd;
-		int y;
-		int dy;
-	};
-	std::stack<Seed, std::vector<Seed>> seedStack;
-	seedStack.push({ floor.x, floor.x + 1, floor.y, 1 });
+	using Seed = std::tuple<int, int, int, int>;
+	std::stack<Seed> seedStack;
+	seedStack.push(std::make_tuple(floor.x, floor.x + 1, floor.y, 1));
 
-	const auto isInside = [floorID](int x, int y) {
+	const auto isInside = [&](int x, int y) {
 		if (dTransVal[x][y] != 0)
 			return false;
 		return IsFloor({ x, y }, floorID);
 	};
 
-	const auto set = [floorID](int x, int y) {
+	const auto set = [&](int x, int y) {
 		FillTransparencyValues({ x, y }, floorID);
 	};
 
@@ -291,16 +290,17 @@ void FindTransparencyValues(Point floor, uint8_t floorID)
 		Point up = p + Displacement { 0, -1 };
 		Point upOver = up + direction;
 		if (!isInside(up.x, up.y) && isInside(upOver.x, upOver.y))
-			seedStack.push({ upOver.x, upOver.x + 1, upOver.y, -1 });
+			seedStack.push(std::make_tuple(upOver.x, upOver.x + 1, upOver.y, -1));
 
 		Point down = p + Displacement { 0, 1 };
 		Point downOver = down + direction;
 		if (!isInside(down.x, down.y) && isInside(downOver.x, downOver.y))
-			seedStack.push(Seed { downOver.x, downOver.x + 1, downOver.y, 1 });
+			seedStack.push(std::make_tuple(downOver.x, downOver.x + 1, downOver.y, 1));
 	};
 
 	while (!seedStack.empty()) {
-		const auto [scanStart, scanEnd, y, dy] = seedStack.top();
+		int scanStart, scanEnd, y, dy;
+		std::tie(scanStart, scanEnd, y, dy) = seedStack.top();
 		seedStack.pop();
 
 		int scanLeft = scanStart;
@@ -312,7 +312,7 @@ void FindTransparencyValues(Point floor, uint8_t floorID)
 			checkDiagonals({ scanLeft, y }, left);
 		}
 		if (scanLeft < scanStart)
-			seedStack.push(Seed { scanLeft, scanStart - 1, y - dy, -dy });
+			seedStack.push(std::make_tuple(scanLeft, scanStart - 1, y - dy, -dy));
 
 		int scanRight = scanStart;
 		while (scanRight < scanEnd) {
@@ -320,9 +320,9 @@ void FindTransparencyValues(Point floor, uint8_t floorID)
 				set(scanRight, y);
 				scanRight++;
 			}
-			seedStack.push(Seed { scanLeft, scanRight - 1, y + dy, dy });
+			seedStack.push(std::make_tuple(scanLeft, scanRight - 1, y + dy, dy));
 			if (scanRight - 1 > scanEnd)
-				seedStack.push(Seed { scanEnd + 1, scanRight - 1, y - dy, -dy });
+				seedStack.push(std::make_tuple(scanEnd + 1, scanRight - 1, y - dy, -dy));
 			if (scanLeft < scanRight)
 				checkDiagonals({ scanRight - 1, y }, right);
 
@@ -355,6 +355,7 @@ void InitGlobals()
 
 	dminPosition = WorldTilePosition(0, 0).megaToWorld();
 	dmaxPosition = WorldTilePosition(40, 40).megaToWorld();
+	//dmaxPosition = WorldTilePosition(40, 40).megaToWorld();
 	SetPieceRoom = { { 0, 0 }, { 0, 0 } };
 	SetPiece = { { 0, 0 }, { 0, 0 } };
 }
@@ -415,6 +416,11 @@ void CreateDungeon(uint32_t rseed, lvl_entry entry)
 	}
 
 	Make_SetPC(SetPiece);
+}
+
+bool TileHasAny(int tileId, TileProperties property)
+{
+	return HasAnyOf(SOLData[tileId], property);
 }
 
 void LoadLevelSOLData()

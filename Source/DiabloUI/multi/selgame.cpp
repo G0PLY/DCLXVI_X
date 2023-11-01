@@ -81,7 +81,7 @@ bool IsGameCompatible(const GameData &data)
 static std::string GetErrorMessageIncompatibility(const GameData &data)
 {
 	if (data.programid != GAME_ID) {
-		std::string_view gameMode;
+		string_view gameMode;
 		switch (data.programid) {
 		case GameIdDiabloFull:
 			gameMode = _("Diablo");
@@ -104,7 +104,7 @@ static std::string GetErrorMessageIncompatibility(const GameData &data)
 	}
 }
 
-void UiInitGameSelectionList(std::string_view search)
+void UiInitGameSelectionList(string_view search)
 {
 	selgame_enteringGame = false;
 	selgame_selectedGame = 0;
@@ -127,7 +127,8 @@ void UiInitGameSelectionList(std::string_view search)
 	UiAddLogo(&vecSelGameDialog);
 
 	const Point uiPosition = GetUIRectangle().position;
-
+	//SDL_Rect rect = { (Sint16)(uiPosition.x + 429), (Sint16)(uiPosition.y + 100), 140, 35 };
+	//vecSelGameDialog.push_back(std::make_unique<UiArtTextButton>(_("DCLXVI"), &UiFocusNavigationEsc, rect, UiFlags::AlignCenter | UiFlags::FontSize46 | UiFlags::ColorUiGold));
 	SDL_Rect rect = { (Sint16)(uiPosition.x + 200), (Sint16)(uiPosition.y + 100), 240, 120 };
 	vecSelGameDialog.push_back(std::make_unique<UiArtText>(_("DCLXVI").data(), rect, UiFlags::FontSize46 | UiFlags::ColorUiSilver | UiFlags::AlignCenter, 8));
 
@@ -232,7 +233,7 @@ void selgame_GameSelection_Focus(int value)
 		std::string infoString = std::string(_("Join the public game already in progress."));
 		infoString.append("\n\n");
 		if (IsGameCompatible(gameInfo.gameData)) {
-			std::string_view difficulty;
+			string_view difficulty;
 			switch (gameInfo.gameData.nDifficulty) {
 			case DIFF_NORMAL:
 				difficulty = _("Normal");
@@ -248,16 +249,16 @@ void selgame_GameSelection_Focus(int value)
 			infoString += '\n';
 			switch (gameInfo.gameData.nTickRate) {
 			case 20:
-				infoString.append(_("Speed: Normal"));
+				AppendStrView(infoString, _("Speed: Normal"));
 				break;
 			case 30:
-				infoString.append(_("Speed: Fast"));
+				AppendStrView(infoString, _("Speed: Fast"));
 				break;
 			case 40:
-				infoString.append(_("Speed: Faster"));
+				AppendStrView(infoString, _("Speed: Faster"));
 				break;
 			case 50:
-				infoString.append(_("Speed: Fastest"));
+				AppendStrView(infoString, _("Speed: Fastest"));
 				break;
 			default:
 				// This should not occure, so no translations is needed
@@ -265,7 +266,7 @@ void selgame_GameSelection_Focus(int value)
 				break;
 			}
 			infoString += '\n';
-			infoString.append(_("Players: "));
+			AppendStrView(infoString, _("Players: "));
 			for (auto &playerName : gameInfo.players) {
 				infoString.append(playerName);
 				infoString += ' ';
@@ -286,7 +287,7 @@ void selgame_GameSelection_Focus(int value)
  */
 bool UpdateHeroLevel(_uiheroinfo *pInfo)
 {
-	if (pInfo->saveNumber == gSaveNumber) {
+	if (pInfo->saveNumber == gSaveNumber) { 
 		heroLevel = pInfo->level;
 
 		heroRank = pInfo->herorank;
@@ -409,17 +410,23 @@ void selgame_Diff_Focus(int value)
 
 bool IsDifficultyAllowed(int value)
 {
+	//if (value == 0 || (value == 1 && heroLevel >= 20) || (value == 2 && heroLevel >= 30)) {
 	if (value == 0 || (value == 1 && heroRank >= 1) || (value == 2 && heroRank >= 2)) {
 		return true;
 	}
 
 	selgame_Free();
 
+	
 	if (value == 1)
 		UiSelOkDialog(title, _("Your character must kill Diablo before you can enter a multiplayer game of Nightmare difficulty.").data(), false);
 	if (value == 2)
 		UiSelOkDialog(title, _("Your character must kill Nightmare Diablo before you can enter a multiplayer game of Hell difficulty.").data(), false);
 
+	//if (value == 1)
+	//	UiSelOkDialog(title, _("Your character must reach level 20 before you can enter a multiplayer game of Nightmare difficulty.").data(), false);
+	//if (value == 2)
+	//	UiSelOkDialog(title, _("Your character must reach level 30 before you can enter a multiplayer game of Hell difficulty.").data(), false);
 
 	selgame_Init();
 
@@ -500,9 +507,9 @@ void selgame_GameSpeedSelection()
 	vecSelGameDialog.push_back(std::make_unique<UiArtText>(_("Select Game Speed").data(), rect4, UiFlags::AlignCenter | UiFlags::FontSize30 | UiFlags::ColorUiSilver, 3));
 
 	vecSelGameDlgItems.push_back(std::make_unique<UiListItem>(_("Normal"), 20));
-	vecSelGameDlgItems.push_back(std::make_unique<UiListItem>(_("Fast"), 30));
-	vecSelGameDlgItems.push_back(std::make_unique<UiListItem>(_("Faster"), 40));
-	vecSelGameDlgItems.push_back(std::make_unique<UiListItem>(_("Fastest"), 50));
+	//vecSelGameDlgItems.push_back(std::make_unique<UiListItem>(_("Fast"), 30));
+	//vecSelGameDlgItems.push_back(std::make_unique<UiListItem>(_("Faster"), 40));
+	//vecSelGameDlgItems.push_back(std::make_unique<UiListItem>(_("Fastest"), 50));
 
 	vecSelGameDialog.push_back(std::make_unique<UiList>(vecSelGameDlgItems, vecSelGameDlgItems.size(), uiPosition.x + 300, (uiPosition.y + 279), 295, 26, UiFlags::AlignCenter | UiFlags::FontSize24 | UiFlags::ColorUiGold));
 

@@ -2,11 +2,8 @@
 
 #include <chrono>
 #include <cstdint>
-#include <cstring>
 #include <memory>
-#include <mutex>
 #include <queue>
-#include <variant>
 
 #include <Aulib/Decoder.h>
 #include <SDL_mutex.h>
@@ -26,14 +23,8 @@ public:
 	{
 	}
 
-	template <typename T>
-	void PushSamples(const T *data, unsigned size) noexcept
-	{
-		AudioQueueItem item { data, size };
-		const auto lock = std::lock_guard(queue_mutex_);
-		queue_.push(std::move(item));
-	}
-
+	void PushSamples(const std::uint8_t *data, unsigned size) noexcept;
+	void PushSamples(const std::int16_t *data, unsigned size) noexcept;
 	void DiscardPendingSamples() noexcept;
 
 	bool open(SDL_RWops *rwops) override;
@@ -57,21 +48,9 @@ protected:
 
 private:
 	struct AudioQueueItem {
-		std::variant<
-		    std::unique_ptr<int16_t[]>,
-		    std::unique_ptr<uint8_t[]>>
-		    data;
+		std::unique_ptr<std::int16_t[]> data;
 		unsigned len;
-		unsigned pos;
-
-		template <typename T>
-		AudioQueueItem(const T *data, unsigned size)
-		    : data { std::unique_ptr<T[]> { new T[size] } }
-		    , len { size }
-		    , pos { 0 }
-		{
-			std::memcpy(std::get<std::unique_ptr<T[]>>(this->data).get(), data, size * sizeof(T));
-		}
+		const std::int16_t *pos;
 	};
 
 	const int numChannels_;

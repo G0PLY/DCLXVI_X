@@ -6,10 +6,10 @@
 #pragma once
 
 #include <cstdint>
-#include <string_view>
 
 #include "objdat.h"
 #include "spelldat.h"
+#include "utils/stdcompat/string_view.hpp"
 
 namespace devilution {
 
@@ -56,8 +56,8 @@ enum _item_indexes : int16_t { // TODO defines all indexes in AllItemsList
 	IDI_SHORTSTAFF,
 	IDI_GEM,
 	IDI_MCH,
-	IDI_BARDSWORD,  // IDI_GEM, // IDI_BARDSWORD,
-	IDI_BARDDAGGER, // IDI_MCH,  //IDI_BARDDAGGER,
+	IDI_BARDSWORD, //IDI_GEM, // IDI_BARDSWORD,
+    IDI_BARDDAGGER, //IDI_MCH,  //IDI_BARDDAGGER,
 	IDI_RUNEBOMB,
 	IDI_THEODORE,
 	IDI_AURIC,
@@ -67,12 +67,12 @@ enum _item_indexes : int16_t { // TODO defines all indexes in AllItemsList
 	IDI_FULLNOTE,
 	IDI_BROWNSUIT,
 	IDI_GREYSUIT,
-	IDI_BOOK1 = 116, // = 114,
+	IDI_BOOK1 = 116,// = 114,
 	IDI_BOOK2,
 	IDI_BOOK3,
 	IDI_BOOK4,
-	IDI_BARBARIAN = 141,   //= 139,
-	IDI_RUNEOFSTONE = 167, // 165,
+	IDI_BARBARIAN = 141, //= 139,
+	IDI_RUNEOFSTONE = 167, //165,
 	IDI_SORCERER_DIABLO,
 	IDI_ARENAPOT,
 	IDI_WITCHBS,
@@ -109,12 +109,12 @@ enum _item_indexes : int16_t { // TODO defines all indexes in AllItemsList
 	IDI_FM2,
 	IDI_R2,
 	IDI_FR2,
-	// IDI_LAZ,
-	// IDI_BTele,
-	// IDI_BHeal,
-	/// IDI_BIden,
-	// IDI_BInfra,
-	// IDI_BWbs,
+	//IDI_LAZ,
+	//IDI_BTele,
+	//IDI_BHeal,
+	///IDI_BIden,
+	//IDI_BInfra,
+	//IDI_BWbs,
 
 	IDI_LAST = IDI_FR2,
 	IDI_NONE = -1,
@@ -295,7 +295,7 @@ enum class ItemType : int8_t {
 	None = -1,
 };
 
-std::string_view ItemTypeToString(ItemType itemType);
+string_view ItemTypeToString(ItemType itemType);
 
 enum unique_base_item : int8_t {
 	UITYPE_NONE,
@@ -369,6 +369,26 @@ enum unique_base_item : int8_t {
 	UITYPE_LAZSTAFF,
 	UITYPE_BOVINE,
 	UITYPE_INVALID = -1,
+	//UITYPE_AMULET, // UITYPE_ADM1,
+	//UITYPE_AMULET, // UITYPE_ADS1,
+	//UITYPE_AMULET, // UITYPE_AMD1,
+	//UITYPE_AMULET, // UITYPE_AMS1,
+	//UITYPE_AMULET, // UITYPE_ASD1,
+	//UITYPE_AMULET, // UITYPE_ASM1,
+	//UITYPE_RING, // UITYPE_RDM1,
+	//UITYPE_RING,   // UITYPE_RDS1,
+	//UITYPE_RING,   // UITYPE_RMD1,
+	//UITYPE_RING,   // UITYPE_RMS1,
+	//UITYPE_RING,   // UITYPE_RSD1,
+	//UITYPE_RING,   // UITYPE_RSM1,
+	//UITYPE_AMULET, // UITYPE_ADM2,
+	//UITYPE_AMULET, // UITYPE_ADS2,
+	//UITYPE_AMULET, // UITYPE_AMD2,
+	//UITYPE_AMULET, // UITYPE_AMS2,
+	//UITYPE_AMULET, // UITYPE_ASD2,
+	//UITYPE_AMULET, // UITYPE_ASM2,
+	//UITYPE_LAZSTAFF,
+	//UITYPE_FUNG,
 };
 
 enum class ItemSpecialEffect : uint32_t {
@@ -450,17 +470,17 @@ enum item_misc_id : int8_t {
 	IMISC_0x1C, // Unused
 	IMISC_OILFIRST,
 	IMISC_OILOF, /* oils are beta or hellfire only */
-	/// IMISC_OILACC,
+	///IMISC_OILACC,
 	IMISC_OILMAST,
 	IMISC_GEM,
-	/// IMISC_OILSHARP,
+	///IMISC_OILSHARP,
 	IMISC_OILDEATH,
-	// IMISC_OILSKILL,
+	//IMISC_OILSKILL,
 	IMISC_OILBSMTH,
 	IMISC_OILFORT,
 	IMISC_OILPERM,
 	IMISC_CGEM,
-	// IMISC_OILHARD,
+	//IMISC_OILHARD,
 	IMISC_OILIMP,
 	IMISC_OILLAST,
 	IMISC_MAPOFDOOM,

@@ -757,8 +757,8 @@ void CreateBlock(int x, int y, int obs, int dir)
 	int x2;
 	int y2;
 
-	int blksizex = RandomIntBetween(3, 4);
-	int blksizey = RandomIntBetween(3, 4);
+	int blksizex = GenerateRnd(2) + 3;
+	int blksizey = GenerateRnd(2) + 3;
 
 	if (dir == 0) {
 		y2 = y - 1;
@@ -1102,10 +1102,10 @@ void River()
 				if (dungeon[rx][ry] == 7) {
 					dircheck = 0;
 					if (dir < 2) {
-						river[2][riveramt] = PickRandomlyAmong({ 17, 18 });
+						river[2][riveramt] = GenerateRnd(2) + 17;
 					}
 					if (dir > 1) {
-						river[2][riveramt] = PickRandomlyAmong({ 15, 16 });
+						river[2][riveramt] = GenerateRnd(2) + 15;
 					}
 					river[0][riveramt] = rx;
 					river[1][riveramt] = ry;
@@ -1501,25 +1501,23 @@ bool PlacePool()
 	return PlaceLavaPool();
 }
 
-/**
- * @brief Fill lava pools correctly, because River() only generates the edges.
- */
 void PoolFix()
 {
-	for (Point tile : PointsInRectangle(Rectangle { { 1, 1 }, { DMAXX - 2, DMAXY - 2 } })) {
-		// Check if the tile is the default dirt ceiling tile
-		if (dungeon[tile.x][tile.y] != 8)
-			continue;
-
-		for (Point adjacentTiles : PointsInRectangle(Rectangle { tile - Displacement(1, 1), { 3, 3 } })) {
-			int tileId = dungeon[adjacentTiles.x][adjacentTiles.y];
-			// Check if the adjacent tile is a ground lava tile
-			if (tileId >= 25 && tileId <= 41) {
-				// A ground lava tile can never be directly connected to our ceiling tile.
-				// There must always be a kind of transition tile between (from ground to ceiling).
-				// That means our tile is part of a lava pool (and was missed in River()), so we should change our tile to a ground lava tile.
-				dungeon[tile.x][tile.y] = 33;
-				break;
+	for (int duny = 1; duny < DMAXY - 1; duny++) {     // BUGFIX: Change '0' to '1' and 'DMAXY' to 'DMAXY - 1' (fixed)
+		for (int dunx = 1; dunx < DMAXX - 1; dunx++) { // BUGFIX: Change '0' to '1' and 'DMAXX' to 'DMAXX - 1' (fixed)
+			if (dungeon[dunx][duny] == 8) {
+				if (dungeon[dunx - 1][duny - 1] >= 25 && dungeon[dunx - 1][duny - 1] <= 41
+				    && dungeon[dunx - 1][duny] >= 25 && dungeon[dunx - 1][duny] <= 41
+				    && dungeon[dunx - 1][duny + 1] >= 25 && dungeon[dunx - 1][duny + 1] <= 41
+				    && dungeon[dunx][duny - 1] >= 25 && dungeon[dunx][duny - 1] <= 41
+				    && dungeon[dunx][duny + 1] >= 25 && dungeon[dunx][duny + 1] <= 41
+				    && dungeon[dunx + 1][duny - 1] >= 25 && dungeon[dunx + 1][duny - 1] <= 41
+				    && dungeon[dunx + 1][duny] >= 25 && dungeon[dunx + 1][duny] <= 41
+				    && dungeon[dunx + 1][duny + 1] >= 25 && dungeon[dunx + 1][duny + 1] <= 41) {
+					dungeon[dunx][duny] = 33;
+				} else if (dungeon[dunx + 1][duny] == 35 || dungeon[dunx + 1][duny] == 37) {
+					dungeon[dunx][duny] = 33;
+				}
 			}
 		}
 	}
@@ -2167,6 +2165,7 @@ void PlaceCaveLights()
 
 void PlaceHiveLights()
 {
+
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			if (dPiece[i][j] >= 381 && dPiece[i][j] <= 456) {

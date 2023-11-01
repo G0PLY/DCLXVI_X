@@ -21,8 +21,8 @@ namespace {
 /** Current portal number (a portal array index). */
 size_t portalindex;
 
-/** Coordinate of each player's portal in town. */
-Point PortalTownPosition[MAXPORTAL] = {
+/** Coordinate of each players portal in town. */
+Point WarpDrop[MAXPORTAL] = {
 	{ 57, 40 },
 	{ 59, 40 },
 	{ 61, 40 },
@@ -47,7 +47,7 @@ void SetPortalStats(int i, bool o, Point position, int lvl, dungeon_type lvltype
 	Portals[i].setlvl = isSetLevel;
 }
 
-void AddPortalMissile(int i, Point position, bool sync)
+void AddWarpMissile(int i, Point position, bool sync)
 {
 	auto *missile = AddMissile({ 0, 0 }, position, Direction::South, MissileID::TownPortal, TARGET_MONSTERS, i, 0, 0, /*parent=*/nullptr, SFX_NONE);
 	if (missile != nullptr) {
@@ -66,20 +66,20 @@ void SyncPortals()
 		if (!Portals[i].open)
 			continue;
 		if (leveltype == DTYPE_TOWN)
-			AddPortalMissile(i, PortalTownPosition[i], true);
+			AddWarpMissile(i, WarpDrop[i], true);
 		else {
 			int lvl = currlevel;
 			if (setlevel)
 				lvl = setlvlnum;
 			if (Portals[i].level == lvl && Portals[i].setlvl == setlevel)
-				AddPortalMissile(i, Portals[i].position, true);
+				AddWarpMissile(i, Portals[i].position, true);
 		}
 	}
 }
 
-void AddPortalInTown(int i)
+void AddInTownPortal(int i)
 {
-	AddPortalMissile(i, PortalTownPosition[i], false);
+	AddWarpMissile(i, WarpDrop[i], false);
 }
 
 void ActivatePortal(int i, Point position, int lvl, dungeon_type dungeonType, bool isSetLevel)
@@ -159,7 +159,7 @@ void GetPortalLevel()
 void GetPortalLvlPos()
 {
 	if (leveltype == DTYPE_TOWN) {
-		ViewPosition = PortalTownPosition[portalindex] + Displacement { 1, 1 };
+		ViewPosition = WarpDrop[portalindex] + Displacement { 1, 1 };
 	} else {
 		ViewPosition = Portals[portalindex].position;
 

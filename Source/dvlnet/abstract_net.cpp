@@ -13,7 +13,8 @@
 #endif
 #include "dvlnet/loopback.h"
 
-namespace devilution::net {
+namespace devilution {
+namespace net {
 
 std::unique_ptr<abstract_net> abstract_net::MakeNet(provider_t provider)
 {
@@ -23,15 +24,11 @@ std::unique_ptr<abstract_net> abstract_net::MakeNet(provider_t provider)
 	switch (provider) {
 #ifndef DISABLE_TCP
 	case SELCONN_TCP:
-		return std::make_unique<cdwrap>([]() {
-			return std::make_unique<tcp_client>();
-		});
+		return std::make_unique<cdwrap<tcp_client>>();
 #endif
 #ifndef DISABLE_ZERO_TIER
 	case SELCONN_ZT:
-		return std::make_unique<cdwrap>([]() {
-			return std::make_unique<base_protocol<protocol_zt>>();
-		});
+		return std::make_unique<cdwrap<base_protocol<protocol_zt>>>();
 #endif
 	case SELCONN_LOOPBACK:
 		return std::make_unique<loopback>();
@@ -41,4 +38,5 @@ std::unique_ptr<abstract_net> abstract_net::MakeNet(provider_t provider)
 #endif
 }
 
-} // namespace devilution::net
+} // namespace net
+} // namespace devilution

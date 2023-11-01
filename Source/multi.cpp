@@ -4,10 +4,8 @@
  * Implementation of functions for keeping multiplaye games in sync.
  */
 
-#include <cstddef>
 #include <cstdint>
 #include <ctime>
-#include <string_view>
 
 #include <SDL.h>
 #include <config.h>
@@ -30,6 +28,8 @@
 #include "tmsg.h"
 #include "utils/endian.hpp"
 #include "utils/language.h"
+#include "utils/stdcompat/cstddef.hpp"
+#include "utils/stdcompat/string_view.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {
@@ -62,7 +62,6 @@ uint8_t gbDeltaSender;
 bool sgbNetInited;
 uint32_t player_state[MAX_PLRS];
 Uint32 playerInfoTimers[MAX_PLRS];
-bool IsLoopback;
 
 /**
  * Contains the set of supported event types supported by the multiplayer
@@ -88,27 +87,27 @@ uint32_t sgbSentThisCycle;
 void BufferInit(TBuffer *pBuf)
 {
 	pBuf->dwNextWriteOffset = 0;
-	pBuf->bData[0] = std::byte { 0 };
+	pBuf->bData[0] = byte { 0 };
 }
 
-void CopyPacket(TBuffer *buf, const std::byte *packet, size_t size)
+void CopyPacket(TBuffer *buf, const byte *packet, size_t size)
 {
 	if (buf->dwNextWriteOffset + size + 2 > 0x1000) {
 		return;
 	}
 
-	std::byte *p = &buf->bData[buf->dwNextWriteOffset];
+	byte *p = &buf->bData[buf->dwNextWriteOffset];
 	buf->dwNextWriteOffset += size + 1;
-	*p = static_cast<std::byte>(size);
+	*p = static_cast<byte>(size);
 	p++;
 	memcpy(p, packet, size);
-	p[size] = std::byte { 0 };
+	p[size] = byte { 0 };
 }
 
-std::byte *CopyBufferedPackets(std::byte *destination, TBuffer *source, size_t *size)
+byte *CopyBufferedPackets(byte *destination, TBuffer *source, size_t *size)
 {
 	if (source->dwNextWriteOffset != 0) {
-		std::byte *srcPtr = source->bData;
+		byte *srcPtr = source->bData;
 		while (true) {
 			auto chunkSize = static_cast<uint8_t>(*srcPtr);
 			if (chunkSize == 0)
@@ -153,12 +152,13 @@ void NetReceivePlayerData(TPkt *pkt)
 
 bool IsNetPlayerValid(const Player &player)
 {
-	// we no longer check character level here, players with out-of-range clevels are not allowed to join the game and we don't observe change clevel messages that would set it out of range
-	// (there's no code path that would result in _pLevel containing an out of range value in the DevilutionX code)
-	return static_cast<uint8_t>(player._pClass) < enum_size<HeroClass>::value
+	return player._pLevel >= 1
+	    && player._pLevel <= MaxCharacterLevel
+	    && static_cast<uint8_t>(player._pClass) < enum_size<HeroClass>::value
 	    && player.plrlevel < NUMLEVELS
+	    && player.pDifficulty <= DIFF_LAST
 	    && InDungeonBounds(player.position.tile)
-	    && !std::string_view(player._pName).empty();
+	    && !string_view(player._pName).empty();
 }
 
 void CheckPlayerInfoTimeouts()
@@ -192,7 +192,7 @@ void CheckPlayerInfoTimeouts()
 	}
 }
 
-void SendPacket(int playerId, const std::byte *packet, size_t size)
+void SendPacket(int playerId, const byte *packet, size_t size)
 {
 	TPkt pkt;
 
@@ -259,7 +259,7 @@ void PlayerLeftMsg(int pnum, bool left)
 	delta_close_portal(pnum);
 	RemovePlrMissiles(player);
 	if (left) {
-		std::string_view pszFmt = _("Player '{:s}' just left the game");
+		string_view pszFmt = _("Player '{:s}' just left the game");
 		switch (sgdwPlayerLeftReasonTbl[pnum]) {
 		case LEAVE_ENDING:
 			pszFmt = _("Player '{:s}' killed Diablo and left the game!");
@@ -324,7 +324,7 @@ void BeginTimeout()
 	CheckDropPlayer();
 }
 
-void HandleAllPackets(size_t pnum, const std::byte *data, size_t size)
+void HandleAllPackets(size_t pnum, const byte *data, size_t size)
 {
 	for (unsigned offset = 0; offset < size;) {
 		size_t messageSize = ParseCmd(pnum, reinterpret_cast<const TCmd *>(&data[offset]));
@@ -338,7 +338,7 @@ void HandleAllPackets(size_t pnum, const std::byte *data, size_t size)
 void ProcessTmsgs()
 {
 	while (true) {
-		std::unique_ptr<std::byte[]> msg;
+		std::unique_ptr<byte[]> msg;
 		uint8_t size = tmsg_get(&msg);
 		if (size == 0)
 			break;
@@ -349,10 +349,13 @@ void ProcessTmsgs()
 
 void SendPlayerInfo(int pnum, _cmd_id cmd)
 {
-	PlayerNetPack packed;
+	PlayerPack pPack;
 	Player &myPlayer = *MyPlayer;
-	PackNetPlayer(packed, myPlayer);
-	multi_send_zero_packet(pnum, cmd, reinterpret_cast<std::byte *>(&packed), sizeof(PlayerNetPack));
+	//PackPlayer(&pPack, myPlayer, true, true);
+	PackPlayer(&pPack, myPlayer, true, true, true, true, true, true);
+	pPack.friendlyMode = myPlayer.friendlyMode ? 1 : 0;
+	pPack.isOnSetLevel = myPlayer.plrIsOnSetLevel;
+	multi_send_zero_packet(pnum, cmd, reinterpret_cast<byte *>(&pPack), sizeof(PlayerPack));
 }
 
 void SetupLocalPositions()
@@ -495,7 +498,7 @@ void InitGameInfo()
 	sgGameInitInfo.fullQuests = (!gbIsMultiplayer || *sgOptions.Gameplay.multiplayerFullQuests) ? 1 : 0;
 }
 
-void NetSendLoPri(int playerId, const std::byte *data, size_t size)
+void NetSendLoPri(int playerId, const byte *data, size_t size)
 {
 	if (data != nullptr && size != 0) {
 		CopyPacket(&lowPriorityBuffer, data, size);
@@ -503,7 +506,7 @@ void NetSendLoPri(int playerId, const std::byte *data, size_t size)
 	}
 }
 
-void NetSendHiPri(int playerId, const std::byte *data, size_t size)
+void NetSendHiPri(int playerId, const byte *data, size_t size)
 {
 	if (data != nullptr && size != 0) {
 		CopyPacket(&highPriorityBuffer, data, size);
@@ -513,7 +516,7 @@ void NetSendHiPri(int playerId, const std::byte *data, size_t size)
 		shareNextHighPriorityMessage = false;
 		TPkt pkt;
 		NetReceivePlayerData(&pkt);
-		std::byte *destination = pkt.body;
+		byte *destination = pkt.body;
 		size_t remainingSpace = gdwNormalMsgSize - sizeof(TPktHdr);
 		destination = CopyBufferedPackets(destination, &highPriorityBuffer, &remainingSpace);
 		destination = CopyBufferedPackets(destination, &lowPriorityBuffer, &remainingSpace);
@@ -525,7 +528,7 @@ void NetSendHiPri(int playerId, const std::byte *data, size_t size)
 	}
 }
 
-void multi_send_msg_packet(uint32_t pmask, const std::byte *data, size_t size)
+void multi_send_msg_packet(uint32_t pmask, const byte *data, size_t size)
 {
 	TPkt pkt;
 	NetReceivePlayerData(&pkt);
@@ -676,14 +679,14 @@ void multi_process_network_packets()
 				}
 			}
 		}
-		HandleAllPackets(playerId, (const std::byte *)(pkt + 1), dwMsgSize - sizeof(TPktHdr));
+		HandleAllPackets(playerId, (const byte *)(pkt + 1), dwMsgSize - sizeof(TPktHdr));
 	}
 	if (SErrGetLastError() != STORM_ERROR_NO_MESSAGES_WAITING)
 		nthread_terminate_game("SNetReceiveMsg");
 	CheckPlayerInfoTimeouts();
 }
 
-void multi_send_zero_packet(size_t pnum, _cmd_id bCmd, const std::byte *data, size_t size)
+void multi_send_zero_packet(size_t pnum, _cmd_id bCmd, const byte *data, size_t size)
 {
 	assert(pnum != MyPlayerId);
 	assert(data != nullptr);
@@ -794,14 +797,14 @@ bool NetInit(bool bSinglePlayer)
 	Player &myPlayer = *MyPlayer;
 	// separator for marking messages from a different game
 	AddMessageToChatLog(_("New Game"), nullptr, UiFlags::ColorRed);
-	AddMessageToChatLog(fmt::format(fmt::runtime(_("Player '{:s}' (level {:d}) just joined the game")), myPlayer._pName, myPlayer.getCharacterLevel()));
+	AddMessageToChatLog(fmt::format(fmt::runtime(_("Player '{:s}' (level {:d}) just joined the game")), myPlayer._pName, myPlayer._pLevel));
 
 	return true;
 }
 
 void recv_plrinfo(int pnum, const TCmdPlrInfoHdr &header, bool recv)
 {
-	static PlayerNetPack PackedPlayerBuffer[MAX_PLRS];
+	static PlayerPack PackedPlayerBuffer[MAX_PLRS];
 
 	assert(pnum >= 0 && pnum < MAX_PLRS);
 	Player &player = Players[pnum];
@@ -829,11 +832,11 @@ void recv_plrinfo(int pnum, const TCmdPlrInfoHdr &header, bool recv)
 	sgwPackPlrOffsetTbl[pnum] = 0;
 
 	PlayerLeftMsg(pnum, false);
-	if (!UnPackNetPlayer(packedPlayer, player)) {
-		player = {};
-		SNetDropPlayer(pnum, LEAVE_DROP);
+	if (!UnPackPlayer(&packedPlayer, player, true)) {
 		return;
 	}
+	player.friendlyMode = packedPlayer.friendlyMode != 0;
+	player.plrIsOnSetLevel = packedPlayer.isOnSetLevel != 0;
 
 	if (!recv) {
 		return;
@@ -843,13 +846,13 @@ void recv_plrinfo(int pnum, const TCmdPlrInfoHdr &header, bool recv)
 	player.plractive = true;
 	gbActivePlayers++;
 
-	std::string_view szEvent;
+	string_view szEvent;
 	if (sgbPlayerTurnBitTbl[pnum]) {
 		szEvent = _("Player '{:s}' (level {:d}) just joined the game");
 	} else {
 		szEvent = _("Player '{:s}' (level {:d}) is already in the game");
 	}
-	EventPlrMsg(fmt::format(fmt::runtime(szEvent), player._pName, player.getCharacterLevel()));
+	EventPlrMsg(fmt::format(fmt::runtime(szEvent), player._pName, player._pLevel));
 
 	SyncInitPlr(player);
 

@@ -26,7 +26,7 @@ namespace devilution {
 namespace discord_manager {
 
 // App ID used for DevilutionX's Diablo (classic Diablo's is 496571953147150354)
-// constexpr discord::ClientId DiscordDevilutionxAppId = 795760213524742205;
+//constexpr discord::ClientId DiscordDevilutionxAppId = 795760213524742205;
 constexpr discord::ClientId DiscordDevilutionxAppId = 666777216667427666;
 
 constexpr auto IgnoreResult = [](discord::Result result) {};
@@ -44,7 +44,7 @@ struct PlayerData {
 	dungeon_type dungeonArea;
 	_setlevels questMap;
 	Uint8 dungeonLevel;
-	Uint8 playerLevel;
+	Sint8 playerLevel;
 	int playerGfx;
 
 	// Why??? This is POD
@@ -89,7 +89,8 @@ std::string GetLocationString()
 
 std::string GetCharacterString()
 {
-	return fmt::format(fmt::runtime(_(/* TRANSLATORS: Discord character, i.e. "Lv 6 Warrior" */ "Lv {} {}")), tracked_data.playerLevel, MyPlayer->getClassName());
+	const string_view charClassStr = _(PlayersData[static_cast<int>(MyPlayer->_pClass)].className);
+	return fmt::format(fmt::runtime(_(/* TRANSLATORS: Discord character, i.e. "Lv 6 Warrior" */ "Lv {} {}")), tracked_data.playerLevel, charClassStr);
 }
 
 std::string GetDetailString()
@@ -100,7 +101,7 @@ std::string GetDetailString()
 std::string GetStateString()
 {
 	constexpr std::array<const char *, 3> DifficultyStrs = { N_("Normal"), N_("Nightmare"), N_("Hell") };
-	const std::string_view difficultyStr = _(DifficultyStrs[sgGameInitInfo.nDifficulty]);
+	const string_view difficultyStr = _(DifficultyStrs[sgGameInitInfo.nDifficulty]);
 	return fmt::format(fmt::runtime(_(/* TRANSLATORS: Discord state i.e. "Nightmare difficulty" */ "{} difficulty")), difficultyStr);
 }
 
@@ -137,7 +138,7 @@ void UpdateGame()
 		return;
 
 	auto newData = PlayerData {
-		leveltype, setlvlnum, currlevel, MyPlayer->getCharacterLevel(), MyPlayer->_pgfxnum
+		leveltype, setlvlnum, currlevel, MyPlayer->_pLevel, MyPlayer->_pgfxnum
 	};
 	if (newData != tracked_data) {
 		tracked_data = newData;

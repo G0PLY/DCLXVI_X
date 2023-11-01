@@ -11,60 +11,6 @@
 
 namespace devilution {
 
-enum class SpellIcon : uint8_t {
-	Firebolt,
-	Healing,
-	Lightning,
-	Flash,
-	Identify,
-	FireWall,
-	TownPortal,
-	StoneCurse,
-	Infravision,
-	HealOther,
-	Nova,
-	Fireball,
-	ManaShield,
-	FlameWave,
-	Inferno,
-	ChainLightning,
-	Sentinel, // unused
-	DoomSerpents, //staticfield
-	BloodRitual,  // knockback
-	Invisibility, // aimedshot
-	Golem,
-	Etherealize,
-	BloodBoil,
-	Teleport,
-	Apocalypse,
-	ItemRepair,
-	Empty,
-	Phasing,  //witchbloodstar
-	StaffRecharge,
-	BoneSpirit,
-	RedSkull,  // unused
-	Pentagram, // unused
-	FireCloud, // unused
-	LongHorn,  // unused
-	PentaStar, // unused
-	BloodStar,
-	TrapDisarm,
-	Elemental,
-	ChargedBolt,
-	Telekinesis,
-	Resurrect,
-	HolyBolt,
-	Warp,
-	Search,
-	Reflect,
-	LightningWall,
-	Immolation,
-	Berserk,
-	RingOfFire,
-	Jester,
-	Mana,
-};
-
 /**
  * Draw a large (56x56) spell icon onto the given buffer.
  *

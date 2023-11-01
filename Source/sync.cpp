@@ -7,7 +7,6 @@
 #include <cstdint>
 
 #include "levels/gendung.h"
-#include "lighting.h"
 #include "monster.h"
 #include "player.h"
 
@@ -18,12 +17,16 @@ namespace {
 uint16_t sgnMonsterPriority[MaxMonsters];
 size_t sgnMonsters;
 uint16_t sgwLRU[MaxMonsters];
+//int sgnMonsterPriority[MaxMonsters];
+//int sgnMonsters;
+//int sgwLRU[MaxMonsters];
 int sgnSyncItem;
 int sgnSyncPInv;
 
 void SyncOneMonster()
 {
 	for (size_t i = 0; i < ActiveMonsterCount; i++) {
+	//	for (int i = 0; i < ActiveMonsterCount; i++) {
 		int m = ActiveMonsters[i];
 		auto &monster = Monsters[m];
 		sgnMonsterPriority[m] = MyPlayer->position.tile.ManhattanDistance(monster.position.tile);
@@ -56,6 +59,7 @@ bool SyncMonsterActive(TSyncMonster &monsterSync)
 	uint32_t lru = 0xFFFFFFFF;
 
 	for (size_t i = 0; i < ActiveMonsterCount; i++) {
+	//	for (int i = 0; i < ActiveMonsterCount; i++) {
 		int m = ActiveMonsters[i];
 		if (sgnMonsterPriority[m] < lru && sgwLRU[m] < 0xFFFE) {
 			lru = sgnMonsterPriority[m];
@@ -77,6 +81,7 @@ bool SyncMonsterActive2(TSyncMonster &monsterSync)
 	uint32_t lru = 0xFFFE;
 
 	for (size_t i = 0; i < ActiveMonsterCount; i++) {
+	//	for (int i = 0; i < ActiveMonsterCount; i++) {
 		if (sgnMonsters >= ActiveMonsterCount) {
 			sgnMonsters = 0;
 		}
@@ -152,7 +157,8 @@ void SyncPlrInv(TSyncHeader *pHdr)
 
 void SyncMonster(bool isOwner, const TSyncMonster &monsterSync)
 {
-	const int monsterId = monsterSync._mndx;
+	const size_t monsterId = monsterSync._mndx;
+	//const int monsterId = monsterSync._mndx;
 	Monster &monster = Monsters[monsterId];
 	if (monster.hitPoints <= 0 || monster.mode == MonsterMode::Death) {
 		return;
@@ -192,8 +198,6 @@ void SyncMonster(bool isOwner, const TSyncMonster &monsterSync)
 		M_ClearSquares(monster);
 		dMonster[position.x][position.y] = monsterId + 1;
 		monster.position.tile = position;
-		if (monster.lightId != NO_LIGHT)
-			ChangeLightXY(monster.lightId, position);
 		decode_enemy(monster, enemyId);
 		Direction md = GetDirection(position, monster.enemyPosition);
 		M_StartStand(monster, md);
@@ -235,6 +239,7 @@ bool IsEnemyIdValid(const Monster &monster, int enemyId)
 bool IsTSyncMonsterValidate(const TSyncMonster &monsterSync)
 {
 	const size_t monsterId = monsterSync._mndx;
+	//const int monsterId = monsterSync._mndx;
 
 	if (monsterId >= MaxMonsters)
 		return false;
@@ -250,7 +255,7 @@ bool IsTSyncMonsterValidate(const TSyncMonster &monsterSync)
 
 } // namespace
 
-uint32_t sync_all_monsters(std::byte *pbBuf, uint32_t dwMaxLen)
+uint32_t sync_all_monsters(byte *pbBuf, uint32_t dwMaxLen)
 {
 	if (ActiveMonsterCount < 1) {
 		return dwMaxLen;
@@ -274,6 +279,7 @@ uint32_t sync_all_monsters(std::byte *pbBuf, uint32_t dwMaxLen)
 	SyncOneMonster();
 
 	for (size_t i = 0; i < ActiveMonsterCount && dwMaxLen >= sizeof(TSyncMonster); i++) {
+	//	for (int i = 0; i < ActiveMonsterCount && dwMaxLen >= sizeof(TSyncMonster); i++) {
 		auto &monsterSync = *reinterpret_cast<TSyncMonster *>(pbBuf);
 		bool sync = false;
 		if (i < 2) {

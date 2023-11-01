@@ -172,6 +172,24 @@ void GamemenuGetSpeed()
 
 	sgOptionsMenu[3].pszStr = _("Speed").data();
 	gmenu_slider_steps(&sgOptionsMenu[3], 46);
+	gmenu_slider_set(&sgOptionsMenu[3], 20, 50, sgGameInitInfo.nTickRate);
+	 if (gbIsMultiplayer) {
+		sgOptionsMenu[3].removeFlags(GMENU_ENABLED | GMENU_SLIDER);
+		if (sgGameInitInfo.nTickRate >= 50)
+			sgOptionsMenu[3].pszStr = _("Speed: Fastest").data();
+		else if (sgGameInitInfo.nTickRate >= 40)
+			sgOptionsMenu[3].pszStr = _("Speed: Faster").data();
+		else if (sgGameInitInfo.nTickRate >= 30)
+			sgOptionsMenu[3].pszStr = _("Speed: Fast").data();
+		else if (sgGameInitInfo.nTickRate == 20)
+			sgOptionsMenu[3].pszStr = _("Speed: Normal").data();
+		return;
+	}
+
+	sgOptionsMenu[3].addFlags(GMENU_ENABLED | GMENU_SLIDER);
+
+	sgOptionsMenu[3].pszStr = _("Speed").data();
+	gmenu_slider_steps(&sgOptionsMenu[3], 46);
 	gmenu_slider_set(&sgOptionsMenu[3], 20, 20, sgGameInitInfo.nTickRate);
 }
 
@@ -330,10 +348,8 @@ void gamemenu_save_game(bool /*bActivate*/)
 	InitDiabloMsg(EMSG_SAVING);
 	RedrawEverything();
 	DrawAndBlit();
-	uint32_t currentTime = SDL_GetTicks();
 	SaveGame();
 	ClrDiabloMsg();
-	InitDiabloMsg(EMSG_GAME_SAVED, currentTime + 1000 - SDL_GetTicks());
 	RedrawEverything();
 	NewCursor(CURSOR_HAND);
 	if (CornerStone.activated) {
@@ -346,11 +362,11 @@ void gamemenu_save_game(bool /*bActivate*/)
 
 void gamemenu_on()
 {
-	if (!gbIsMultiplayer) {
-		gmenu_set_items(sgSingleMenu, GamemenuUpdateSingle);
-	} else {
+	//if (!gbIsMultiplayer) {
+	//	gmenu_set_items(sgSingleMenu, GamemenuUpdateSingle);
+	//} else {
 		gmenu_set_items(sgMultiMenu, GamemenuUpdateMulti);
-	}
+	//}
 	PressEscKey();
 }
 

@@ -80,8 +80,8 @@ enum class SpellID : int8_t {
 	LightningWall,
 	Immolation,
 	Warp,
-	ManaRegen,//Reflect,
-	HealthRegen,//Berserk,
+	ManaRegen,
+	HealthRegen,
 	RingOfFire,
 	Search,
 	RuneOfFire,
@@ -89,7 +89,6 @@ enum class SpellID : int8_t {
 	RuneOfNova,
 	RuneOfImmolation,
 	RuneOfStone,
-
 	LAST = RuneOfStone,
 	Invalid = -1,
 };
@@ -137,7 +136,7 @@ enum class MissileID : int8_t {
 	Invisibility, // unused
 	Golem,
 	Etherealize,
-	BerserkBoom,//Spurt, // unused
+	BerserkBoom,//Spurt, // unused //using as Berserk Apoc style Provocation spell
 	ApocalypseBoom,
 	Healing,
 	FireWallControl,
@@ -153,7 +152,7 @@ enum class MissileID : int8_t {
 	Inferno,
 	InfernoControl,
 	HolyBoltBoom,//FireMan, // unused
-	DiabloBerserkBoom,//Krull, // unused
+	DiabloBerserkBoom,//Krull, // unused  //using as Berserk Apoc style Provocation spell
 	ChargedBolt,
 	HolyBolt,
 	Resurrect,
@@ -170,7 +169,7 @@ enum class MissileID : int8_t {
 	RedPortal,
 	DiabloApocalypseBoom,
 	DiabloApocalypse,
-	Smite,//Mana,
+	Smite, //Mana,
 	Magi,
 	LightningWall,
 	LightningWallControl,

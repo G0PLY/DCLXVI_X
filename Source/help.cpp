@@ -4,7 +4,6 @@
  * Implementation of the in-game help text.
  */
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "DiabloUI/ui_flags.hpp"
@@ -15,6 +14,7 @@
 #include "qol/chatlog.h"
 #include "stores.h"
 #include "utils/language.h"
+#include "utils/stdcompat/string_view.hpp"
 
 namespace devilution {
 
@@ -195,7 +195,7 @@ void DrawHelp(const Surface &out)
 	const int lineHeight = LineHeight();
 	const int blankLineHeight = BlankLineHeight();
 
-	std::string_view title;
+	string_view title;
 	if (gbIsHellfire)
 		title = gbIsSpawn ? _("Shareware Hellfire Help") : _("Hellfire Help");
 	else
@@ -215,7 +215,7 @@ void DrawHelp(const Surface &out)
 	const int numLines = NumVisibleLines();
 	const int contentY = titleBottom + DividerLineMarginY() + ContentPaddingY();
 	for (int i = 0; i < numLines; i++) {
-		const std::string_view line = HelpTextLines[i + SkipLines];
+		const string_view line = HelpTextLines[i + SkipLines];
 		if (line.empty()) {
 			continue;
 		}

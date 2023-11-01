@@ -7,11 +7,11 @@
 #include "utils/language.h"
 #include "utils/stubs.h"
 
-namespace devilution::net {
+namespace devilution {
+namespace net {
 
 int loopback::create(std::string /*addrstr*/)
 {
-	IsLoopback = true;
 	return plr_single;
 }
 
@@ -87,7 +87,6 @@ bool loopback::SNetUnregisterEventHandler(event_type /*evtype*/)
 
 bool loopback::SNetLeaveGame(int /*type*/)
 {
-	IsLoopback = false;
 	return true;
 }
 
@@ -114,7 +113,8 @@ bool loopback::SNetGetTurnsInTransit(uint32_t *turns)
 
 std::string loopback::make_default_gamename()
 {
-	return std::string(_("loopback"));
+	return std::string(_("DCLXVI"));
 }
 
-} // namespace devilution::net
+} // namespace net
+} // namespace devilution

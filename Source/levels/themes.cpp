@@ -17,7 +17,6 @@
 #include "monster.h"
 #include "objects.h"
 #include "quests.h"
-#include "utils/algorithm/container.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {
@@ -88,7 +87,8 @@ bool TFit_Shrine(int i)
 
 bool CheckThemeObj5(Point origin, int8_t regionId)
 {
-	return c_all_of(PointsInRectangle(Rectangle { origin, 2 }), [regionId](Point testPosition) {
+	const auto searchArea = PointsInRectangle(Rectangle { origin, 2 });
+	return std::all_of(searchArea.cbegin(), searchArea.cend(), [regionId](Point testPosition) {
 		// note out-of-bounds tiles are not solid, this function relies on the guard in TFit_Obj5 and dungeon border
 		if (IsTileSolid(testPosition)) {
 			return false;
@@ -131,6 +131,7 @@ bool TFit_SkelRoom(int t)
 	}
 
 	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
+		//for (int i = 0; i < LevelMonsterTypeCount; i++) {
 		if (IsSkel(LevelMonsterTypes[i].type)) {
 			themeVar1 = i;
 			return TFit_Obj5(t);
@@ -143,6 +144,7 @@ bool TFit_SkelRoom(int t)
 bool TFit_GoatShrine(int t)
 {
 	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
+	//	for (int i = 0; i < LevelMonsterTypeCount; i++) {
 		if (IsGoat(LevelMonsterTypes[i].type)) {
 			themeVar1 = i;
 			return TFit_Obj5(t);
@@ -154,7 +156,8 @@ bool TFit_GoatShrine(int t)
 
 bool CheckThemeObj3(Point origin, int8_t regionId, unsigned frequency = 0)
 {
-	return c_all_of(PointsInRectangle(Rectangle { origin, 1 }), [regionId, frequency](Point testPosition) {
+	const auto searchArea = PointsInRectangle(Rectangle { origin, 1 });
+	return std::all_of(searchArea.cbegin(), searchArea.cend(), [regionId, frequency](Point testPosition) {
 		if (!InDungeonBounds(testPosition)) {
 			return false;
 		}
@@ -352,6 +355,7 @@ void PlaceThemeMonsts(int t, int f)
 
 	int numscattypes = 0;
 	for (size_t i = 0; i < LevelMonsterTypeCount; i++) {
+		//for (int i = 0; i < LevelMonsterTypeCount; i++) {
 		if ((LevelMonsterTypes[i].placeFlags & PLACE_SCATTER) != 0) {
 			scattertypes[numscattypes] = i;
 			numscattypes++;

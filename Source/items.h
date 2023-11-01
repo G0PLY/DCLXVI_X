@@ -6,7 +6,6 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 
 #include "DiabloUI/ui_flags.hpp"
 #include "engine.h"
@@ -14,10 +13,12 @@
 #include "engine/point.hpp"
 #include "itemdat.h"
 #include "monster.h"
+#include "utils/stdcompat/optional.hpp"
 #include "utils/string_or_view.hpp"
 
 namespace devilution {
 
+//#define MAXITEMS 127
 #define MAXITEMS 254
 #define ITEMTYPES 43
 
@@ -129,21 +130,21 @@ enum _unique_items : int8_t {
 };
 
 /*
-CF_LEVEL: Item Level (6 bits; value ranges from 0-63)
-CF_ONLYGOOD: Item is not able to have affixes with PLOK set to false
-CF_UPER15: Item is from a Unique Monster and has 15% chance of being a Unique Item
-CF_UPER1: Item is from the dungeon and has a 1% chance of being a Unique Item
-CF_UNIQUE: Item is a Unique Item
-CF_SMITH: Item is from Griswold (Basic)
-CF_SMITHPREMIUM: Item is from Griswold (Premium)
-CF_BOY: Item is from Wirt
-CF_WITCH: Item is from Adria
-CF_HEALER: Item is from Pepin
-CF_PREGEN: Item is pre-generated, mostly associated with Quest items found in the dungeon or potions on the dungeon floor
+ First 5 bits store level
+ 6th bit stores onlygood flag
+ 7th bit stores uper15 flag - uper means unique percent, this flag is true for unique monsters and loot from them has 15% to become unique
+ 8th bit stores uper1 flag - this is loot from normal monsters, which has 1% to become unique
+ 9th bit stores info if item is unique
+ 10th bit stores info if item is a basic one from Griswold
+ 11th bit stores info if item is a premium one from Griswold
+ 12th bit stores info if item is from Wirt
+ 13th bit stores info if item is from Adria
+ 14th bit stores info if item is from Pepin
+ 15th bit stores pregen flag
 
-Items that have both CF_UPER15 and CF_UPER1 are CF_USEFUL, which is used to generate Potions and Town Portal scrolls on the dungeon floor
-Items that have any of CF_SMITH, CF_SMITHPREMIUM, CF_BOY, CF_WICTH, and CF_HEALER are CF_TOWN, indicating the item is sourced from an NPC
-*/
+ combining CF_UPER15 and CF_UPER1 flags (CF_USEFUL) is used to mark potions and town portal scrolls created on the ground
+ CF_TOWN is combining all store flags and indicates if item has been bought from a NPC
+ */
 enum icreateinfo_flag {
 	// clang-format off
 	CF_LEVEL        = (1 << 6) - 1,
@@ -454,11 +455,6 @@ struct Item {
 
 	/** @brief Returns the translated item name to display (respects identified flag) */
 	StringOrView getName() const;
-
-	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite) const
-	{
-		return { -CalculateWidth2(sprite.width()), 0 };
-	}
 };
 
 struct ItemGetRecordStruct {
@@ -484,6 +480,7 @@ extern int8_t dItem[MAXDUNX][MAXDUNY];
 extern bool ShowUniqueItemInfoBox;
 extern CornerStoneStruct CornerStone;
 extern bool UniqueItemFlags[255];
+//extern bool UniqueItemFlags[128];
 
 uint8_t GetOutlineColor(const Item &item, bool checkReq);
 bool IsItemAvailable(int i);
@@ -514,13 +511,13 @@ uint8_t PlaceItemInWorld(Item &&item, WorldTilePosition position);
 Point GetSuperItemLoc(Point position);
 void GetItemAttrs(Item &item, _item_indexes itemData, int lvl);
 void SetupItem(Item &item);
-Item *SpawnUnique(_unique_items uid, Point position, std::optional<int> level = std::nullopt, bool sendmsg = true, bool exactPosition = false);
-void SpawnItem(Monster &monster, Point position, bool sendmsg, bool spawn = false);
+Item *SpawnUnique(_unique_items uid, Point position, bool sendmsg = true);
+void SpawnItem(Monster &monster, Point position, bool sendmsg);
 void CreateRndItem(Point position, bool onlygood, bool sendmsg, bool delta);
 void CreateRndUseful(Point position, bool sendmsg);
-void CreateTypeItem(Point position, bool onlygood, ItemType itemType, int imisc, bool sendmsg, bool delta, bool spawn = false);
+void CreateTypeItem(Point position, bool onlygood, ItemType itemType, int imisc, bool sendmsg, bool delta);
 void RecreateItem(const Player &player, Item &item, _item_indexes idx, uint16_t icreateinfo, uint32_t iseed, int ivalue, bool isHellfire);
-void RecreateEar(Item &item, uint16_t ic, uint32_t iseed, uint8_t bCursval, std::string_view heroName);
+void RecreateEar(Item &item, uint16_t ic, uint32_t iseed, uint8_t bCursval, string_view heroName);
 void CornerstoneSave();
 void CornerstoneLoad(Point position);
 void SpawnQuestItem(_item_indexes itemid, Point position, int randarea, int selflag, bool sendmsg);
@@ -554,7 +551,7 @@ void MakeGoldStack(Item &goldItem, int value);
 int ItemNoFlippy();
 void CreateSpellBook(Point position, SpellID ispell, bool sendmsg, bool delta);
 void CreateMagicArmor(Point position, ItemType itemType, int icurs, bool sendmsg, bool delta);
-void CreateAmulet(Point position, int lvl, bool sendmsg, bool delta, bool spawn = false);
+void CreateAmulet(Point position, int lvl, bool sendmsg, bool delta);
 void CreateMagicWeapon(Point position, ItemType itemType, int icurs, bool sendmsg, bool delta);
 bool GetItemRecord(uint32_t nSeed, uint16_t wCI, int nIndex);
 void SetItemRecord(uint32_t nSeed, uint16_t wCI, int nIndex);

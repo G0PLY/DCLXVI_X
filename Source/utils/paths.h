@@ -1,7 +1,8 @@
 #pragma once
 
-#include <optional>
 #include <string>
+
+#include "utils/stdcompat/optional.hpp"
 
 namespace devilution {
 

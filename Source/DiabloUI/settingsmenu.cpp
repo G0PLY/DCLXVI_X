@@ -1,7 +1,6 @@
 #include "selstart.h"
 
 #include <cstdint>
-#include <optional>
 
 #include <function_ref.hpp>
 
@@ -15,6 +14,7 @@
 #include "hwcursor.hpp"
 #include "options.h"
 #include "utils/language.h"
+#include "utils/stdcompat/optional.hpp"
 #include "utils/utf8.hpp"
 
 namespace devilution {
@@ -320,7 +320,7 @@ void FullscreenChanged()
 
 	for (auto &vecItem : vecDialogItems) {
 		int vecItemValue = vecItem->m_value;
-		if (vecItemValue < 0 || static_cast<size_t>(vecItemValue) >= vecOptions.size())
+		if (vecItemValue < 0 || vecItemValue >= vecOptions.size())
 			continue;
 
 		auto *pOption = vecOptions[vecItemValue];
@@ -360,7 +360,7 @@ void UiSettingsMenu()
 
 		optionDescription[0] = '\0';
 
-		std::string_view titleText;
+		string_view titleText;
 		switch (shownMenu) {
 		case ShownMenuType::Categories:
 			titleText = _("Settings");
@@ -381,13 +381,15 @@ void UiSettingsMenu()
 
 		switch (shownMenu) {
 		case ShownMenuType::Categories: {
+			size_t catCount = 0;
 			size_t catIndex = 0;
-			for (OptionCategoryBase *pCategory : sgOptions.GetCategories()) {
-				for (OptionEntryBase *pEntry : pCategory->GetEntries()) {
+			for (auto *pCategory : sgOptions.GetCategories()) {
+				for (auto *pEntry : pCategory->GetEntries()) {
 					if (!IsValidEntry(pEntry))
 						continue;
 					if (selectedCategory == pCategory)
 						itemToSelect = vecDialogItems.size();
+					catCount += 1;
 					vecDialogItems.push_back(std::make_unique<UiListItem>(pCategory->GetName(), static_cast<int>(catIndex), UiFlags::ColorUiGold));
 					break;
 				}
@@ -395,7 +397,7 @@ void UiSettingsMenu()
 			}
 		} break;
 		case ShownMenuType::Settings: {
-			for (OptionEntryBase *pEntry : selectedCategory->GetEntries()) {
+			for (auto *pEntry : selectedCategory->GetEntries()) {
 				if (!IsValidEntry(pEntry))
 					continue;
 				if (selectedOption == pEntry)

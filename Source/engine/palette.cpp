@@ -24,11 +24,7 @@ namespace devilution {
 std::array<SDL_Color, 256> logical_palette;
 std::array<SDL_Color, 256> system_palette;
 std::array<SDL_Color, 256> orig_palette;
-
-// This array is read from a lot on every frame.
-// We do not use `std::array` here to improve debug build performance.
-// In a debug build, `std::array` accesses are function calls.
-Uint8 paletteTransparencyLookup[256][256];
+std::array<std::array<Uint8, 256>, 256> paletteTransparencyLookup;
 
 #if DEVILUTIONX_PALETTE_TRANSPARENCY_BLACK_16_LUT
 uint16_t paletteTransparencyLookupBlack16[65536];
@@ -42,7 +38,7 @@ bool sgbFadedIn = true;
 void LoadGamma()
 {
 	int gammaValue = *sgOptions.Graphics.gammaCorrection;
-	gammaValue = std::clamp(gammaValue, 30, 100);
+	gammaValue = clamp(gammaValue, 30, 100);
 	sgOptions.Graphics.gammaCorrection.SetValue(gammaValue - gammaValue % 5);
 }
 
@@ -128,10 +124,10 @@ void CycleColors(int from, int to)
 	std::rotate(system_palette.begin() + from, system_palette.begin() + from + 1, system_palette.begin() + to + 1);
 
 	for (auto &palette : paletteTransparencyLookup) {
-		std::rotate(std::begin(palette) + from, std::begin(palette) + from + 1, std::begin(palette) + to + 1);
+		std::rotate(palette.begin() + from, palette.begin() + from + 1, palette.begin() + to + 1);
 	}
 
-	std::rotate(&paletteTransparencyLookup[from][0], &paletteTransparencyLookup[from + 1][0], &paletteTransparencyLookup[to + 1][0]);
+	std::rotate(paletteTransparencyLookup.begin() + from, paletteTransparencyLookup.begin() + from + 1, paletteTransparencyLookup.begin() + to + 1);
 }
 
 /**
@@ -144,10 +140,10 @@ void CycleColorsReverse(int from, int to)
 	std::rotate(system_palette.begin() + from, system_palette.begin() + to, system_palette.begin() + to + 1);
 
 	for (auto &palette : paletteTransparencyLookup) {
-		std::rotate(std::begin(palette) + from, std::begin(palette) + to, std::begin(palette) + to + 1);
+		std::rotate(palette.begin() + from, palette.begin() + to, palette.begin() + to + 1);
 	}
 
-	std::rotate(&paletteTransparencyLookup[from][0], &paletteTransparencyLookup[to][0], &paletteTransparencyLookup[to + 1][0]);
+	std::rotate(paletteTransparencyLookup.begin() + from, paletteTransparencyLookup.begin() + to, paletteTransparencyLookup.begin() + to + 1);
 }
 
 } // namespace
@@ -230,12 +226,12 @@ void LoadRndLvlPal(dungeon_type l)
 		return;
 	}
 
+	int rv = GenerateRnd(4) + 1;
 	if (l == DTYPE_CRYPT) {
 		LoadPalette("nlevels\\l5data\\l5base.pal");
 		return;
 	}
 
-	int rv = RandomIntBetween(1, 4);
 	char szFileName[27];
 	if (l == DTYPE_NEST) {
 		if (!*sgOptions.Graphics.alternateNestArt) {
@@ -278,7 +274,7 @@ int UpdateGamma(int gamma)
 	return 130 - *sgOptions.Graphics.gammaCorrection;
 }
 
-void SetFadeLevel(int fadeval, bool updateHardwareCursor)
+void SetFadeLevel(int fadeval)
 {
 	if (HeadlessMode)
 		return;
@@ -289,17 +285,14 @@ void SetFadeLevel(int fadeval, bool updateHardwareCursor)
 		system_palette[i].b = (fadeval * logical_palette[i].b) / 256;
 	}
 	palette_update();
-	if (updateHardwareCursor && IsHardwareCursor()) {
+	if (IsHardwareCursor()) {
 		ReinitializeHardwareCursor();
 	}
 }
 
 void BlackPalette()
 {
-	// With fade level 0 updating the hardware cursor may be redundant
-	// since everything is black. The caller should update the cursor
-	// when needed instead.
-	SetFadeLevel(0, /*updateHardwareCursor=*/false);
+	SetFadeLevel(0);
 }
 
 void PaletteFadeIn(int fr)
@@ -317,8 +310,7 @@ void PaletteFadeIn(int fr)
 		uint32_t prevFadeValue = 255;
 		for (uint32_t i = 0; i < 256; i = fr * (SDL_GetTicks() - tc) / 50) {
 			if (i != prevFadeValue) {
-				// We can skip hardware cursor update for fade level 0 (everything is black).
-				SetFadeLevel(i, /*updateHardwareCursor=*/i != 0u);
+				SetFadeLevel(i);
 				prevFadeValue = i;
 			}
 			BltFast(nullptr, nullptr);

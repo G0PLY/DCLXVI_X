@@ -372,7 +372,7 @@ void FillFloor()
 			if (dungeon[i][j] != Floor || Protected.test(i, j))
 				continue;
 
-			int rv = RandomIntLessThan(3);
+			int rv = GenerateRnd(3);
 			if (rv == 1)
 				dungeon[i][j] = Floor22;
 			else if (rv == 2)
@@ -1122,7 +1122,7 @@ bool PlaceCathedralStairs(lvl_entry entry)
 	}
 
 	// Place stairs up
-	position = PlaceMiniSet(MyPlayer->pOriginalCathedral && !Quests[Q_LTBANNER].IsAvailable() ? L5STAIRSUP : STAIRSUP, DMAXX * DMAXY, true);
+	position = PlaceMiniSet(MyPlayer->pOriginalCathedral ? L5STAIRSUP : STAIRSUP, DMAXX * DMAXY, true);
 	if (!position) {
 		if (MyPlayer->pOriginalCathedral)
 			return false;

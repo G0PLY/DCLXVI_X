@@ -81,10 +81,10 @@ const std::string &PrefPath()
 #elif defined(NXDK)
 		prefPath = NxdkGetPrefPath();
 #else
-		prefPath = FromSDL(SDL_GetPrefPath("daemonstratnew", "DCLXVI"));
+		prefPath = FromSDL(SDL_GetPrefPath("daemonstrat", "DCLXVI"));
 #if !defined(__amigaos__)
 		if (FileExistsAndIsWriteable("diablo.ini")) {
-			prefPath = std::string();
+			prefPath = std::string("." DIRECTORY_SEPARATOR_STR);
 		}
 #endif
 #endif
@@ -100,10 +100,10 @@ const std::string &ConfigPath()
 #elif defined(NXDK)
 		configPath = NxdkGetPrefPath();
 #else
-		prefPath = FromSDL(SDL_GetPrefPath("daemonstratnew", "DCLXVI"));
+		configPath = FromSDL(SDL_GetPrefPath("daemonstrat", "DCLXVI"));
 #if !defined(__amigaos__)
 		if (FileExistsAndIsWriteable("diablo.ini")) {
-			configPath = std::string();
+			configPath = std::string("." DIRECTORY_SEPARATOR_STR);
 		}
 #endif
 #endif

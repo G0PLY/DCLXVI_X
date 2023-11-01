@@ -7,42 +7,16 @@
 
 #include <cstdint>
 
-#include "effects.h"
-#include "itemdat.h"
-#include "spelldat.h"
+#include "player.h"
+#include "textdat.h"
 
 namespace devilution {
-
-enum class HeroClass : uint8_t {
-	Warrior,
-	Rogue,
-	Sorcerer,
-	Monk,
-	Bard,
-	Barbarian,
-	Paladin,
-	Assassin,
-	Battlemage,
-	Kabbalist,
-	Templar,
-	Witch,
-	Bloodmage,
-	Sage,
-	Warlock,
-	Traveler,
-	Cleric,
-
-	LAST = Cleric
-};
 
 struct PlayerData {
 	/* Class Name */
 	const char *className;
-	/* Class Skill */
-	SpellID skill;
-};
-
-struct ClassAttributes {
+	/* Class Directory Path */
+	const char *classPath;
 	/* Class Starting Strength Stat */
 	uint8_t baseStr;
 	/* Class Starting Magic Stat */
@@ -60,69 +34,27 @@ struct ClassAttributes {
 	/* Class Maximum Vitality Stat */
 	uint8_t maxVit;
 	uint8_t baseClasstype;
-	/* Class Life Adjustment */
-	int16_t adjLife;
-	/* Class Mana Adjustment */
-	int16_t adjMana;
+	/* Class Block Bonus % */
+	uint8_t blockBonus;
 	/* Life gained on level up */
-	int16_t lvlLife;
+	uint16_t lvlUpLife;
 	/* Mana gained on level up */
-	int16_t lvlMana;
+	uint16_t lvlUpMana;
 	/* Life from base Vitality */
-	int16_t chrLife;
+	uint16_t chrLife;
 	/* Mana from base Magic */
-	int16_t chrMana;
+	uint16_t chrMana;
 	/* Life from item bonus Vitality */
-	int16_t itmLife;
+	uint16_t itmLife;
 	/* Mana from item bonus Magic */
-	int16_t itmMana;
-};
-
-const ClassAttributes &GetClassAttributes(HeroClass playerClass);
-
-struct PlayerCombatData {
-	/* Class starting chance to Block (used as a %) */
-	uint8_t baseToBlock;
-	/* Class starting chance to hit when using melee attacks (used as a %) */
-	uint8_t baseMeleeToHit;
-	/* Class starting chance to hit when using ranged weapons (used as a %) */
-	uint8_t baseRangedToHit;
-	/* Class starting chance to hit when using spells (used as a %) */
-	uint8_t baseMagicToHit;
-};
-
-/**
- * @brief Data used to set known skills and provide initial equipment when starting a new game
- *
- * Items will be created in order starting with item 1, 2, etc. If the item can be equipped it
- * will be placed in the first available slot, otherwise if it fits on the belt it will be
- * placed in the first free space, finally being placed in the first free inventory position.
- *
- * The active game mode at the time we're creating a new character controls the choice of item
- * type. ItemType.hellfire is used if we're in Hellfire mode, ItemType.diablo otherwise.
- */
-struct PlayerStartingLoadoutData {
+	uint16_t itmMana;
 	/* Class Skill */
 	SpellID skill;
-	/* Starting Spell (if any) */
-	SpellID spell;
-	/* Initial level of the starting spell */
-	uint8_t spellLevel;
-
-	struct ItemType {
-		_item_indexes diablo;
-		_item_indexes hellfire;
-	};
-
-	std::array<ItemType, 5> items;
-
-	/* Initial gold amount, up to a single stack (5000 gold) */
-	uint16_t gold;
+	/* Class Skill */
+	//SpellID skill2;
 };
 
 struct PlayerSpriteData {
-	/* Class Directory Path */
-	const char *classPath;
 	/* Sprite width: Stand */
 	uint8_t stand;
 	/* Sprite width: Walk */
@@ -202,17 +134,9 @@ struct PlayerAnimData {
 	int8_t castingActionFrame;
 };
 
-/**
- * @brief Attempts to load data values from external files, currently only Experience.tsv is supported.
- */
-void LoadPlayerDataFiles();
-
 extern const _sfx_id herosounds[enum_size<HeroClass>::value][enum_size<HeroSpeech>::value];
-uint32_t GetNextExperienceThresholdForLevel(unsigned level);
-uint8_t GetMaximumCharacterLevel();
-const PlayerData &GetPlayerDataForClass(HeroClass clazz);
-const PlayerCombatData &GetPlayerCombatDataForClass(HeroClass clazz);
-const PlayerStartingLoadoutData &GetPlayerStartingLoadoutForClass(HeroClass clazz);
+extern const uint32_t ExpLvlsTbl[MaxCharacterLevel];
+extern const PlayerData PlayersData[];
 extern const PlayerSpriteData PlayersSpriteData[];
 extern const PlayerAnimData PlayersAnimData[];
 

@@ -12,14 +12,13 @@
 #include "controls/menu_controls.h"
 #include "controls/plrctrls.h"
 #include "diablo.h"
-#include "discord/discord.h"
+//#include "discord/discord.h"
 #include "engine/assets.hpp"
 #include "engine/clx_sprite.hpp"
 #include "engine/dx.h"
 #include "engine/load_pcx.hpp"
 #include "engine/render/clx_render.hpp"
 #include "hwcursor.hpp"
-#include "utils/algorithm/container.hpp"
 #include "utils/display.h"
 #include "utils/language.h"
 #include "utils/log.hpp"
@@ -47,7 +46,7 @@
 namespace devilution {
 
 OptionalOwnedClxSpriteList ArtLogo;
-//OptionalOwnedClxSpriteList DifficultyIndicator;
+std::array<OptionalOwnedClxSpriteList, 2> DifficultyIndicator;
 
 std::array<OptionalOwnedClxSpriteList, 3> ArtFocus;
 
@@ -332,11 +331,11 @@ void UiOnBackgroundChange()
 	fadeTc = 0;
 	fadeValue = 0;
 
-	BlackPalette();
-
 	if (IsHardwareCursorEnabled() && ArtCursor && ControlDevice == ControlTypes::KeyboardAndMouse && GetCurrentCursorInfo().type() != CursorType::UserInterface) {
 		SetHardwareCursor(CursorInfo::UserInterfaceCursor());
 	}
+
+	BlackPalette();
 
 	SDL_FillRect(DiabloUiSurface(), nullptr, 0x000000);
 	if (DiabloUiSurface() == PalSurface)
@@ -464,6 +463,11 @@ void UiHandleEvents(SDL_Event *event)
 		return;
 	}
 
+	if (event->type == SDL_KEYUP && event->key.keysym.sym == SDLK_PRINTSCREEN) {
+		PrintScreen(SDLK_PRINTSCREEN);
+		return;
+	}
+
 	if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_RETURN) {
 		const Uint8 *state = SDLC_GetKeyState();
 		if (state[SDLC_KEYSTATE_LALT] != 0 || state[SDLC_KEYSTATE_RALT] != 0) {
@@ -482,17 +486,12 @@ void UiHandleEvents(SDL_Event *event)
 	HandleControllerAddedOrRemovedEvent(*event);
 
 	if (event->type == SDL_WINDOWEVENT) {
-		if (IsAnyOf(event->window.event, SDL_WINDOWEVENT_SHOWN, SDL_WINDOWEVENT_EXPOSED, SDL_WINDOWEVENT_RESTORED)) {
+		if (IsAnyOf(event->window.event, SDL_WINDOWEVENT_SHOWN, SDL_WINDOWEVENT_EXPOSED)) {
 			gbActive = true;
 		} else if (IsAnyOf(event->window.event, SDL_WINDOWEVENT_HIDDEN, SDL_WINDOWEVENT_MINIMIZED)) {
 			gbActive = false;
 		} else if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-			// We reinitialize immediately (by calling `DoReinitializeHardwareCursor` instead of `ReinitializeHardwareCursor`)
-			// because the cursor's Enabled state may have changed, resulting in changes to visibility.
-			//
-			// For example, if the previous size was too large for a hardware cursor then it was invisible
-			// but may now become visible.
-			DoReinitializeHardwareCursor();
+			ReinitializeHardwareCursor();
 		} else if (event->window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
 			music_mute();
 		} else if (event->window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
@@ -565,7 +564,10 @@ void LoadHeros()
 		return;
 	const uint16_t numPortraits = ClxSpriteList { *ArtHero }.numSprites();
 
-	ArtHeroPortraitOrder = { 0, 1, 2, 2, 1, 0, 0, 1, 2, 3, 0, 1, 2, 3, 2, 3, 0, 1 };
+	//ArtHeroPortraitOrder = { 0, 1, 2, 2, 1, 0, 3, 0, 1, 2, 2 };
+	//ArtHeroPortraitOrder = { 0, 1, 2, 2, 0, 1, 2, 2, 1, 0, 3 };
+	//                          0,  W,  R,  S,	M, Bn,	P,	A,	 ,   ,   , Bm, Bd, Br,   ,   ,   ,  C              
+	 ArtHeroPortraitOrder = {	0,	1,	2,	2,	1,	0,	0,	1,	2,	3,	0,	1,	2,	3,	2,	3,	0,	1 };
 	if (numPortraits >= 6) {
 		ArtHeroPortraitOrder[static_cast<std::size_t>(HeroClass::Monk)] = 3;
 		ArtHeroPortraitOrder[static_cast<std::size_t>(HeroClass::Bard)] = 4;
@@ -573,6 +575,9 @@ void LoadHeros()
 	}
 	if (numPortraits >= 7) {
 		ArtHeroPortraitOrder[static_cast<std::size_t>(HeroClass::Barbarian)] = 6;
+	//	ArtHeroPortraitOrder[enum_size<HeroClass>::value] = 7;
+		//ArtHeroPortraitOrder[enum_size<HeroClass>::value] = 8;
+		//ArtHeroPortraitOrder[enum_size<HeroClass>::value] = 9;
 	}
 
 	for (size_t i = 0; i <= enum_size<HeroClass>::value; ++i) {
@@ -584,12 +589,13 @@ void LoadHeros()
 
 void LoadUiGFX()
 {
-	if (gbIsHellfire) {
-		ArtLogo = LoadPcxSpriteList("ui_art\\hf_logo2", /*numFrames=*/16, /*transparentColor=*/0);
-	} else {
+	//if (gbIsHellfire) {
+	//	ArtLogo = LoadPcxSpriteList("ui_art\\hf_logo2", /*numFrames=*/16, /*transparentColor=*/0);
+	//} else {
 		ArtLogo = LoadPcxSpriteList("ui_art\\smlogo", /*numFrames=*/15, /*transparentColor=*/250);
-	}
-	//DifficultyIndicator = LoadPcx("ui_art\\r1_gry", /*transparentColor=*/0);
+	//}
+	DifficultyIndicator[0] = LoadPcx("ui_art\\radio1", /*transparentColor=*/0);
+	DifficultyIndicator[1] = LoadPcx("ui_art\\radio3", /*transparentColor=*/0);
 	ArtFocus[FOCUS_SMALL] = LoadPcxSpriteList("ui_art\\focus16", /*numFrames=*/8, /*transparentColor=*/250);
 	ArtFocus[FOCUS_MED] = LoadPcxSpriteList("ui_art\\focus", /*numFrames=*/8, /*transparentColor=*/250);
 	ArtFocus[FOCUS_BIG] = LoadPcxSpriteList("ui_art\\focus42", /*numFrames=*/8, /*transparentColor=*/250);
@@ -617,7 +623,8 @@ void UnloadUiGFX()
 	for (auto &art : ArtFocus)
 		art = std::nullopt;
 	ArtLogo = std::nullopt;
-	//DifficultyIndicator = std::nullopt;
+	for (auto &diffInd : DifficultyIndicator)
+		diffInd = std::nullopt;
 }
 
 void UiInitialize()
@@ -637,7 +644,7 @@ void UiDestroy()
 	UnloadUiGFX();
 }
 
-bool UiValidPlayerName(std::string_view name)
+bool UiValidPlayerName(string_view name)
 {
 	if (name.empty())
 		return false;
@@ -652,10 +659,10 @@ bool UiValidPlayerName(std::string_view name)
 
 	// Only basic latin alphabet is supported for multiplayer characters to avoid rendering issues for players who do
 	// not have fonts.mpq installed
-	if (!c_all_of(name, IsBasicLatin))
+	if (!std::all_of(name.begin(), name.end(), IsBasicLatin))
 		return false;
 
-	std::string_view bannedNames[] = {
+	string_view bannedNames[] = {
 		"gvdl",
 		"dvou",
 		"tiju",
@@ -670,8 +677,8 @@ bool UiValidPlayerName(std::string_view name)
 	for (char &character : buffer)
 		character++;
 
-	std::string_view tempName { buffer };
-	for (std::string_view bannedName : bannedNames) {
+	string_view tempName { buffer };
+	for (string_view bannedName : bannedNames) {
 		if (tempName.find(bannedName) != tempName.npos)
 			return false;
 	}
@@ -743,10 +750,8 @@ void UiFadeIn()
 			fadeValue = 256;
 			fadeTc = 0;
 		}
-		if (fadeValue != prevFadeValue) {
-			// We can skip hardware cursor update for fade level 0 (everything is black).
-			SetFadeLevel(fadeValue, /*updateHardwareCursor=*/fadeValue != 0);
-		}
+		if (fadeValue != prevFadeValue)
+			SetFadeLevel(fadeValue);
 	}
 
 	if (DiabloUiSurface() == PalSurface)
@@ -792,9 +797,8 @@ void UiPollAndRender(std::optional<tl::function_ref<bool(SDL_Event &)>> eventHan
 	DrawMouse();
 	UiFadeIn();
 
-	// Must happen after at least one call to `UiFadeIn` with non-zero fadeValue.
-	// `UiFadeIn` calls `SetFadeLevel` which reinitializes the hardware cursor.
-	if (IsHardwareCursor() && fadeValue != 0)
+	// Must happen after the very first UiFadeIn, which sets the cursor.
+	if (IsHardwareCursor())
 		SetHardwareCursorVisible(ControlDevice == ControlTypes::KeyboardAndMouse);
 
 #ifdef __3DS__
@@ -803,7 +807,7 @@ void UiPollAndRender(std::optional<tl::function_ref<bool(SDL_Event &)>> eventHan
 	ctr_vkbdFlush();
 #endif
 
-	discord_manager::UpdateMenu();
+//	discord_manager::UpdateMenu();
 }
 
 namespace {

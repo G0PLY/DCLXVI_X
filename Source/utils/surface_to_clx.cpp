@@ -4,7 +4,7 @@
 #include <cstring>
 #include <vector>
 
-#include "utils/clx_encode.hpp"
+#include "utils/clx_write.hpp"
 #include "utils/endian.hpp"
 
 #ifdef DEBUG_SURFACE_TO_CLX_SIZE
@@ -56,25 +56,25 @@ OwnedClxSpriteList SurfaceToClx(const Surface &surface, unsigned numFrames,
 				for (const uint8_t *srcEnd = src + width; src != srcEnd; ++src) {
 					if (*src == *transparentColor) {
 						if (solidRunWidth != 0) {
-							AppendClxPixelsOrFillRun(src - transparentRunWidth - solidRunWidth, solidRunWidth, clxData);
+							AppendCl2PixelsOrFillRun(src - transparentRunWidth - solidRunWidth, solidRunWidth, clxData);
 							solidRunWidth = 0;
 						}
 						++transparentRunWidth;
 					} else {
-						AppendClxTransparentRun(transparentRunWidth, clxData);
+						AppendCl2TransparentRun(transparentRunWidth, clxData);
 						transparentRunWidth = 0;
 						++solidRunWidth;
 					}
 				}
 				if (solidRunWidth != 0) {
-					AppendClxPixelsOrFillRun(src - solidRunWidth, solidRunWidth, clxData);
+					AppendCl2PixelsOrFillRun(src - solidRunWidth, solidRunWidth, clxData);
 				}
 			} else {
-				AppendClxPixelsOrFillRun(src, width, clxData);
+				AppendCl2PixelsOrFillRun(src, width, clxData);
 			}
 			++line;
 		}
-		AppendClxTransparentRun(transparentRunWidth, clxData);
+		AppendCl2TransparentRun(transparentRunWidth, clxData);
 
 		dataPtr += static_cast<unsigned>(pitch * frameHeight);
 	}

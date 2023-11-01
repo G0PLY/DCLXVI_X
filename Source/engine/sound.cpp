@@ -5,12 +5,10 @@
  */
 #include "engine/sound.h"
 
-#include <algorithm>
 #include <cstdint>
 #include <list>
 #include <memory>
 #include <mutex>
-#include <optional>
 
 #include <SDL.h>
 
@@ -20,6 +18,8 @@
 #include "utils/log.hpp"
 #include "utils/math.h"
 #include "utils/sdl_mutex.h"
+#include "utils/stdcompat/algorithm.hpp"
+#include "utils/stdcompat/optional.hpp"
 #include "utils/stdcompat/shared_ptr_array.hpp"
 #include "utils/str_cat.hpp"
 #include "utils/stubs.h"
@@ -152,7 +152,7 @@ const char *const MusicTracks[NUM_MUSIC] = {
 
 int CapVolume(int volume)
 {
-	return std::clamp(volume, VOLUME_MIN, VOLUME_MAX);
+	return clamp(volume, VOLUME_MIN, VOLUME_MAX);
 }
 
 } // namespace

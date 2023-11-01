@@ -8,8 +8,6 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "utils/attributes.h"
-
 namespace devilution {
 
 template <typename T>
@@ -29,17 +27,17 @@ public:
 		{
 		}
 
-		[[nodiscard]] DVL_ALWAYS_INLINE const T operator*() const
+		const T operator*() const
 		{
 			return static_cast<T>(m_value);
 		}
 
-		DVL_ALWAYS_INLINE void operator++()
+		void operator++()
 		{
 			m_value++;
 		}
 
-		[[nodiscard]] DVL_ALWAYS_INLINE bool operator!=(Iterator rhs) const
+		bool operator!=(Iterator rhs) const
 		{
 			return m_value != rhs.m_value;
 		}
@@ -47,13 +45,13 @@ public:
 };
 
 template <typename T>
-[[nodiscard]] DVL_ALWAYS_INLINE typename enum_values<T>::Iterator begin(enum_values<T>)
+typename enum_values<T>::Iterator begin(enum_values<T>)
 {
 	return typename enum_values<T>::Iterator(static_cast<typename std::underlying_type<T>::type>(T::FIRST));
 }
 
 template <typename T>
-[[nodiscard]] DVL_ALWAYS_INLINE typename enum_values<T>::Iterator end(enum_values<T>)
+typename enum_values<T>::Iterator end(enum_values<T>)
 {
 	return typename enum_values<T>::Iterator(static_cast<typename std::underlying_type<T>::type>(T::LAST) + 1);
 }
@@ -68,54 +66,54 @@ struct is_flags_enum : std::false_type {
 	};
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-[[nodiscard]] DVL_ALWAYS_INLINE constexpr EnumType operator|(EnumType lhs, EnumType rhs)
+constexpr EnumType operator|(EnumType lhs, EnumType rhs)
 {
 	using T = std::underlying_type_t<EnumType>;
 	return static_cast<EnumType>(static_cast<T>(lhs) | static_cast<T>(rhs));
 }
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-DVL_ALWAYS_INLINE constexpr EnumType operator|=(EnumType &lhs, EnumType rhs)
+constexpr EnumType operator|=(EnumType &lhs, EnumType rhs)
 {
 	lhs = lhs | rhs;
 	return lhs;
 }
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-[[nodiscard]] DVL_ALWAYS_INLINE constexpr EnumType operator&(EnumType lhs, EnumType rhs)
+constexpr EnumType operator&(EnumType lhs, EnumType rhs)
 {
 	using T = std::underlying_type_t<EnumType>;
 	return static_cast<EnumType>(static_cast<T>(lhs) & static_cast<T>(rhs));
 }
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-DVL_ALWAYS_INLINE constexpr EnumType operator&=(EnumType &lhs, EnumType rhs)
+constexpr EnumType operator&=(EnumType &lhs, EnumType rhs)
 {
 	lhs = lhs & rhs;
 	return lhs;
 }
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-[[nodiscard]] DVL_ALWAYS_INLINE constexpr EnumType operator~(EnumType value)
+constexpr EnumType operator~(EnumType value)
 {
 	using T = std::underlying_type_t<EnumType>;
 	return static_cast<EnumType>(~static_cast<T>(value));
 }
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-[[nodiscard]] DVL_ALWAYS_INLINE constexpr bool HasAnyOf(EnumType lhs, EnumType test)
+constexpr bool HasAnyOf(EnumType lhs, EnumType test)
 {
 	return (lhs & test) != static_cast<EnumType>(0); // Some flags enums may not use a None value outside this check so we don't require an EnumType::None definition here.
 }
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-[[nodiscard]] DVL_ALWAYS_INLINE constexpr bool HasAllOf(EnumType lhs, EnumType test)
+constexpr bool HasAllOf(EnumType lhs, EnumType test)
 {
 	return (lhs & test) == test;
 }
 
 template <typename EnumType, std::enable_if_t<std::is_enum<EnumType>::value && is_flags_enum<EnumType>::value, bool> = true>
-[[nodiscard]] DVL_ALWAYS_INLINE constexpr bool HasNoneOf(EnumType lhs, EnumType test)
+constexpr bool HasNoneOf(EnumType lhs, EnumType test)
 {
 	return !HasAnyOf(lhs, test);
 }

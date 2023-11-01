@@ -36,7 +36,7 @@ public:
 	CreditsRenderer(char const *const *text, std::size_t textLines)
 	{
 		for (size_t i = 0; i < textLines; i++) {
-			std::string_view orgText = _(text[i]);
+			string_view orgText = _(text[i]);
 
 			uint16_t offset = 0;
 			size_t indexFirstNotTab = 0;

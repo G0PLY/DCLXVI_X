@@ -14,7 +14,6 @@
 #include "engine/load_file.hpp"
 #include "engine/points_in_rectangle_range.hpp"
 #include "player.h"
-#include "utils/attributes.h"
 
 namespace devilution {
 
@@ -95,7 +94,7 @@ void RotateRadius(DisplacementOf<int8_t> &offset, DisplacementOf<int8_t> &dist, 
 	}
 }
 
-DVL_ALWAYS_INLINE void SetLight(Point position, uint8_t v)
+void SetLight(Point position, uint8_t v)
 {
 	if (LoadingMapObjects)
 		dPreLight[position.x][position.y] = v;
@@ -103,7 +102,7 @@ DVL_ALWAYS_INLINE void SetLight(Point position, uint8_t v)
 		dLight[position.x][position.y] = v;
 }
 
-DVL_ALWAYS_INLINE uint8_t GetLight(Point position)
+uint8_t GetLight(Point position)
 {
 	if (LoadingMapObjects)
 		return dPreLight[position.x][position.y];

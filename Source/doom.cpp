@@ -5,13 +5,12 @@
  */
 #include "doom.h"
 
-#include <optional>
-
 #include "control.h"
 #include "engine.h"
 #include "engine/clx_sprite.hpp"
 #include "engine/load_cel.hpp"
 #include "engine/render/clx_render.hpp"
+#include "utils/stdcompat/optional.hpp"
 
 namespace devilution {
 namespace {

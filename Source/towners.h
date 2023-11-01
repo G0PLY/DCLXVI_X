@@ -5,15 +5,14 @@
  */
 #pragma once
 
-#include <cstddef>
+#include "utils/stdcompat/string_view.hpp"
 #include <cstdint>
 #include <memory>
-#include <span>
-#include <string_view>
 
 #include "items.h"
 #include "player.h"
 #include "quests.h"
+#include "utils/stdcompat/cstddef.hpp"
 
 namespace devilution {
 
@@ -40,10 +39,10 @@ struct Towner {
 	OptionalOwnedClxSpriteList ownedAnim;
 	OptionalClxSpriteList anim;
 	/** Specifies the animation frame sequence. */
-	std::span<const uint8_t> animOrder;
+	const uint8_t *animOrder; // unowned
 	void (*talk)(Player &player, Towner &towner);
 
-	std::string_view name;
+	string_view name;
 
 	/** Tile position of NPC */
 	Point position;
@@ -59,33 +58,21 @@ struct Towner {
 	/** Current frame of animation. */
 	uint8_t _tAnimFrame;
 	uint8_t _tAnimFrameCnt;
+	uint8_t animOrderSize;
 	_talker_id _ttype;
 
-	[[nodiscard]] ClxSprite currentSprite() const
+	ClxSprite currentSprite() const
 	{
 		return (*anim)[_tAnimFrame];
-	}
-	[[nodiscard]] Displacement getRenderingOffset() const
-	{
-		return { -CalculateWidth2(_tAnimWidth), 0 };
 	}
 };
 
 extern Towner Towners[NUM_TOWNERS];
-/**
- * @brief Maps from a _talker_id value to a pointer to the Towner object, if they have been initialised
- * @param type enum constant identifying the towner
- * @return Pointer to the Towner or nullptr if they are not available
- */
-Towner *GetTowner(_talker_id type);
 
 void InitTowners();
 void FreeTownerGFX();
 void ProcessTowners();
 void TalkToTowner(Player &player, int t);
-
-void UpdateGirlAnimAfterQuestComplete();
-void UpdateCowFarmerAnimAfterQuestComplete();
 
 #ifdef _DEBUG
 bool DebugTalkToTowner(std::string targetName);

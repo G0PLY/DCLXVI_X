@@ -340,7 +340,7 @@ bool IsTileWalkable(Point position, bool ignoreDoors)
 		}
 	}
 
-	return IsTileNotSolid(position);
+	return !IsTileSolid(position);
 }
 
 bool IsTileOccupied(Point position)

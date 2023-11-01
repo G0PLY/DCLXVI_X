@@ -5,7 +5,6 @@
  */
 #include "effects.h"
 
-#include <algorithm>
 #include <cstdint>
 
 #include "engine/random.hpp"
@@ -14,6 +13,7 @@
 #include "engine/sound_position.hpp"
 #include "init.h"
 #include "player.h"
+#include "utils/stdcompat/algorithm.hpp"
 #include "utils/str_cat.hpp"
 
 namespace devilution {
@@ -1026,6 +1026,8 @@ void PlaySfxPriv(TSFX *pSFX, bool loc, Point position)
 
 _sfx_id RndSFX(_sfx_id psfx)
 {
+	int nRand;
+
 	switch (psfx) {
 	case PS_WARR69:
 	case PS_MAGE69:
@@ -1035,7 +1037,8 @@ _sfx_id RndSFX(_sfx_id psfx)
 	case LS_ACID:
 	case IS_MAGIC:
 	case IS_BHIT:
-		return PickRandomlyAmong({ psfx, static_cast<_sfx_id>(psfx + 1) });
+		nRand = 2;
+		break;
 	case PS_WARR14:
 	case PS_WARR15:
 	case PS_WARR16:
@@ -1043,10 +1046,13 @@ _sfx_id RndSFX(_sfx_id psfx)
 	case PS_ROGUE14:
 	case PS_MAGE14:
 	case PS_MONK14:
-		return PickRandomlyAmong({ psfx, static_cast<_sfx_id>(psfx + 1), static_cast<_sfx_id>(psfx + 2) });
+		nRand = 3;
+		break;
 	default:
 		return psfx;
 	}
+
+	return static_cast<_sfx_id>(psfx + GenerateRnd(nRand));
 }
 
 void PrivSoundInit(uint8_t bLoadMask)

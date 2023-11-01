@@ -7,7 +7,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <optional>
 
 #include "engine.h"
 #include "engine/clx_sprite.hpp"
@@ -18,17 +17,20 @@
 #include "utils/attributes.h"
 #include "utils/bitset2d.hpp"
 #include "utils/enum_traits.h"
+#include "utils/stdcompat/optional.hpp"
 
 namespace devilution {
-
-#define DMAXXe 255  // 100 = 255
-#define DMAXYe 255  // 100 = 255
-#define DMAXX 40    // 100 = 255
-#define DMAXY 40    // 100 = 255
+	// 1022 = 144, 255 = 135, 420 = 164, 500 = 161, 511 = 206, 521 =   ,533 =  166,  555 = 192 , 577 = 159, 600 = 128 , 666 = 138
+//#define DMAXXe 511 // 100 = 255
+//#define DMAXYe 511 // 100 = 255
+#define DMAXXe 255 // 100 = 255
+#define DMAXYe 255 // 100 = 255
+#define DMAXX 40 // 100 = 255
+#define DMAXY 40 // 100 = 255
 #define DMAXXcat 40 // 100 = 255
 #define DMAXYcat 40 // 100 = 255
-// #define DMAXX 200
-// #define DMAXY 200
+//#define DMAXX 200
+//#define DMAXY 200
 
 #define MAXDUNXe (16 + DMAXXe * 2 + 16)
 #define MAXDUNYe (16 + DMAXYe * 2 + 16)
@@ -175,11 +177,11 @@ extern std::unique_ptr<uint16_t[]> pSetPiece;
 extern OptionalOwnedClxSpriteList pSpecialCels;
 /** Specifies the tile definitions of the active dungeon type; (e.g. levels/l1data/l1.til). */
 extern DVL_API_FOR_TEST std::unique_ptr<MegaTile[]> pMegaTiles;
-extern std::unique_ptr<std::byte[]> pDungeonCels;
+extern std::unique_ptr<byte[]> pDungeonCels;
 /**
  * List tile properties
  */
-extern DVL_API_FOR_TEST TileProperties SOLData[MAXTILES];
+extern DVL_API_FOR_TEST std::array<TileProperties, MAXTILES> SOLData;
 /** Specifies the minimum X,Y-coordinates of the map. */
 extern WorldTilePosition dminPosition;
 /** Specifies the maximum X,Y-coordinates of the map. */
@@ -219,7 +221,12 @@ extern int8_t dPlayer[MAXDUNX][MAXDUNY];
  * (monsters array index) in the dungeon.
  * Negative id indicates monsters moving.
  */
+//extern int dMonster[MAXDUNX][MAXDUNY];
+//extern int dMonster[DMAXXe][DMAXYe];
 extern int16_t dMonster[DMAXXe][DMAXYe];
+//extern size_t dMonster[DMAXXe][DMAXYe];
+//extern int dMonster[MAXDUNXe][MAXDUNYe];
+//extern int ddMonster[MAXDUNX][MAXDUNY];
 /**
  * Contains the dead numbers (deads array indices) and dead direction of
  * the map, encoded as specified by the pseudo-code below.
@@ -248,7 +255,7 @@ std::optional<WorldTileSize> GetSizeForThemeRoom();
 dungeon_type GetLevelType(int level);
 void CreateDungeon(uint32_t rseed, lvl_entry entry);
 
-DVL_ALWAYS_INLINE constexpr bool InDungeonBounds(Point position)
+constexpr bool InDungeonBounds(Point position)
 {
 	return position.x >= 0 && position.x < MAXDUNX && position.y >= 0 && position.y < MAXDUNY;
 }
@@ -346,11 +353,7 @@ struct Miniset {
 	}
 };
 
-[[nodiscard]] DVL_ALWAYS_INLINE bool TileHasAny(int tileId, TileProperties property)
-{
-	return HasAnyOf(SOLData[tileId], property);
-}
-
+bool TileHasAny(int tileId, TileProperties property);
 void LoadLevelSOLData();
 void SetDungeonMicros();
 void DRLG_InitTrans();

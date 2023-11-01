@@ -33,7 +33,9 @@ struct Missile;
 struct Player;
 
 constexpr size_t MaxMonsters = 255;
+//constexpr int MaxMonsters = 255;
 constexpr size_t MaxLvlMTypes = 48;
+//constexpr int MaxLvlMTypes = 48;
 
 enum monster_flag : uint16_t {
 	// clang-format off
@@ -177,7 +179,7 @@ enum class MonsterSound : uint8_t {
 };
 
 struct CMonster {
-	std::unique_ptr<std::byte[]> animData;
+	std::unique_ptr<byte[]> animData;
 	AnimStruct anims[6];
 	std::unique_ptr<TSnd> sounds[4][2];
 	const MonsterData *data;
@@ -323,7 +325,7 @@ struct Monster { // note: missing field _mAFNum
 	 * Internally it returns a name stored in global array of monsters' data.
 	 * @return Monster's name
 	 */
-	std::string_view name() const
+	string_view name() const
 	{
 		if (uniqueType != UniqueMonsterType::None)
 			return pgettext("monster", UniqueMonstersData[static_cast<int8_t>(uniqueType)].mName);
@@ -341,7 +343,10 @@ struct Monster { // note: missing field _mAFNum
 	{
 		unsigned int monsterExp = data().exp;
 
-		if (difficulty == DIFF_NIGHTMARE) {
+		/*if (difficulty == DIFF_NORMAL) {
+			monsterExp = 2 * (monsterExp + 1000);
+		}else*/
+			if (difficulty == DIFF_NIGHTMARE) {
 			monsterExp = 4 * (monsterExp + 500);
 		} else if (difficulty == DIFF_HELL) {
 			monsterExp = 8 * (monsterExp + 1000);
@@ -439,28 +444,14 @@ struct Monster { // note: missing field _mAFNum
 	}
 
 	bool tryLiftGargoyle();
-
-	/**
-	 * @brief Gets the visual/shown monster mode.
-	 *
-	 * When a monster is petrified it's monster mode is changed to MonsterMode::Petrified.
-	 * But for graphics and rendering we show the old/real mode.
-	 */
-	[[nodiscard]] MonsterMode getVisualMonsterMode() const;
-
-	[[nodiscard]] Displacement getRenderingOffset(const ClxSprite sprite) const
-	{
-		Displacement offset = { -CalculateWidth2(sprite.width()), 0 };
-		if (isWalking())
-			offset += GetOffsetForWalking(animInfo, direction);
-		return offset;
-	}
 };
 
 extern size_t LevelMonsterTypeCount;
+//extern int LevelMonsterTypeCount;
 extern Monster Monsters[MaxMonsters];
 extern int ActiveMonsters[MaxMonsters];
 extern size_t ActiveMonsterCount;
+//extern int ActiveMonsterCount;
 extern int MonsterKillCounts[NUM_MTYPES];
 extern bool sgbSaveSoundOn;
 

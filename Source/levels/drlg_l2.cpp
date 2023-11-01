@@ -5,11 +5,8 @@
  */
 #include "levels/drlg_l2.h"
 
-#include <algorithm>
-#include <cmath>
 #include <cstdint>
 #include <list>
-#include <optional>
 
 #include "diablo.h"
 #include "engine/load_file.hpp"
@@ -19,6 +16,8 @@
 #include "levels/setmaps.h"
 #include "player.h"
 #include "quests.h"
+#include "utils/stdcompat/algorithm.hpp"
+#include "utils/stdcompat/optional.hpp"
 
 namespace devilution {
 
@@ -1642,6 +1641,17 @@ void LoadQuestSetPieces()
 
 void InitDungeonPieces()
 {
+	//switch (currlevel) {
+	//case 5:
+	//	break;
+	//case 6:
+	//	break;
+	//case 7:
+	//	break;
+	//case 8:
+	//	break;
+	//}
+
 	for (int j = 0; j < MAXDUNY; j++) {
 		for (int i = 0; i < MAXDUNX; i++) {
 			int8_t pc;
@@ -1788,10 +1798,10 @@ void CreateRoom(WorldTilePosition topLeft, WorldTilePosition bottomRight, int nR
 		roomTopLeft.y = bottomRight.y - roomSize.height;
 	}
 
-	roomTopLeft.x = std::clamp<WorldTileCoord>(roomTopLeft.x, 1, 38);
-	roomTopLeft.y = std::clamp<WorldTileCoord>(roomTopLeft.y, 1, 38);
-	roomBottomRight.x = std::clamp<WorldTileCoord>(roomBottomRight.x, 1, 38);
-	roomBottomRight.y = std::clamp<WorldTileCoord>(roomBottomRight.y, 1, 38);
+	roomTopLeft.x = clamp<WorldTileCoord>(roomTopLeft.x, 1, 38);
+	roomTopLeft.y = clamp<WorldTileCoord>(roomTopLeft.y, 1, 38);
+	roomBottomRight.x = clamp<WorldTileCoord>(roomBottomRight.x, 1, 38);
+	roomBottomRight.y = clamp<WorldTileCoord>(roomBottomRight.y, 1, 38);
 
 	DefineRoom(roomTopLeft, roomBottomRight, static_cast<bool>(size));
 
@@ -1909,8 +1919,8 @@ void ConnectHall(const HallNode &node)
 			if (predungeon[beginning.x][beginning.y] != ',')
 				fInroom = true;
 		}
-		int nDx = std::abs(end.x - beginning.x);
-		int nDy = std::abs(end.y - beginning.y);
+		int nDx = abs(end.x - beginning.x);
+		int nDy = abs(end.y - beginning.y);
 		if (nDx > nDy) {
 			int nRp = std::min(2 * nDx, 30);
 			if (GenerateRnd(100) < nRp) {

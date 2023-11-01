@@ -9,7 +9,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <string>
 
 #include <fmt/format.h>
@@ -45,13 +44,11 @@
 #include "qol/xpbar.h"
 #include "stores.h"
 #include "towners.h"
-#include "utils/algorithm/container.hpp"
 #include "utils/format_int.hpp"
 #include "utils/language.h"
 #include "utils/log.hpp"
-#include "utils/parse_int.hpp"
 #include "utils/sdl_geometry.h"
-#include "utils/str_case.hpp"
+#include "utils/stdcompat/optional.hpp"
 #include "utils/str_cat.hpp"
 #include "utils/string_or_view.hpp"
 #include "utils/utf8.hpp"
@@ -214,14 +211,24 @@ void DrawFlask(const Surface &out, const Surface &celBuf, Point sourcePosition, 
  */
 void DrawFlaskUpper(const Surface &out, const Surface &sourceBuffer, int offset, int fillPer)
 {
+	Player &myPlayer = *MyPlayer;
 	// clamping because this function only draws the top 12% of the flask display
-	int emptyPortion = std::clamp(80 - fillPer, 0, 11) + 2; // +2 to account for the frame being included in the sprite
+	int emptyPortion = clamp(80 - fillPer, 0, 11) + 2; // +2 to account for the frame being included in the sprite
 
 	// Draw the empty part of the flask
 	DrawFlask(out, sourceBuffer, { 13, 3 }, GetMainPanel().position + Displacement { offset, -13 }, emptyPortion);
-	if (emptyPortion < 13)
-		// Draw the filled part of the flask
-		DrawFlask(out, *pBtmBuff, { offset, emptyPortion + 3 }, GetMainPanel().position + Displacement { offset, -13 + emptyPortion }, 13 - emptyPortion);
+	/*if (myPlayer._pClasstype == 5) {
+		goto ogg;
+	} else if (myPlayer._pClasstype == 8) {
+		goto ogg;
+	} else if (myPlayer._pClasstype == 13) {
+		goto ogg;
+	} else {*/
+		if (emptyPortion < 13)
+			// Draw the filled part of the flask
+			DrawFlask(out, *pBtmBuff, { offset, emptyPortion + 3 }, GetMainPanel().position + Displacement { offset, -13 + emptyPortion }, 13 - emptyPortion);
+	//}
+ogg:;
 }
 
 /**
@@ -234,15 +241,25 @@ void DrawFlaskUpper(const Surface &out, const Surface &sourceBuffer, int offset,
  */
 void DrawFlaskLower(const Surface &out, const Surface &sourceBuffer, int offset, int fillPer)
 {
-	int filled = std::clamp(fillPer, 0, 69);
+	Player &myPlayer = *MyPlayer;/*
+	if (myPlayer._pClasstype == 5) {
+		goto ogg;
+	} else if (myPlayer._pClasstype == 8) {
+		goto ogg;
+	} else if (myPlayer._pClasstype == 13) {
+		goto ogg;
+	} else {*/
+		int filled = clamp(fillPer, 0, 69);
 
-	if (filled < 69)
-		DrawFlaskTop(out, GetMainPanel().position + Displacement { offset, 0 }, sourceBuffer, 16, 85 - filled);
+		if (filled < 69)
+			DrawFlaskTop(out, GetMainPanel().position + Displacement { offset, 0 }, sourceBuffer, 16, 85 - filled);
 
-	// It appears that the panel defaults to having a filled flask and DrawFlaskTop only overlays the appropriate amount of empty space.
-	// This draw might not be necessary?
-	if (filled > 0)
-		DrawPanelBox(out, MakeSdlRect(offset, 85 - filled, 88, filled), GetMainPanel().position + Displacement { offset, 69 - filled });
+		// It appears that the panel defaults to having a filled flask and DrawFlaskTop only overlays the appropriate amount of empty space.
+		// This draw might not be necessary?
+		if (filled > 0)
+			DrawPanelBox(out, MakeSdlRect(offset, 85 - filled, 88, filled), GetMainPanel().position + Displacement { offset, 69 - filled });
+	/*}
+ogg:;*/
 }
 
 void SetButtonStateDown(int btnId)
@@ -260,7 +277,7 @@ void PrintInfo(const Surface &out)
 	const int space[] = { 18, 12, 6, 3, 0 };
 	Rectangle infoArea { GetMainPanel().position + Displacement { 177, 46 }, { 288, 60 } };
 
-	const int newLineCount = c_count(InfoString.str(), '\n');
+	const int newLineCount = std::count(InfoString.str().begin(), InfoString.str().end(), '\n');
 	const int spaceIndex = std::min(4, newLineCount);
 	const int spacing = space[spaceIndex];
 	const int lineHeight = 12 + spacing;
@@ -306,6 +323,9 @@ int DrawDurIcon4Item(const Surface &out, Item &pItem, int x, int c)
 		case ItemType::Staff:
 			c = 7;
 			break;
+		//case ItemType::Stave:
+		//	c = 7;
+		//	break;
 		case ItemType::Shield:
 		default:
 			c = 0;
@@ -339,12 +359,12 @@ struct TextCmdItem {
 	const std::string text;
 	const std::string description;
 	const std::string requiredParameter;
-	std::string (*actionProc)(const std::string_view);
+	std::string (*actionProc)(const string_view);
 };
 
 extern std::vector<TextCmdItem> TextCmdList;
 
-std::string TextCmdHelp(const std::string_view parameter)
+std::string TextCmdHelp(const string_view parameter)
 {
 	if (parameter.empty()) {
 		std::string ret;
@@ -354,7 +374,7 @@ std::string TextCmdHelp(const std::string_view parameter)
 		}
 		return ret;
 	}
-	auto textCmdIterator = c_find_if(TextCmdList, [&](const TextCmdItem &elem) { return elem.text == parameter; });
+	auto textCmdIterator = std::find_if(TextCmdList.begin(), TextCmdList.end(), [&](const TextCmdItem &elem) { return elem.text == parameter; });
 	if (textCmdIterator == TextCmdList.end())
 		return StrCat(_("Command "), parameter, _(" is unkown."));
 	auto &textCmdItem = *textCmdIterator;
@@ -377,7 +397,7 @@ const dungeon_type DungeonTypeForArena[] = {
 	dungeon_type::DTYPE_CATHEDRAL, // SL_TT
 };
 
-std::string TextCmdArena(const std::string_view parameter)
+std::string TextCmdArena(const string_view parameter)
 {
 	std::string ret;
 	if (!gbIsMultiplayer) {
@@ -391,9 +411,9 @@ std::string TextCmdArena(const std::string_view parameter)
 		return ret;
 	}
 
-	const ParseIntResult<int> parsedParam = ParseInt<int>(parameter, /*min=*/0);
-	const _setlevels arenaLevel = parsedParam.has_value() ? static_cast<_setlevels>(parsedParam.value() - 1 + SL_FIRST_ARENA) : _setlevels::SL_NONE;
-	if (!IsArenaLevel(arenaLevel)) {
+	int arenaNumber = atoi(parameter.data());
+	_setlevels arenaLevel = static_cast<_setlevels>(arenaNumber - 1 + SL_FIRST_ARENA);
+	if (arenaNumber < 0 || !IsArenaLevel(arenaLevel)) {
 		StrAppend(ret, _("Invalid arena-number. Valid numbers are:"));
 		AppendArenaOverview(ret);
 		return ret;
@@ -409,24 +429,23 @@ std::string TextCmdArena(const std::string_view parameter)
 	return ret;
 }
 
-std::string TextCmdArenaPot(const std::string_view parameter)
+std::string TextCmdArenaPot(const string_view parameter)
 {
 	std::string ret;
 	if (!gbIsMultiplayer) {
 		StrAppend(ret, _("Arenas are only supported in multiplayer."));
 		return ret;
 	}
-	int numPots = ParseInt<int>(parameter, /*min=*/1).value_or(1);
 
 	Player &myPlayer = *MyPlayer;
 
-	for (int potNumber = numPots; potNumber > 0; potNumber--) {
+	for (int potNumber = std::max(1, atoi(parameter.data())); potNumber > 0; potNumber--) {
 		Item item {};
 		InitializeItem(item, IDI_ARENAPOT);
 		GenerateNewSeed(item);
 		item.updateRequiredStatsCacheForPlayer(myPlayer);
 
-		if (!AutoPlaceItemInBelt(myPlayer, item, true, true) && !AutoPlaceItemInInventory(myPlayer, item, true, true)) {
+		if (!AutoPlaceItemInBelt(myPlayer, item, true) && !AutoPlaceItemInInventory(myPlayer, item, true)) {
 			break; // inventory is full
 		}
 	}
@@ -434,7 +453,7 @@ std::string TextCmdArenaPot(const std::string_view parameter)
 	return ret;
 }
 
-std::string TextCmdInspect(const std::string_view parameter)
+std::string TextCmdInspect(const string_view parameter)
 {
 	std::string ret;
 	if (!gbIsMultiplayer) {
@@ -448,111 +467,46 @@ std::string TextCmdInspect(const std::string_view parameter)
 		return ret;
 	}
 
-	const std::string param = AsciiStrToLower(parameter);
-	auto it = c_find_if(Players, [&param](const Player &player) {
-		return AsciiStrToLower(player._pName) == param;
-	});
-	if (it == Players.end()) {
-		it = c_find_if(Players, [&param](const Player &player) {
-			return AsciiStrToLower(player._pName).find(param) != std::string::npos;
-		});
+	std::string param { parameter.data() };
+	std::transform(param.begin(), param.end(), param.begin(), [](unsigned char c) { return std::tolower(c); });
+	for (auto &player : Players) {
+		std::string playerName { player._pName };
+		std::transform(playerName.begin(), playerName.end(), playerName.begin(), [](unsigned char c) { return std::tolower(c); });
+		if (playerName.find(param) != std::string::npos) {
+			InspectPlayer = &player;
+			StrAppend(ret, _("Inspecting player: "));
+			StrAppend(ret, player._pName);
+			OpenCharPanel();
+			if (!sbookflag)
+				invflag = true;
+			RedrawEverything();
+			return ret;
+		}
 	}
-	if (it == Players.end()) {
-		StrAppend(ret, _("No players found with such a name"));
-		return ret;
-	}
-
-	Player &player = *it;
-	InspectPlayer = &player;
-	StrAppend(ret, _("Inspecting player: "));
-	StrAppend(ret, player._pName);
-	OpenCharPanel();
-	if (!sbookflag)
-		invflag = true;
-	RedrawEverything();
+	StrAppend(ret, _("No players found with such a name"));
 	return ret;
 }
 
-bool IsQuestEnabled(const Quest &quest)
-{
-	switch (quest._qidx) {
-	case Q_FARMER:
-		return gbIsHellfire && !sgGameInitInfo.bCowQuest;
-	case Q_JERSEY:
-		return gbIsHellfire && sgGameInitInfo.bCowQuest;
-	case Q_GIRL:
-		return gbIsHellfire && sgGameInitInfo.bTheoQuest;
-	case Q_CORNSTN:
-		return gbIsHellfire && !gbIsMultiplayer;
-	case Q_GRAVE:
-	case Q_DEFILER:
-	case Q_NAKRUL:
-		return gbIsHellfire;
-	case Q_TRADER:
-		return false;
-	default:
-		return quest._qactive != QUEST_NOTAVAIL;
-	}
-}
-
-std::string TextCmdLevelSeed(const std::string_view parameter)
-{
-	std::string_view levelType = setlevel ? "set level" : "dungeon level";
-
-	char gameId[] = {
-		static_cast<char>((sgGameInitInfo.programid >> 24) & 0xFF),
-		static_cast<char>((sgGameInitInfo.programid >> 16) & 0xFF),
-		static_cast<char>((sgGameInitInfo.programid >> 8) & 0xFF),
-		static_cast<char>(sgGameInitInfo.programid & 0xFF),
-		'\0'
-	};
-
-	std::string_view mode = gbIsMultiplayer ? "MP" : "SP";
-	std::string_view questPool = UseMultiplayerQuests() ? "MP" : "Full";
-
-	uint32_t questFlags = 0;
-	for (const Quest &quest : Quests) {
-		questFlags <<= 1;
-		if (IsQuestEnabled(quest))
-			questFlags |= 1;
-	}
-
-	return StrCat(
-	    "Seedinfo for ", levelType, " ", currlevel, "\n",
-	    "seed: ", glSeedTbl[currlevel], "\n",
-#ifdef _DEBUG
-	    "Mid1: ", glMid1Seed[currlevel], "\n",
-	    "Mid2: ", glMid2Seed[currlevel], "\n",
-	    "Mid3: ", glMid3Seed[currlevel], "\n",
-	    "End: ", glEndSeed[currlevel], "\n",
-#endif
-	    "\n",
-	    gameId, " ", mode, "\n",
-	    questPool, " quests: ", questFlags, "\n",
-	    "Storybook: ", glSeedTbl[16]);
-}
-
 std::vector<TextCmdItem> TextCmdList = {
-	{ N_("/help"), N_("Prints help overview or help for a specific command."), N_("[command]"), &TextCmdHelp },
-	{ N_("/arena"), N_("Enter a PvP Arena."), N_("<arena-number>"), &TextCmdArena },
-	{ N_("/arenapot"), N_("Gives Arena Potions."), N_("<number>"), &TextCmdArenaPot },
-	{ N_("/inspect"), N_("Inspects stats and equipment of another player."), N_("<player name>"), &TextCmdInspect },
-	{ N_("/seedinfo"), N_("Show seed infos for current level."), "", &TextCmdLevelSeed },
+	{ N_("/help"), N_("Prints help overview or help for a specific command."), N_("({command})"), &TextCmdHelp },
+	{ N_("/arena"), N_("Enter a PvP Arena."), N_("{arena-number}"), &TextCmdArena },
+	{ N_("/arenapot"), N_("Gives Arena Potions."), N_("{number}"), &TextCmdArenaPot },
+	{ N_("/inspect"), N_("Inspects stats and equipment of another player."), N_("{player name}"), &TextCmdInspect },
 };
 
-bool CheckTextCommand(const std::string_view text)
+bool CheckTextCommand(const string_view text)
 {
 	if (text.size() < 1 || text[0] != '/')
 		return false;
 
-	auto textCmdIterator = c_find_if(TextCmdList, [&](const TextCmdItem &elem) { return text.find(elem.text) == 0 && (text.length() == elem.text.length() || text[elem.text.length()] == ' '); });
+	auto textCmdIterator = std::find_if(TextCmdList.begin(), TextCmdList.end(), [&](const TextCmdItem &elem) { return text.find(elem.text) == 0 && (text.length() == elem.text.length() || text[elem.text.length()] == ' '); });
 	if (textCmdIterator == TextCmdList.end()) {
 		InitDiabloMsg(StrCat(_("Command \""), text, "\" is unknown."));
 		return true;
 	}
 
 	TextCmdItem &textCmd = *textCmdIterator;
-	std::string_view parameter = "";
+	string_view parameter = "";
 	if (text.length() > (textCmd.text.length() + 1))
 		parameter = text.substr(textCmd.text.length() + 1);
 	const std::string result = textCmd.actionProc(parameter);
@@ -729,7 +683,7 @@ void OpenCharPanel()
 {
 	QuestLogIsOpen = false;
 	CloseGoldWithdraw();
-	CloseStash();
+	IsStashOpen = false;
 	chrflag = true;
 }
 
@@ -751,7 +705,7 @@ void ToggleCharPanel()
 		OpenCharPanel();
 }
 
-void AddPanelString(std::string_view str)
+void AddPanelString(string_view str)
 {
 	if (InfoString.empty())
 		InfoString = str;
@@ -799,8 +753,18 @@ void DrawLifeFlaskUpper(const Surface &out)
 
 void DrawManaFlaskUpper(const Surface &out)
 {
+	Player &myPlayer = *MyPlayer;
 	constexpr int ManaFlaskUpperOffset = 475;
-	DrawFlaskUpper(out, *pManaBuff, ManaFlaskUpperOffset, MyPlayer->_pManaPer);
+	/*if (myPlayer._pClasstype == 5) {
+		goto ogg;
+	} else if (myPlayer._pClasstype == 8) {
+		goto ogg;
+	} else if (myPlayer._pClasstype == 13) {
+		goto ogg;
+	} else {*/
+		DrawFlaskUpper(out, *pManaBuff, ManaFlaskUpperOffset, MyPlayer->_pManaPer);
+	//}
+ogg:;
 }
 
 void DrawLifeFlaskLower(const Surface &out)
@@ -811,15 +775,34 @@ void DrawLifeFlaskLower(const Surface &out)
 
 void DrawManaFlaskLower(const Surface &out)
 {
-	constexpr int ManaFlaskLowerOffeset = 464;
-	DrawFlaskLower(out, *pManaBuff, ManaFlaskLowerOffeset, MyPlayer->_pManaPer);
+	Player &myPlayer = *MyPlayer;
+	constexpr int ManaFlaskLowerOffeset = 464;/*
+	if (myPlayer._pClasstype == 5) {
+	goto ogg;
+	} else if (myPlayer._pClasstype == 8) {
+	goto ogg;
+	} else if (myPlayer._pClasstype == 13) {
+	goto ogg;
+	} else {*/
+	DrawFlaskLower(out, *pManaBuff, ManaFlaskLowerOffeset, MyPlayer->_pManaPer);/*
+	}
+ogg:;*/
 }
 
 void DrawFlaskValues(const Surface &out, Point pos, int currValue, int maxValue)
 {
+
+	Player &myPlayer = *MyPlayer;
+	if (myPlayer._pClasstype == 5) {
+	goto ogg;
+	} else if (myPlayer._pClasstype == 8) {
+	goto ogg;
+	} else if (myPlayer._pClasstype == 13) {
+	goto ogg;
+	} else {
 	UiFlags color = (currValue > 0 ? (currValue == maxValue ? UiFlags::ColorGold : UiFlags::ColorWhite) : UiFlags::ColorRed);
 
-	auto drawStringWithShadow = [out, color](std::string_view text, Point pos) {
+	auto drawStringWithShadow = [out, color](string_view text, Point pos) {
 		DrawString(out, text, pos + Displacement { -1, -1 }, UiFlags::ColorBlack | UiFlags::KerningFitSpacing, 0);
 		DrawString(out, text, pos, color | UiFlags::KerningFitSpacing, 0);
 	};
@@ -828,11 +811,40 @@ void DrawFlaskValues(const Surface &out, Point pos, int currValue, int maxValue)
 	drawStringWithShadow(currText, pos - Displacement { GetLineWidth(currText, GameFont12) + 1, 0 });
 	drawStringWithShadow("/", pos);
 	drawStringWithShadow(StrCat(maxValue), pos + Displacement { GetLineWidth("/", GameFont12) + 1, 0 });
+	}
+ogg:;
 }
 
 void control_update_life_mana()
 {
+	Player &myPlayer = *MyPlayer;
+
+	if (!nompclass) {
+	if (myPlayer._pClasstype == 5) {
+			nompclass = true;
+			MyPlayer->UpdateManaPercentage();
+			goto ogg;
+	} else if (myPlayer._pClasstype == 8) {
+			nompclass = true;
+			MyPlayer->UpdateManaPercentage();
+			goto ogg;
+	} else if (myPlayer._pClasstype == 13) {
+			nompclass = true;
+			MyPlayer->UpdateManaPercentage();
+			goto ogg;
+	}
+	}
+
+	if (myPlayer._pClasstype == 5) {
+	goto ogg;
+	} else if (myPlayer._pClasstype == 8) {
+	goto ogg;
+	} else if (myPlayer._pClasstype == 13) {
+	goto ogg;
+	} else {
 	MyPlayer->UpdateManaPercentage();
+	}
+ogg:;
 	MyPlayer->UpdateHitPointPercentage();
 }
 
@@ -892,9 +904,13 @@ void InitControlPan()
 	for (bool &buttonEnabled : chrbtn)
 		buttonEnabled = false;
 	chrbtnactive = false;
-	InfoString = StringOrView {};
+	InfoString = {};
 	RedrawComponent(PanelDrawComponent::Health);
+	Player &myPlayer = *MyPlayer;
+//	if (&myPlayer == MyPlayer && &myPlayer._pClasstype == 5 || 8 || 13)
+	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
 	RedrawComponent(PanelDrawComponent::Mana);
+
 	CloseCharPanel();
 	spselflag = false;
 	sbooktab = 0;
@@ -1009,20 +1025,6 @@ void DoAutoMap()
 		AutomapActive = false;
 }
 
-void CycleAutomapType()
-{
-	if (!AutomapActive) {
-		StartAutomap();
-		return;
-	}
-	const AutomapType newType { static_cast<std::underlying_type_t<AutomapType>>(
-		(static_cast<unsigned>(GetAutomapType()) + 1) % enum_size<AutomapType>::value) };
-	SetAutomapType(newType);
-	if (newType == AutomapType::Opaque) {
-		AutomapActive = false;
-	}
-}
-
 void CheckPanelInfo()
 {
 	panelflag = false;
@@ -1051,7 +1053,7 @@ void CheckPanelInfo()
 		InfoColor = UiFlags::ColorWhite;
 		panelflag = true;
 		AddPanelString(_("Hotkey: 's'"));
-		const Player &myPlayer = *MyPlayer;
+		Player &myPlayer = *MyPlayer;
 		const SpellID spellId = myPlayer._pRSpell;
 		if (IsValidSpell(spellId)) {
 			switch (myPlayer._pRSplType) {
@@ -1065,7 +1067,8 @@ void CheckPanelInfo()
 			} break;
 			case SpellType::Scroll: {
 				AddPanelString(fmt::format(fmt::runtime(_("Scroll of {:s}")), pgettext("spell", GetSpellData(spellId).sNameText)));
-				const int scrollCount = c_count_if(InventoryAndBeltPlayerItemsRange { myPlayer }, [spellId](const Item &item) {
+				const InventoryAndBeltPlayerItemsRange items { myPlayer };
+				const int scrollCount = std::count_if(items.begin(), items.end(), [spellId](const Item &item) {
 					return item.isScrollOf(spellId);
 				});
 				AddPanelString(fmt::format(fmt::runtime(ngettext("{:d} Scroll", "{:d} Scrolls", scrollCount)), scrollCount));
@@ -1116,7 +1119,7 @@ void CheckBtnUp()
 		case PanelButtonQlog:
 			CloseCharPanel();
 			CloseGoldWithdraw();
-			CloseStash();
+			IsStashOpen = false;
 			if (!QuestLogIsOpen)
 				StartQuestlog();
 			else
@@ -1133,7 +1136,7 @@ void CheckBtnUp()
 		case PanelButtonInventory:
 			sbookflag = false;
 			CloseGoldWithdraw();
-			CloseStash();
+			IsStashOpen = false;
 			invflag = !invflag;
 			if (dropGoldFlag) {
 				CloseGoldDrop();
@@ -1188,7 +1191,7 @@ void DrawInfoBox(const Surface &out)
 {
 	DrawPanelBox(out, { 177, 62, 288, 63 }, GetMainPanel().position + Displacement { 177, 46 });
 	if (!panelflag && !trigflag && pcursinvitem == -1 && pcursstashitem == StashStruct::EmptyCell && !spselflag) {
-		InfoString = StringOrView {};
+		InfoString = {};
 		InfoColor = UiFlags::ColorWhite;
 	}
 	Player &myPlayer = *MyPlayer;
@@ -1221,14 +1224,14 @@ void DrawInfoBox(const Surface &out)
 					PrintMonstHistory(monster.type().type);
 				}
 			} else if (pcursitem == -1) {
-				InfoString = std::string_view(Towners[pcursmonst].name);
+				InfoString = string_view(Towners[pcursmonst].name);
 			}
 		}
 		if (pcursplr != -1) {
 			InfoColor = UiFlags::ColorWhitegold;
 			auto &target = Players[pcursplr];
-			InfoString = std::string_view(target._pName);
-			AddPanelString(fmt::format(fmt::runtime(_("{:s}, Level: {:d}")), target.getClassName(), target.getCharacterLevel()));
+			InfoString = string_view(target._pName);
+			AddPanelString(fmt::format(fmt::runtime(_("{:s}, Level: {:d}")), _(PlayersData[static_cast<std::size_t>(target._pClass)].className), target._pLevel));
 			AddPanelString(fmt::format(fmt::runtime(_("Hit Points {:d} of {:d}")), target._pHitPoints >> 6, target._pMaxHP >> 6));
 		}
 	}
@@ -1307,8 +1310,10 @@ void ReleaseChrBtns(bool addAllStatPoints)
 				myPlayer._pStatPts -= statPointsToAdd;
 				break;
 			case CharacterAttribute::Magic:
-				NetSendCmdParam1(true, CMD_ADDMAG, statPointsToAdd);
-				myPlayer._pStatPts -= statPointsToAdd;
+				//if (myPlayer._pClasstype != 5 || 8 || 13) {
+					NetSendCmdParam1(true, CMD_ADDMAG, statPointsToAdd);
+					myPlayer._pStatPts -= statPointsToAdd;
+				//}
 				break;
 			case CharacterAttribute::Dexterity:
 				NetSendCmdParam1(true, CMD_ADDDEX, statPointsToAdd);
@@ -1560,7 +1565,7 @@ bool IsTalkActive()
 	return true;
 }
 
-void control_new_text(std::string_view text)
+void control_new_text(string_view text)
 {
 	strncat(TalkMessage, text.data(), sizeof(TalkMessage) - strlen(TalkMessage) - 1);
 }
@@ -1624,7 +1629,7 @@ void CloseGoldDrop()
 	SDL_StopTextInput();
 }
 
-void GoldDropNewText(std::string_view text)
+void GoldDropNewText(string_view text)
 {
 	for (char vkey : text) {
 		int digit = vkey - '0';

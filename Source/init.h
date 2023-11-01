@@ -5,9 +5,8 @@
  */
 #pragma once
 
-#include <optional>
-
 #include "utils/attributes.h"
+#include "utils/stdcompat/optional.hpp"
 
 #ifdef UNPACKED_MPQS
 #include <string>
@@ -81,21 +80,6 @@ inline bool HaveExtraFonts()
 	return bool(font_data_path);
 #else
 	return bool(font_mpq);
-#endif
-}
-
-#ifdef UNPACKED_MPQS
-bool AreExtraFontsOutOfDate(const std::string &path);
-#else
-bool AreExtraFontsOutOfDate(MpqArchive &archive);
-#endif
-
-inline bool AreExtraFontsOutOfDate()
-{
-#ifdef UNPACKED_MPQS
-	return font_data_path && AreExtraFontsOutOfDate(*font_data_path);
-#else
-	return font_mpq && AreExtraFontsOutOfDate(*font_mpq);
 #endif
 }
 

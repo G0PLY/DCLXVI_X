@@ -6,8 +6,6 @@
 #include <memory>
 #include <string>
 
-#include <expected.hpp>
-
 #ifdef PACKET_ENCRYPTION
 #include <sodium.h>
 #endif
@@ -15,7 +13,6 @@
 #include "appfat.h"
 #include "dvlnet/abstract_net.h"
 #include "utils/attributes.h"
-#include "utils/str_cat.hpp"
 #include "utils/stubs.h"
 
 namespace devilution {
@@ -59,44 +56,26 @@ struct turn_t {
 static constexpr plr_t PLR_MASTER = 0xFE;
 static constexpr plr_t PLR_BROADCAST = 0xFF;
 
-class PacketError {
+class packet_exception : public dvlnet_exception {
 public:
-	PacketError()
-	    : message_(std::string_view("Incorrect package size"))
+	const char *what() const throw() override
 	{
+		return "Incorrect package size";
 	}
+};
 
-	PacketError(const char message[])
-	    : message_(std::string_view(message))
-	{
-	}
+class wrong_packet_type_exception : public packet_exception {
+public:
+	wrong_packet_type_exception(std::initializer_list<packet_type> expectedTypes, std::uint8_t actual);
 
-	PacketError(std::string &&message)
-	    : message_(std::move(message))
+	const char *what() const throw() override
 	{
-	}
-
-	PacketError(const PacketError &error)
-	    : message_(std::string(error.message_))
-	{
-	}
-
-	PacketError(PacketError &&error)
-	    : message_(std::move(error.message_))
-	{
-	}
-
-	std::string_view what() const
-	{
-		return message_;
+		return message_.c_str();
 	}
 
 private:
-	StringOrView message_;
+	std::string message_;
 };
-
-PacketError PacketTypeError(std::uint8_t unknownPacketType);
-PacketError PacketTypeError(std::initializer_list<packet_type> expectedTypes, std::uint8_t actual);
 
 class packet {
 protected:
@@ -126,30 +105,30 @@ public:
 	packet_type Type();
 	plr_t Source() const;
 	plr_t Destination() const;
-	tl::expected<const buffer_t *, PacketError> Message();
-	tl::expected<turn_t, PacketError> Turn();
-	tl::expected<cookie_t, PacketError> Cookie();
-	tl::expected<plr_t, PacketError> NewPlayer();
-	tl::expected<timestamp_t, PacketError> Time();
-	tl::expected<const buffer_t *, PacketError> Info();
-	tl::expected<leaveinfo_t, PacketError> LeaveInfo();
+	const buffer_t &Message();
+	turn_t Turn();
+	cookie_t Cookie();
+	plr_t NewPlayer();
+	timestamp_t Time();
+	const buffer_t &Info();
+	leaveinfo_t LeaveInfo();
 };
 
 template <class P>
 class packet_proc : public packet {
 public:
 	using packet::packet;
-	tl::expected<void, PacketError> process_data();
+	void process_data();
 };
 
 class packet_in : public packet_proc<packet_in> {
 public:
 	using packet_proc<packet_in>::packet_proc;
-	tl::expected<void, PacketError> Create(buffer_t buf);
-	tl::expected<void, PacketError> process_element(buffer_t &x);
+	void Create(buffer_t buf);
+	void process_element(buffer_t &x);
 	template <class T>
-	tl::expected<void, PacketError> process_element(T &x);
-	tl::expected<void, PacketError> Decrypt(buffer_t buf);
+	void process_element(T &x);
+	void Decrypt(buffer_t buf);
 };
 
 class packet_out : public packet_proc<packet_out> {
@@ -159,9 +138,9 @@ public:
 	template <packet_type t, typename... Args>
 	void create(Args... args);
 
-	tl::expected<void, PacketError> process_element(buffer_t &x);
+	void process_element(buffer_t &x);
 	template <class T>
-	tl::expected<void, PacketError> process_element(T &x);
+	void process_element(T &x);
 	template <class T>
 	static const unsigned char *begin(const T &x);
 	template <class T>
@@ -171,68 +150,67 @@ public:
 };
 
 template <class P>
-tl::expected<void, PacketError> packet_proc<P>::process_data()
+void packet_proc<P>::process_data()
 {
 	P &self = static_cast<P &>(*this);
-	{
-		tl::expected<void, PacketError> result
-		    = self.process_element(m_type)
-		          .and_then([&]() {
-			          return self.process_element(m_src);
-		          })
-		          .and_then([&]() {
-			          return self.process_element(m_dest);
-		          });
-		if (!result.has_value())
-			return result;
-	}
+	self.process_element(m_type);
+	self.process_element(m_src);
+	self.process_element(m_dest);
 	switch (m_type) {
 	case PT_MESSAGE:
-		return self.process_element(m_message);
+		self.process_element(m_message);
+		break;
 	case PT_TURN:
-		return self.process_element(m_turn.SequenceNumber)
-		    .and_then([&]() { return self.process_element(m_turn.Value); });
+		self.process_element(m_turn.SequenceNumber);
+		self.process_element(m_turn.Value);
+		break;
 	case PT_JOIN_REQUEST:
-		return self.process_element(m_cookie)
-		    .and_then([&]() { return self.process_element(m_info); });
+		self.process_element(m_cookie);
+		self.process_element(m_info);
+		break;
 	case PT_JOIN_ACCEPT:
-		return self.process_element(m_cookie)
-		    .and_then([&]() { return self.process_element(m_newplr); })
-		    .and_then([&]() { return self.process_element(m_info); });
+		self.process_element(m_cookie);
+		self.process_element(m_newplr);
+		self.process_element(m_info);
+		break;
 	case PT_CONNECT:
-		return self.process_element(m_newplr)
-		    .and_then([&]() { return self.process_element(m_info); });
+		self.process_element(m_newplr);
+		self.process_element(m_info);
+		break;
 	case PT_DISCONNECT:
-		return self.process_element(m_newplr)
-		    .and_then([&]() { return self.process_element(m_leaveinfo); });
+		self.process_element(m_newplr);
+		self.process_element(m_leaveinfo);
+		break;
 	case PT_INFO_REPLY:
-		return self.process_element(m_info);
+		self.process_element(m_info);
+		break;
 	case PT_INFO_REQUEST:
-		return {};
+		break;
 	case PT_ECHO_REQUEST:
 	case PT_ECHO_REPLY:
-		return self.process_element(m_time);
+		self.process_element(m_time);
+		break;
 	}
-	return tl::make_unexpected(PacketTypeError(m_type));
 }
 
-inline tl::expected<void, PacketError> packet_in::process_element(buffer_t &x)
+inline void packet_in::process_element(buffer_t &x)
 {
 	x.insert(x.begin(), decrypted_buffer.begin(), decrypted_buffer.end());
 	decrypted_buffer.resize(0);
-	return {};
 }
 
 template <class T>
-tl::expected<void, PacketError> packet_in::process_element(T &x)
+void packet_in::process_element(T &x)
 {
-	if (decrypted_buffer.size() < sizeof(T)) {
-		return tl::make_unexpected(PacketError());
-	}
+	if (decrypted_buffer.size() < sizeof(T))
+#if DVL_EXCEPTIONS
+		throw packet_exception();
+#else
+		app_fatal("invalid packet");
+#endif
 	std::memcpy(&x, decrypted_buffer.data(), sizeof(T));
 	decrypted_buffer.erase(decrypted_buffer.begin(),
 	    decrypted_buffer.begin() + sizeof(T));
-	return {};
 }
 
 template <>
@@ -374,17 +352,15 @@ inline void packet_out::create<PT_ECHO_REPLY>(plr_t s, plr_t d, timestamp_t t)
 	m_time = t;
 }
 
-inline tl::expected<void, PacketError> packet_out::process_element(buffer_t &x)
+inline void packet_out::process_element(buffer_t &x)
 {
 	decrypted_buffer.insert(decrypted_buffer.end(), x.begin(), x.end());
-	return {};
 }
 
 template <class T>
-tl::expected<void, PacketError> packet_out::process_element(T &x)
+void packet_out::process_element(T &x)
 {
 	decrypted_buffer.insert(decrypted_buffer.end(), begin(x), end(x));
-	return {};
 }
 
 template <class T>
@@ -408,12 +384,12 @@ public:
 
 	packet_factory();
 	packet_factory(std::string pw);
-	tl::expected<std::unique_ptr<packet>, PacketError> make_packet(buffer_t buf);
+	std::unique_ptr<packet> make_packet(buffer_t buf);
 	template <packet_type t, typename... Args>
-	tl::expected<std::unique_ptr<packet>, PacketError> make_packet(Args... args);
+	std::unique_ptr<packet> make_packet(Args... args);
 };
 
-inline tl::expected<std::unique_ptr<packet>, PacketError> packet_factory::make_packet(buffer_t buf)
+inline std::unique_ptr<packet> packet_factory::make_packet(buffer_t buf)
 {
 	auto ret = std::make_unique<packet_in>(key);
 #ifndef PACKET_ENCRYPTION
@@ -424,20 +400,16 @@ inline tl::expected<std::unique_ptr<packet>, PacketError> packet_factory::make_p
 	else
 		ret->Decrypt(std::move(buf));
 #endif
-	if (const tl::expected<void, PacketError> result = ret->process_data(); !result.has_value()) {
-		return tl::make_unexpected(result.error());
-	}
+	ret->process_data();
 	return ret;
 }
 
 template <packet_type t, typename... Args>
-tl::expected<std::unique_ptr<packet>, PacketError> packet_factory::make_packet(Args... args)
+std::unique_ptr<packet> packet_factory::make_packet(Args... args)
 {
 	auto ret = std::make_unique<packet_out>(key);
 	ret->create<t>(args...);
-	if (const tl::expected<void, PacketError> result = ret->process_data(); !result.has_value()) {
-		return tl::make_unexpected(result.error());
-	}
+	ret->process_data();
 #ifdef PACKET_ENCRYPTION
 	if (secure)
 		ret->Encrypt();

@@ -1,6 +1,5 @@
 #include "utils/pcx_to_clx.hpp"
 
-#include <cstddef>
 #include <cstdint>
 #include <cstring>
 
@@ -11,9 +10,10 @@
 #include <SDL_endian.h>
 
 #include "appfat.h"
-#include "utils/clx_encode.hpp"
+#include "utils/clx_write.hpp"
 #include "utils/endian.hpp"
 #include "utils/pcx.hpp"
+#include "utils/stdcompat/cstddef.hpp"
 
 #ifdef DEBUG_PCX_TO_CL2_SIZE
 #include <iomanip>
@@ -142,25 +142,25 @@ OptionalOwnedClxSpriteList PcxToClx(AssetHandle &handle, size_t fileSize, int nu
 				for (const uint8_t *srcEnd = src + width; src != srcEnd; ++src) {
 					if (*src == *transparentColor) {
 						if (solidRunWidth != 0) {
-							AppendClxPixelsOrFillRun(src - transparentRunWidth - solidRunWidth, solidRunWidth, cl2Data);
+							AppendCl2PixelsOrFillRun(src - transparentRunWidth - solidRunWidth, solidRunWidth, cl2Data);
 							solidRunWidth = 0;
 						}
 						++transparentRunWidth;
 					} else {
-						AppendClxTransparentRun(transparentRunWidth, cl2Data);
+						AppendCl2TransparentRun(transparentRunWidth, cl2Data);
 						transparentRunWidth = 0;
 						++solidRunWidth;
 					}
 				}
 				if (solidRunWidth != 0) {
-					AppendClxPixelsOrFillRun(src - solidRunWidth, solidRunWidth, cl2Data);
+					AppendCl2PixelsOrFillRun(src - solidRunWidth, solidRunWidth, cl2Data);
 				}
 			} else {
-				AppendClxPixelsOrFillRun(src, width, cl2Data);
+				AppendCl2PixelsOrFillRun(src, width, cl2Data);
 			}
 			++line;
 		}
-		AppendClxTransparentRun(transparentRunWidth, cl2Data);
+		AppendCl2TransparentRun(transparentRunWidth, cl2Data);
 	}
 	WriteLE32(&cl2Data[4 * (1 + static_cast<size_t>(numFrames))], static_cast<uint32_t>(cl2Data.size()));
 

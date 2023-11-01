@@ -1,15 +1,13 @@
-#include <optional>
-
 #include "DiabloUI/diabloui.h"
 #include "control.h"
 #include "controls/input.h"
 #include "controls/menu_controls.h"
-#include "discord/discord.h"
+//#include "discord/discord.h"
 #include "engine/load_clx.hpp"
 #include "engine/load_pcx.hpp"
-#include "utils/algorithm/container.hpp"
 #include "utils/language.h"
 #include "utils/sdl_geometry.h"
+#include "utils/stdcompat/optional.hpp"
 
 namespace devilution {
 namespace {
@@ -25,7 +23,8 @@ void TitleLoad()
 	//	ArtBackgroundWidescreen = LoadOptionalClx("ui_art\\hf_titlew.clx");
 	//} else {
 		LoadBackgroundArt("ui_art\\title");
-		DiabloTitleLogo = LoadPcxSpriteList("ui_art\\logo", /*numFrames=*/15, /*transparentColor=*/250);
+	DiabloTitleLogo = LoadPcxSpriteList("ui_art\\logo", /*numFrames=*/15, /*transparentColor=*/250);
+	//	ArtBackgroundWidescreen = LoadOptionalClx("ui_art\\hf_titlew.clx");
 	//}
 }
 
@@ -67,10 +66,11 @@ void UiTitleDialog()
 		UiRenderItems(vecTitleScreen);
 		UiFadeIn();
 
-		discord_manager::UpdateMenu();
+	//	discord_manager::UpdateMenu();
 
 		while (PollEvent(&event) != 0) {
-			if (c_any_of(GetMenuActions(event), [](MenuAction menuAction) { return menuAction != MenuAction_NONE; })) {
+			std::vector<MenuAction> menuActions = GetMenuActions(event);
+			if (std::any_of(menuActions.begin(), menuActions.end(), [](auto menuAction) { return menuAction != MenuAction_NONE; })) {
 				endMenu = true;
 				break;
 			}
