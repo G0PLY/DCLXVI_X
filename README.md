@@ -5,7 +5,7 @@ DCLXVI v11123 current version...
 
 Source release Halloween '23 (v11123)
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/Source.zip
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11123.zip
 
 =======
 
@@ -34,7 +34,7 @@ Latest Updates:
 
 10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v11123), have fun... 
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/Source.zip
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11123.zip
 
 --------------------------------------------------------------------------------------------------
 
