@@ -1445,7 +1445,7 @@ void MonsterAttackMonster(Monster &attacker, Monster &target, int hper, int mind
 int CheckReflect(Monster &monster, Player &player, int dam)
 {
 	player.wReflections--;
-	if (player.wReflections <= 0)
+	if (player.wReflections <= 0 && player._pHitPoints > 0)
 		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 	// reflects 20-30% damage
 	int pdam = dam * RandomIntBetween(20, 30, true) / 100;

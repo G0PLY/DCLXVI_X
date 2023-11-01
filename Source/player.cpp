@@ -823,17 +823,17 @@ void InitLevelChange(Player &player)
 		if (myPlayer.pManaShield)
 			NetSendCmd(true, CMD_SETSHIELD);
 
-		//if (myPlayer.pDmgReduct)
-		//	NetSendCmd(true, CMD_SETDRSHIELD);
+		if (myPlayer.pDmgReduct)
+			NetSendCmd(true, CMD_SETDRSHIELD);
 
-		//if (myPlayer.pEtherShield)
-		//	NetSendCmd(true, CMD_SETESHIELD);
+		if (myPlayer.pEtherShield)
+			NetSendCmd(true, CMD_SETESHIELD);
 
-		//if (myPlayer.pHlthregn)
-		//	NetSendCmd(true, CMD_SETHRSHIELD);
+		if (myPlayer.pHlthregn)
+			NetSendCmd(true, CMD_SETHRSHIELD);
 
-		//if (myPlayer.pManaregn)
-		//	NetSendCmd(true, CMD_SETMRSHIELD);
+		if (myPlayer.pManaregn)
+			NetSendCmd(true, CMD_SETMRSHIELD);
 
 		//if (myPlayer.pAuraShield)
 		//	NetSendCmd(true, CMD_SETAURA);
@@ -3715,6 +3715,11 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 		NetSendCmdParam1(true, CMD_PLRDEAD, static_cast<uint16_t>(deathReason));
 	}
 
+	if (player.wReflections > 0) {
+		player.wReflections = 0;
+		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	}
+
 	const bool dropGold = !gbIsMultiplayer || !(player.isOnLevel(16) || player.isOnArenaLevel());
 	const bool dropItems = dropGold && deathReason == DeathReason::MonsterOrTrap;
 	const bool dropEar = dropGold && deathReason == DeathReason::Player;
@@ -3738,6 +3743,8 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 
 	player._pBlockFlag = false;
 	player.pManaShield = false;
+	//myPlayer.wReflections = 0;
+	//NetSendCmdParam1(true, CMD_SETREFLECT, myPlayer.wReflections);
 	player.pEtherShield = false;
 	player.pDmgReduct = false;
 	player.pHlthregn = false;
@@ -3908,7 +3915,7 @@ void ApplyPlrDamage(DamageType damageType, Player &player, int dam, int minHP /*
 			RedrawComponent(PanelDrawComponent::Mana);
 
 if (!player.pManaShield) {
-			if (player._pHitPoints >= totalDamage) {
+			if (player._pHitPoints > totalDamage) {
 			player._pHitPoints -= totalDamage;
 			player._pHPBase -= totalDamage;
 			totalDamage = 0;
@@ -3922,7 +3929,7 @@ if (!player.pManaShield) {
 			if (&player == MyPlayer)
 				NetSendCmd(true, CMD_REDRSHIELD);
 				//NetSendCmd(true, CMD_REMESHIELD);
-				NetSendCmd(true, CMD_REMSHIELD);
+				//NetSendCmd(true, CMD_REMSHIELD);
 			}
 		}
 		 else 
@@ -4042,6 +4049,10 @@ void SyncPlrKill(Player &player, DeathReason deathReason)
 		SetPlayerHitPoints(player, 64);
 		return;
 	}
+	//if (player.wReflections > 0) {
+		player.wReflections = 0;
+		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	//}
 
 	SetPlayerHitPoints(player, 0);
 	StartPlayerKill(player, deathReason);

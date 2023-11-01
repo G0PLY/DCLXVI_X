@@ -437,7 +437,7 @@ void DrawPlayer(const Surface &out, const Player &player, Point tilePosition, Po
 		return;
 	}
 
-	if (!IsTileLit(tilePosition) || ((MyPlayer->_pInfraFlag || MyPlayer->isOnArenaLevel()) && LightTableIndex > 8)) {
+	/* if (!IsTileLit(tilePosition) || ((MyPlayer->_pInfraFlag || MyPlayer->isOnArenaLevel()) && LightTableIndex > 8)) {
 		ClxDrawTRN(out, spriteBufferPosition, sprite, GetInfravisionTRN());
 		DrawPlayerIcons(out, player, targetBufferPosition, true);
 		return;
@@ -452,7 +452,7 @@ void DrawPlayer(const Surface &out, const Player &player, Point tilePosition, Po
 	ClxDrawLight(out, spriteBufferPosition, sprite);
 	DrawPlayerIcons(out, player, targetBufferPosition, false);
 
-	LightTableIndex = l;
+	LightTableIndex = l;*/
 }
 
 /**
@@ -467,6 +467,12 @@ void DrawDeadPlayer(const Surface &out, Point tilePosition, Point targetBufferPo
 
 	for (Player &player : Players) {
 		if (player.plractive && player._pHitPoints == 0 && player.isOnActiveLevel() && player.position.tile == tilePosition) {
+			player.wReflections = 0;
+			//if (&player == MyPlayer && player._pmode == PM_DEATH) {
+			//	ClxDraw(out, spriteBufferPosition, sprite);
+				//DrawPlayerIcons(out, player, targetBufferPosition, false);
+			//	return;
+			//}
 			dFlags[tilePosition.x][tilePosition.y] |= DungeonFlag::DeadPlayer;
 			const Point playerRenderPosition { targetBufferPosition };
 			DrawPlayer(out, player, tilePosition, playerRenderPosition);

@@ -1245,6 +1245,20 @@ void AddReflect(Missile &missile, AddMissileParameter & /*parameter*/)
 		return;
 
 	Player &player = *missile.sourcePlayer();
+	Player &myPlayer = *MyPlayer;
+	if (&player == MyPlayer) {
+		if (myPlayer.wReflections > 0) {
+			// parameter.spellFizzled = true;
+			//  if (myPlayer.pManaShield && myPlayer._pMana <= 0) {
+			myPlayer.wReflections = 0;
+			NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+			// NetSendCmd(true, CMD_REMSHIELD);
+			// }
+			//  player.pManaShield = false;
+			//  NetSendCmd(true, CMD_REMSHIELD);
+			return;
+		}
+	}
 
 	int add = (missile._mispllvl + 1) * (player._pLevel + (player._pStrength / 6) + ((player._pDexterity + player._pMagic + player._pArmorClass) / 3));
 	if (player.wReflections + add >= std::numeric_limits<uint16_t>::max())
@@ -5761,10 +5775,10 @@ void ProcessManaShield()
 void ProcessDmgReduct()
 {
 	Player &myPlayer = *MyPlayer;
-	if (myPlayer.pDmgReduct && myPlayer._pHitPoints <= 0) {
+	//if (myPlayer.pDmgReduct && myPlayer._pHitPoints < 0) {
 		myPlayer.pDmgReduct = false;
 		NetSendCmd(true, CMD_REDRSHIELD);
-	}
+	//}
 }
 void ProcessSplitA(Missile &missile)
 {
