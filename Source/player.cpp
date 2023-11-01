@@ -3710,15 +3710,15 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	if (player._pHitPoints <= 0 && player._pmode == PM_DEATH) {
 		return;
 	}
+	//if (player.wReflections > 0) {
+	//	player.wReflections = 0;
+		//NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	//}
 
 	if (&player == MyPlayer) {
 		NetSendCmdParam1(true, CMD_PLRDEAD, static_cast<uint16_t>(deathReason));
 	}
 
-	if (player.wReflections > 0) {
-		player.wReflections = 0;
-		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
-	}
 
 	const bool dropGold = !gbIsMultiplayer || !(player.isOnLevel(16) || player.isOnArenaLevel());
 	const bool dropItems = dropGold && deathReason == DeathReason::MonsterOrTrap;
@@ -3838,6 +3838,8 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 			//}
 		}
 	}
+	//player.wReflections = 0;
+	//NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 	SetPlayerHitPoints(player, 0);
 }
 
@@ -4050,8 +4052,8 @@ void SyncPlrKill(Player &player, DeathReason deathReason)
 		return;
 	}
 	//if (player.wReflections > 0) {
-		player.wReflections = 0;
-		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	//	player.wReflections = 0;
+		//NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 	//}
 
 	SetPlayerHitPoints(player, 0);

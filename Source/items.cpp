@@ -3144,6 +3144,8 @@ void CalcPlrItemVals(Player &player, bool loadgfx)
 	RedrawComponent(PanelDrawComponent::Health);
 
 	if (&player == MyPlayer && (player._pHitPoints >> 6) <= 0) {
+	player.wReflections = 0;
+	NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 	SetPlayerHitPoints(player, 0);
 	}
 }

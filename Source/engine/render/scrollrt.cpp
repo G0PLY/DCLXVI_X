@@ -417,7 +417,7 @@ void DrawPlayerIcons(const Surface &out, const Player &player, Point position, b
  * @param player Player reference
  * @param tilePosition dPiece coordinates
  * @param targetBufferPosition Output buffer coordinates
- */
+ */ //wReflections manashield 
 void DrawPlayer(const Surface &out, const Player &player, Point tilePosition, Point targetBufferPosition)
 {
 	if (!IsTileLit(tilePosition) && !MyPlayer->_pInfraFlag && !MyPlayer->isOnArenaLevel() && leveltype != DTYPE_TOWN) {
@@ -437,7 +437,7 @@ void DrawPlayer(const Surface &out, const Player &player, Point tilePosition, Po
 		return;
 	}
 
-	/* if (!IsTileLit(tilePosition) || ((MyPlayer->_pInfraFlag || MyPlayer->isOnArenaLevel()) && LightTableIndex > 8)) {
+	 if (!IsTileLit(tilePosition) || ((MyPlayer->_pInfraFlag || MyPlayer->isOnArenaLevel()) && LightTableIndex > 8)) {
 		ClxDrawTRN(out, spriteBufferPosition, sprite, GetInfravisionTRN());
 		DrawPlayerIcons(out, player, targetBufferPosition, true);
 		return;
@@ -452,7 +452,7 @@ void DrawPlayer(const Surface &out, const Player &player, Point tilePosition, Po
 	ClxDrawLight(out, spriteBufferPosition, sprite);
 	DrawPlayerIcons(out, player, targetBufferPosition, false);
 
-	LightTableIndex = l;*/
+	LightTableIndex = l;
 }
 
 /**
