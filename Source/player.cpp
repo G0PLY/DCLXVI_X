@@ -1603,13 +1603,19 @@ void TryDisarm(const Player &player, Object &object)
 
 void CheckNewPath(Player &player, bool pmWillBeCalled)
 {
+
 	if (player._pmode == PM_DEATH) {
 		return;
 	}
-	if (player._pInvincible && player._pHitPoints == 0 && &player == MyPlayer) {
-		SyncPlrKill(player, DeathReason::Unknown);
-		return;
+
+	//if (player._pInvincible && player._pHitPoints == 0 && &player == MyPlayer) {
+	//	SyncPlrKill(player, DeathReason::Unknown);
+	//	return;
+	//}
+	if (player.wReflections <= 0 && player._pHitPoints > 0) {
+		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 	}
+
 
 	if (player._pHitPoints < player._pMaxHP) {
 		if (player._pClass == HeroClass::Warrior || player._pClass == HeroClass::Barbarian || player._pClass == HeroClass::Paladin || player._pClass == HeroClass::Templar || player._pClass == HeroClass::Bloodmage) {
@@ -3711,7 +3717,7 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 		return;
 	}
 	//if (player.wReflections > 0) {
-	//	player.wReflections = 0;
+		//player.wReflections = 0;
 		//NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 	//}
 
@@ -3727,23 +3733,23 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	player.Say(HeroSpeech::AuughUh);
 
 	// Are the current animations item dependend?
-	if (player._pgfxnum != 0) {
-		if (dropItems) {
+	//if (player._pgfxnum != 0) {
+		//if (dropItems) {
 			// Ensure death animation show the player without weapon and armor, because they drop on death
-			player._pgfxnum = 0;
-		} else {
+		//	player._pgfxnum = 0;
+		//} else {
 			// Death animation aren't weapon specific, so always use the unarmed animations
 			player._pgfxnum &= ~0xFU;
-		}
+		//}
 		ResetPlayerGFX(player);
 		SetPlrAnims(player);
-	}
+	//}
 
 	NewPlrAnim(player, player_graphic::Death, player._pdir);
 
 	player._pBlockFlag = false;
 	player.pManaShield = false;
-	//myPlayer.wReflections = 0;
+	//player.wReflections = 0;
 	//NetSendCmdParam1(true, CMD_SETREFLECT, myPlayer.wReflections);
 	player.pEtherShield = false;
 	player.pDmgReduct = false;
@@ -3838,8 +3844,10 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 			//}
 		}
 	}
-	//player.wReflections = 0;
-	//NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	if (player.wReflections > 0) {
+		player.wReflections = 0;
+		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	}
 	SetPlayerHitPoints(player, 0);
 }
 
@@ -3929,9 +3937,11 @@ if (!player.pManaShield) {
 			player._pHitPoints = 0;
 			player._pHPBase = player._pMaxHPBase - player._pMaxHP;
 			if (&player == MyPlayer)
-				NetSendCmd(true, CMD_REDRSHIELD);
-				//NetSendCmd(true, CMD_REMESHIELD);
-				//NetSendCmd(true, CMD_REMSHIELD);
+				if (player.pDmgReduct) {
+						NetSendCmd(true, CMD_REDRSHIELD);
+						// NetSendCmd(true, CMD_REMESHIELD);
+						// NetSendCmd(true, CMD_REMSHIELD);
+				}
 			}
 		}
 		 else 
@@ -3950,9 +3960,13 @@ if (!player.pManaShield) {
 			player._pMana = 0;
 			player._pManaBase = player._pMaxManaBase - player._pMaxMana;
 			if (&player == MyPlayer) {
-				NetSendCmd(true, CMD_REDRSHIELD);
+				if (player.pDmgReduct) {
+						NetSendCmd(true, CMD_REDRSHIELD);
+				}
 				//NetSendCmd(true, CMD_REMESHIELD);
-				NetSendCmd(true, CMD_REMSHIELD);
+				if (player.pManaShield) {
+						NetSendCmd(true, CMD_REMSHIELD);
+				}
 			}
 			}
 		}
@@ -4629,6 +4643,11 @@ void SetPlayerHitPoints(Player &player, int val)
 {
 	player._pHitPoints = val;
 	player._pHPBase = val + player._pMaxHPBase - player._pMaxHP;
+
+	if (player._pHitPoints <= 0) {
+		player.wReflections = 0;
+		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	}
 
 	if (&player == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);

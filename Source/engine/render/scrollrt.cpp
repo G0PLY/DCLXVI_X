@@ -405,7 +405,7 @@ void DrawPlayerIcons(const Surface &out, const Player &player, Point position, b
 	if (player.pEtherShield) {
 		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 0 }, &player != MyPlayer, infraVision);
 	}
-	if (player.wReflections > 0) {
+	if (player.wReflections > 0 && player._pHitPoints > 0 ) {
 		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, -30 }, &player != MyPlayer, infraVision);// 0, -30
 		//DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 16 }, &player != MyPlayer, infraVision);
 	}
@@ -467,7 +467,7 @@ void DrawDeadPlayer(const Surface &out, Point tilePosition, Point targetBufferPo
 
 	for (Player &player : Players) {
 		if (player.plractive && player._pHitPoints == 0 && player.isOnActiveLevel() && player.position.tile == tilePosition) {
-			player.wReflections = 0;
+			//player.wReflections = 0;
 			//if (&player == MyPlayer && player._pmode == PM_DEATH) {
 			//	ClxDraw(out, spriteBufferPosition, sprite);
 				//DrawPlayerIcons(out, player, targetBufferPosition, false);

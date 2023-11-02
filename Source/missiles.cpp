@@ -1246,11 +1246,13 @@ void AddReflect(Missile &missile, AddMissileParameter & /*parameter*/)
 
 	Player &player = *missile.sourcePlayer();
 	Player &myPlayer = *MyPlayer;
-	if (&player == MyPlayer) {
-		if (myPlayer.wReflections > 0) {
+	//if (&player == MyPlayer) {
+		if (player.wReflections > 0) {
 			// parameter.spellFizzled = true;
 			//  if (myPlayer.pManaShield && myPlayer._pMana <= 0) {
-			myPlayer.wReflections = 0;
+		player.wReflections = 0;
+
+		if (&player == MyPlayer)
 			NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 			// NetSendCmd(true, CMD_REMSHIELD);
 			// }
@@ -1258,7 +1260,7 @@ void AddReflect(Missile &missile, AddMissileParameter & /*parameter*/)
 			//  NetSendCmd(true, CMD_REMSHIELD);
 			return;
 		}
-	}
+	//}
 
 	int add = (missile._mispllvl + 1) * (player._pLevel + (player._pStrength / 6) + ((player._pDexterity + player._pMagic + player._pArmorClass) / 3));
 	if (player.wReflections + add >= std::numeric_limits<uint16_t>::max())

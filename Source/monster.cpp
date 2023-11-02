@@ -1445,9 +1445,14 @@ void MonsterAttackMonster(Monster &attacker, Monster &target, int hper, int mind
 int CheckReflect(Monster &monster, Player &player, int dam)
 {
 	player.wReflections--;
-	if (player.wReflections <= 0 && player._pHitPoints > 0)
+	if (player.wReflections <= 0 && player._pHitPoints > 0) {
+		if (player.pDmgReduct){
+		player.pDmgReduct = false;
+		NetSendCmd(true, CMD_REDRSHIELD);
+		}
 		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
-	// reflects 20-30% damage
+		// reflects 20-30% damage
+	}
 	int pdam = dam * RandomIntBetween(20, 30, true) / 100;
 	int mdam = (player._pLevel * 2) * ((player._pArmorClass / 10) + (((player._pStrength / 2) + (player._pDexterity + player._pMagic)) / 3));
 	ApplyMonsterDamage(DamageType::Magic, monster, mdam);
@@ -1478,8 +1483,8 @@ int GetMinHit()
 
 void MonsterAttackPlayer(Monster &monster, Player &player, int hit, int minDam, int maxDam)
 {
-//	if (player._pHitPoints >> 6 <= 0 || player._pInvincible || HasAnyOf(player._pSpellFlags, SpellFlag::Etherealize))
-	//	return;
+	if (player._pHitPoints >> 6 <= 0 || player._pInvincible)// || HasAnyOf(player._pSpellFlags, SpellFlag::Etherealize))
+		return;
 	if (monster.position.tile.WalkingDistance(player.position.tile) >= 2)
 		return;
 
