@@ -406,7 +406,7 @@ void DrawPlayerIcons(const Surface &out, const Player &player, Point position, b
 		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 0 }, &player != MyPlayer, infraVision);
 	}
 	if (player.wReflections > 0 && player._pHitPoints > 0 ) {
-		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, -30 }, &player != MyPlayer, infraVision);// 0, -30
+		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { -50, -30 }, &player != MyPlayer, infraVision);// 0, -30
 		//DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 16 }, &player != MyPlayer, infraVision);
 	}
 }
@@ -1284,7 +1284,8 @@ void DrawView(const Surface &out, Point startPosition)
 	doom_draw(out);
 	DrawInfoBox(out);
 	Player &myPlayer = *MyPlayer;
-	if (myPlayer._pClasstype != 5 || 8 || 13) {
+	//if (myPlayer._pClasstype != 5 || myPlayer._pClasstype != 6 || myPlayer._pClasstype != 8)
+		if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16) {
 		control_update_life_mana(); // Update life/mana totals before rendering any portion of the flask.
 	}
 	DrawLifeFlaskUpper(out);
@@ -1391,7 +1392,8 @@ void DrawMain(const Surface &out, int dwHgt, bool drawDesc, bool drawHp, bool dr
 		}
 		if (drawMana) {
 			Player &myPlayer = *MyPlayer;
-			if (myPlayer._pClasstype != 5 || 8 || 13) {
+			//if (myPlayer._pClasstype != 5 || myPlayer._pClasstype != 6 || myPlayer._pClasstype != 8)
+				if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16) {
 				DoBlitScreen(mainPanelPosition.x + 460, mainPanelPosition.y, 88, 72);
 				DoBlitScreen(mainPanelPosition.x + 564, mainPanelPosition.y + 64, 56, 56);
 			}
@@ -1687,7 +1689,8 @@ void DrawAndBlit()
 	if (gnScreenWidth > mainPanel.size.width || IsRedrawEverything()) {
 		drawHealth = true;
 		Player &myPlayer = *MyPlayer;
-		if (myPlayer._pClasstype != 5 || 8 || 13) {
+		//if (myPlayer._pClasstype != 5 || myPlayer._pClasstype != 6 || myPlayer._pClasstype != 8)
+			if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16) {
 			drawMana = true;
 		} else {
 			drawMana = false;
@@ -1699,7 +1702,8 @@ void DrawAndBlit()
 		hgt = gnScreenHeight;
 	} else if (IsRedrawViewport()) {
 		Player &myPlayer = *MyPlayer;
-		if (myPlayer._pClasstype != 5 || 8 || 13) {
+		//if (myPlayer._pClasstype != 5 || myPlayer._pClasstype != 6 || myPlayer._pClasstype != 8)
+			if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16) {
 			drawInfoBox = true;
 		} else {
 			drawInfoBox = true;
@@ -1722,7 +1726,8 @@ void DrawAndBlit()
 	}
 	if (drawMana) {
 		Player &myPlayer = *MyPlayer;
-		if (myPlayer._pClasstype != 5 || 8 || 13) {
+		//if (myPlayer._pClasstype != 5 || myPlayer._pClasstype != 6 || myPlayer._pClasstype != 8)
+			if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16) {
 			DrawManaFlaskLower(out);
 
 		DrawSpell(out);

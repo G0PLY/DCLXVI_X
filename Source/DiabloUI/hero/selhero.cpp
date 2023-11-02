@@ -420,7 +420,7 @@ void SelheroLoadSelect(int value)
 
 const char *SelheroGenerateName(HeroClass heroClass)
 {
-	static const char *const Names[16][10] = {
+	static const char *const Names[17][10] = {
 		{
 		    // Warrior
 		    "Aidan",
@@ -628,6 +628,19 @@ const char *SelheroGenerateName(HeroClass heroClass)
 		    "Vhal",
 		    "Vyln",
 		    "Zho",
+		},
+		{
+		    // Monk
+		    "Ak",
+		    "Dvo",
+		    "Kek",
+		    "Khara",
+		    "Miku",
+		    "Shenl",
+		    "Vede",
+		    "Vha",
+		    "Vyl",
+		    "Zo",
 		},
 	};
 

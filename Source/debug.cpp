@@ -551,13 +551,15 @@ std::string DebugCmdRefillHealthMana(const string_view parameter)
 	Player &myPlayer = *MyPlayer;
 	myPlayer.RestoreFullLife();
 
-	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-	myPlayer.RestoreFullMana();
+	
+	if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16)
+		myPlayer.RestoreFullMana();
 
 	RedrawComponent(PanelDrawComponent::Health);
 
-	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-	RedrawComponent(PanelDrawComponent::Mana);
+	
+	if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16)
+		RedrawComponent(PanelDrawComponent::Mana);
 
 	return "Ready for more.";
 }
@@ -586,7 +588,7 @@ std::string DebugCmdChangeMana(const string_view parameter)
 	Player &myPlayer = *MyPlayer;
 	int change = -1;
 
-	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16) {
+	if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 6 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16) {
 		if (!parameter.empty())
 			change = atoi(parameter.data());
 

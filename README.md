@@ -1,11 +1,13 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v111234 current version...
+DCLXVI v11223 current version...
 
-Source release Halloween '23 (v111234)
+Quick update link if you already have a copy of DCLXVI https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI.exe
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/Source_111234.zip
+Source release Halloween '23 (v11223)
+
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11223.zip
 
 =======
 
@@ -27,22 +29,24 @@ Singleplayer Ironman-esk inspired Diablo mod,
 ... Good Luck.
 
 --------------------------------------------------------------------------------------------------
-To-do-list (/issues): Spell icons, Overhead buff icons, (Multiplayer)
+To-do-list (/issues): Spell icons, (Multiplayer)
 
 Latest Updates:
-11/1/23 -- Templars' Damage Reflect no long crashes the game on death (111234 quick fix, graphic error fixed, all should be good now, hopefully...).
+11/2/23 -- Templar reflect graphic error fixed, all should be good now, hopefully...
 
-10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v111234), have fun... 
+11/1/23 -- Templars' Damage Reflect no long crashes the game on death.
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/Source_111234.zip
+10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v11223), have fun... 
+
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11223.zip
 
 --------------------------------------------------------------------------------------------------
 
 Prebuilt Windows Version...
 
-Download DCLXVI_111234.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_11223.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_111234.zip
+https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_11223.zip
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
@@ -65,9 +69,11 @@ health/mana orbs data has been disabled even when ON in options
 
 Source Build...
 
+Setup is the same as the prebuilt version plus the following...
+
 Download devilutionX-1.5 (link below)
 
-Swap source files and Build, after Building drop the devilutionx.mpq in the folder (can be found in the pre-built version, the mpq that comes with devilutionX will not work with the game), can also strip the images files from the mpq and make your own mpq, (there are also dev-tools at the devilution github)
+Swap source files and Build, after Building drop the devilutionx.mpq in the folder (can be downloaded here https://github.com/G0PLY/DCLXVI_X/raw/main/devilutionx.mpq , the mpq that comes with devilutionX will not work with the game), can also strip the images files from the mpq and make your own mpq, (there are also dev-tools at the devilution github)
 
 --------------------------------------------------------------------------------------------------
 

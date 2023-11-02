@@ -860,13 +860,15 @@ int SaveItemPower(const Player &player, Item &item, ItemPower &power)
 		break;
 	case IPL_MANA:
 		item._iPLMana += r << 6;
-		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-		RedrawComponent(PanelDrawComponent::Mana);
+
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+			RedrawComponent(PanelDrawComponent::Mana);
 		break;
 	case IPL_MANA_CURSE:
 		item._iPLMana -= r << 6;
-		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-		RedrawComponent(PanelDrawComponent::Mana);
+		
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+			RedrawComponent(PanelDrawComponent::Mana);
 		break;
 	case IPL_DUR: {
 		int bonus = r * item._iMaxDur / 100;
@@ -922,8 +924,9 @@ int SaveItemPower(const Player &player, Item &item, ItemPower &power)
 		break;
 	case IPL_NOMANA:
 		item._iFlags |= ItemSpecialEffect::NoMana;
-		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-		RedrawComponent(PanelDrawComponent::Mana);
+
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+			RedrawComponent(PanelDrawComponent::Mana);
 		break;
 	case IPL_ABSHALFTRAP:
 		item._iFlags |= ItemSpecialEffect::HalfTrapDamage;
@@ -942,8 +945,9 @@ int SaveItemPower(const Player &player, Item &item, ItemPower &power)
 			item._iFlags |= ItemSpecialEffect::StealMana3;
 		if (power.param1 == 5)
 			item._iFlags |= ItemSpecialEffect::StealMana5;
-		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-		RedrawComponent(PanelDrawComponent::Mana);
+
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+			RedrawComponent(PanelDrawComponent::Mana);
 		break;
 	case IPL_STEALLIFE:
 		if (power.param1 == 3)
@@ -3138,14 +3142,13 @@ void CalcPlrItemVals(Player &player, bool loadgfx)
 		}
 	}
 
-	if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-	RedrawComponent(PanelDrawComponent::Mana);
+	
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+		RedrawComponent(PanelDrawComponent::Mana);
 
 	RedrawComponent(PanelDrawComponent::Health);
 
 	if (&player == MyPlayer && (player._pHitPoints >> 6) <= 0) {
-	player.wReflections = 0;
-	NetSendCmdParam1(true, CMD_SETREFLECT, 0);
 	SetPlayerHitPoints(player, 0);
 	}
 }
@@ -4298,15 +4301,18 @@ void UseItem(size_t pnum, item_misc_id mid, SpellID spellID, int spellFrom)
 	case IMISC_MANA:
 		player.RestorePartialMana();
 		if (&player == MyPlayer) {
-			if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-			RedrawComponent(PanelDrawComponent::Mana);
+
+			if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+				RedrawComponent(PanelDrawComponent::Mana);
 		}
 		break;
 	case IMISC_FULLMANA:
 		player.RestoreFullMana();
 		if (&player == MyPlayer) {
-			if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-			RedrawComponent(PanelDrawComponent::Mana);
+
+			
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+				RedrawComponent(PanelDrawComponent::Mana);
 		}
 		break;
 	case IMISC_ELIXSTR:
@@ -4317,8 +4323,9 @@ void UseItem(size_t pnum, item_misc_id mid, SpellID spellID, int spellFrom)
 		if (gbIsHellfire) {
 			player.RestoreFullMana();
 			if (&player == MyPlayer) {
-			if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-				RedrawComponent(PanelDrawComponent::Mana);
+
+				if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+					RedrawComponent(PanelDrawComponent::Mana);
 			}
 		}
 		break;
@@ -4341,8 +4348,9 @@ void UseItem(size_t pnum, item_misc_id mid, SpellID spellID, int spellFrom)
 		player.RestorePartialMana();
 		if (&player == MyPlayer) {
 			RedrawComponent(PanelDrawComponent::Health);
-			if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-			RedrawComponent(PanelDrawComponent::Mana);
+
+			if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+				RedrawComponent(PanelDrawComponent::Mana);
 		}
 	} break;
 	case IMISC_FULLREJUV:
@@ -4351,8 +4359,9 @@ void UseItem(size_t pnum, item_misc_id mid, SpellID spellID, int spellFrom)
 		player.RestoreFullMana();
 		if (&player == MyPlayer) {
 			RedrawComponent(PanelDrawComponent::Health);
-			if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-			RedrawComponent(PanelDrawComponent::Mana);
+
+			if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+				RedrawComponent(PanelDrawComponent::Mana);
 		}
 		break;
 	case IMISC_SCROLL:
@@ -4370,7 +4379,8 @@ void UseItem(size_t pnum, item_misc_id mid, SpellID spellID, int spellFrom)
 		uint8_t newSpellLevel = player._pSplLvl[static_cast<int8_t>(spellID)] + 1;
 		if (newSpellLevel <= MaxSpellLevel)
 			NetSendCmdParam2(true, CMD_CHANGE_SPELL_LEVEL, static_cast<uint16_t>(spellID), newSpellLevel);
-		if (player._pClasstype != 5 || 8 || 13){
+		//if (player._pClasstype != 5 || 6 || 8)
+			if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16) {
 			if (HasNoneOf(player._pIFlags, ItemSpecialEffect::NoMana)) {
 			player._pMana += GetSpellData(spellID).sManaCost << 6;
 			player._pMana = std::min(player._pMana, player._pMaxMana);

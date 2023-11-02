@@ -221,7 +221,7 @@ constexpr std::array<char, 17> CharChar = {
 	'e',
 	'h',
 	'k',
-	'i',
+	'j',
 	'i',
 };
 /*
@@ -237,10 +237,10 @@ constexpr std::array<char, 17> CharChar = {
 	q		Kabbalist,
 	t		Templar,
 	o		Witch,
-	i		Traveler,
+	e		Traveler,
 	h		Sage,
 	k		Warlock,
-	e		Psychokineticist,
+	j		Psychokineticist,
 	i       Cleric   */
 
     /**

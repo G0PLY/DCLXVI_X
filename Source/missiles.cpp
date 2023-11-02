@@ -1512,8 +1512,9 @@ void AddStealMana(Missile &missile, AddMissileParameter & /*parameter*/)
 		player._pMana = 0;
 		player._pManaBase = player._pMana + player._pMaxManaBase - player._pMaxMana;
 		CalcPlrInv(player, false);
-		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-		RedrawComponent(PanelDrawComponent::Mana);
+
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+			RedrawComponent(PanelDrawComponent::Mana);
 		PlaySfxLoc(TSFX_COW7, *trappedPlayerPosition);
 	}
 
@@ -1705,8 +1706,9 @@ void AddMana(Missile &missile, AddMissileParameter & /*parameter*/)
 	if (player._pManaBase > player._pMaxManaBase)
 		player._pManaBase = player._pMaxManaBase;
 	missile._miDelFlag = true;
-	if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-	RedrawComponent(PanelDrawComponent::Mana);
+
+	if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+		RedrawComponent(PanelDrawComponent::Mana);
 }
 
 void AddMagi(Missile &missile, AddMissileParameter & /*parameter*/)
@@ -1722,8 +1724,9 @@ void AddMagi(Missile &missile, AddMissileParameter & /*parameter*/)
 	//ApplyPlrDamage(DamageType::Physical, player, hpremoved);
 	//}
 	missile._miDelFlag = true;
-	if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
-	RedrawComponent(PanelDrawComponent::Mana);
+
+	if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16)
+		RedrawComponent(PanelDrawComponent::Mana);
 }
 
 void AddRingOfFire(Missile &missile, AddMissileParameter & /*parameter*/)

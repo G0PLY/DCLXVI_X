@@ -332,7 +332,6 @@ bool UnPackPlayer(const PlayerPack *pPack, Player &player, bool netSync)
 	}
 
 	CalcPlrInv(player, false);
-	player.wReflections = SDL_SwapLE16(pPack->wReflections);
 	player.pTownWarps = 0;
 	player.pDungMsgs = 0;
 	player.pDungMsgs2 = 0;
@@ -344,6 +343,7 @@ bool UnPackPlayer(const PlayerPack *pPack, Player &player, bool netSync)
 	player.pEtherShield = pPack->pEtherShield != 0;
 	player.pHlthregn = pPack->pHlthregn != 0;
 	player.pManaregn = pPack->pManaregn != 0;
+	player.wReflections = SDL_SwapLE16(pPack->wReflections);
 	//player.pAuraShield = pPack->pAuraShield != 0;
 	player.pDifficulty = static_cast<_difficulty>(difficulty);
 	player.pDamAcFlags = static_cast<ItemSpecialEffectHf>(SDL_SwapLE32(static_cast<uint32_t>(pPack->pDamAcFlags)));

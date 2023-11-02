@@ -838,6 +838,7 @@ void InitLevelChange(Player &player)
 		//if (myPlayer.pAuraShield)
 		//	NetSendCmd(true, CMD_SETAURA);
 		// share info about your reflect charges when another player joins the level
+		if (myPlayer.wReflections > 0 && myPlayer._pHitPoints > 0)
 		NetSendCmdParam1(true, CMD_SETREFLECT, myPlayer.wReflections);
 	} else if (qtextflag) {
 		qtextflag = false;
@@ -1612,9 +1613,9 @@ void CheckNewPath(Player &player, bool pmWillBeCalled)
 	//	SyncPlrKill(player, DeathReason::Unknown);
 	//	return;
 	//}
-	if (player.wReflections <= 0 && player._pHitPoints > 0) {
-		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
-	}
+	//if (player.wReflections <= 0 && player._pHitPoints > 0) {
+	//	NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	//}
 
 
 	if (player._pHitPoints < player._pMaxHP) {
@@ -2182,14 +2183,14 @@ void CheckCheatStats(Player &player)
 	        goto skippp;
 	     }
 
-	     if (player._pClasstype == 8 && player._pMana > 0) {
+	     if (player._pClasstype == 6 && player._pMana > 0) {
 	        player._pManaBase = 0;
 	        player._pMana = 0;
 	        player._pMaxMana = 0;
 	        goto skippp;
 	     }
 
-	    if (player._pClasstype == 13 && player._pMana > 0) {
+	    if (player._pClasstype == 8 && player._pMana > 0) {
 	        player._pManaBase = 0;
 	        player._pMana = 0;
 	        player._pMaxMana = 0;
@@ -2948,12 +2949,14 @@ void SetPlrAnims(Player &player)
 	player._pSFrames = plrAtkAnimData.castingFrames;
 	player._pSFNum = plrAtkAnimData.castingActionFrame;
 	int armorGraphicIndex = player._pgfxnum & ~0xFU;
-	/*if (IsAnyOf(pc, HeroClass::Warrior, HeroClass::Barbarian)) {
+
+	//Warrior
+	if (IsAnyOf(pc, HeroClass::Warrior, HeroClass::Barbarian)) {
 		if (gn == PlayerWeaponGraphic::Bow && leveltype != DTYPE_TOWN)
 			player._pNFrames = 8;
 		if (armorGraphicIndex > 0)
 			player._pDFrames = 15;
-	}*/
+	}
 
 }
 /**
@@ -3297,8 +3300,8 @@ void CreatePlayer(Player &player, HeroClass c)
 	player.pManaregn = false;
 	player.pHlthregn = false;
 	//player.pAuraShield = false;
-	player.pDamAcFlags = ItemSpecialEffectHf::None;
 	player.wReflections = 0;
+	player.pDamAcFlags = ItemSpecialEffectHf::None;
 
 	InitDungMsgs(player);
 	CreatePlrItems(player);
@@ -3421,7 +3424,7 @@ void NextPlrLevel(Player &player)
 
 	xt:;
 
-	if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16) {
+	if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16) {
 		RedrawComponent(PanelDrawComponent::Mana);
 	}
 
@@ -3733,28 +3736,28 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	player.Say(HeroSpeech::AuughUh);
 
 	// Are the current animations item dependend?
-	//if (player._pgfxnum != 0) {
-		//if (dropItems) {
+	if (player._pgfxnum != 0) {
+		if (dropItems) {
 			// Ensure death animation show the player without weapon and armor, because they drop on death
-		//	player._pgfxnum = 0;
-		//} else {
+			player._pgfxnum = 0;
+		} else {
 			// Death animation aren't weapon specific, so always use the unarmed animations
 			player._pgfxnum &= ~0xFU;
-		//}
+		}
 		ResetPlayerGFX(player);
 		SetPlrAnims(player);
-	//}
+	}
 
 	NewPlrAnim(player, player_graphic::Death, player._pdir);
 
 	player._pBlockFlag = false;
 	player.pManaShield = false;
-	//player.wReflections = 0;
 	//NetSendCmdParam1(true, CMD_SETREFLECT, myPlayer.wReflections);
 	player.pEtherShield = false;
 	player.pDmgReduct = false;
 	player.pHlthregn = false;
 	player.pManaregn = false;
+	player.wReflections = 0;
 	player._pmode = PM_DEATH;
 	player._pInvincible = true;
 	SetPlayerHitPoints(player, 0);
@@ -3844,10 +3847,10 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 			//}
 		}
 	}
-	if (player.wReflections > 0) {
-		player.wReflections = 0;
-		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
-	}
+	//if (player.wReflections > 0) {
+	//	player.wReflections = 0;
+	//	NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	//}
 	SetPlayerHitPoints(player, 0);
 }
 
@@ -3891,7 +3894,8 @@ void ApplyPlrDamage(DamageType damageType, Player &player, int dam, int minHP /*
 			totalDamage += totalDamage;
 			//-player.GetManaShieldDamageReduction();
 		//}
-		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
+
+		    if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16) 
 			RedrawComponent(PanelDrawComponent::Mana);
 
 		if (player.pManaShield && !player.pDmgReduct) //{  )
@@ -3921,7 +3925,8 @@ void ApplyPlrDamage(DamageType damageType, Player &player, int dam, int minHP /*
 		if (DmgReductLevel > 0) {
 			totalDamage += totalDamage - player.GetManaShieldDamageReduction();
 		}
-		if (player._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
+
+		if (player._pClasstype == 1 || player._pClasstype == 2 || player._pClasstype == 3 || player._pClasstype == 4 || player._pClasstype == 7 || player._pClasstype == 9 || player._pClasstype == 10 || player._pClasstype == 11 || player._pClasstype == 12 || player._pClasstype == 13 || player._pClasstype == 14 || player._pClasstype == 15 || player._pClasstype == 16) 
 			RedrawComponent(PanelDrawComponent::Mana);
 
 if (!player.pManaShield) {
@@ -4247,7 +4252,7 @@ void ProcessPlayers()
 					// if (player._pClasstype != 5 || 8 || 13)
 					RedrawComponent(PanelDrawComponent::Mana);
 				 }
-				 if (player._pClasstype == 8) {
+				 if (player._pClasstype == 6) {
 					player._pManaBase -= player._pMana;
 					player._pMana = 0;
 					player._pMaxMana = 0;
@@ -4255,7 +4260,7 @@ void ProcessPlayers()
 					// if (player._pClasstype != 5 || 8 || 13)
 					RedrawComponent(PanelDrawComponent::Mana);
 				 }
-				 if (player._pClasstype == 13) {
+				 if (player._pClasstype == 8) {
 					player._pManaBase -= player._pMana;
 					player._pMana = 0;
 					player._pMaxMana = 0;
@@ -4578,11 +4583,11 @@ void ModifyPlrMag(Player &player, int l)
 			player._pManaBase += ms;
 			player._pMana += ms;
 		}
-		if (player._pClasstype == 8) {
+		if (player._pClasstype == 6) {
 			player._pManaBase += ms;
 			player._pMana += ms;
 		}
-		if (player._pClasstype == 13) {
+		if (player._pClasstype == 8) {
 			player._pManaBase += ms;
 			player._pMana += ms;
 		}
@@ -4644,10 +4649,10 @@ void SetPlayerHitPoints(Player &player, int val)
 	player._pHitPoints = val;
 	player._pHPBase = val + player._pMaxHPBase - player._pMaxHP;
 
-	if (player._pHitPoints <= 0) {
-		player.wReflections = 0;
-		NetSendCmdParam1(true, CMD_SETREFLECT, 0);
-	}
+	//if (player._pHitPoints <= 0 && player.wReflections > 0) {
+	//	player.wReflections = 0;
+	//	NetSendCmdParam1(true, CMD_SETREFLECT, 0);
+	//}
 
 	if (&player == MyPlayer) {
 		RedrawComponent(PanelDrawComponent::Health);

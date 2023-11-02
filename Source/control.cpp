@@ -795,9 +795,9 @@ void DrawFlaskValues(const Surface &out, Point pos, int currValue, int maxValue)
 	Player &myPlayer = *MyPlayer;
 	if (myPlayer._pClasstype == 5) {
 	goto ogg;
-	} else if (myPlayer._pClasstype == 8) {
+	} else if (myPlayer._pClasstype == 6) {
 	goto ogg;
-	} else if (myPlayer._pClasstype == 13) {
+	} else if (myPlayer._pClasstype == 8) {
 	goto ogg;
 	} else {
 	UiFlags color = (currValue > 0 ? (currValue == maxValue ? UiFlags::ColorGold : UiFlags::ColorWhite) : UiFlags::ColorRed);
@@ -824,11 +824,11 @@ void control_update_life_mana()
 			nompclass = true;
 			MyPlayer->UpdateManaPercentage();
 			goto ogg;
-	} else if (myPlayer._pClasstype == 8) {
+	} else if (myPlayer._pClasstype == 6) {
 			nompclass = true;
 			MyPlayer->UpdateManaPercentage();
 			goto ogg;
-	} else if (myPlayer._pClasstype == 13) {
+	} else if (myPlayer._pClasstype == 8) {
 			nompclass = true;
 			MyPlayer->UpdateManaPercentage();
 			goto ogg;
@@ -837,9 +837,9 @@ void control_update_life_mana()
 
 	if (myPlayer._pClasstype == 5) {
 	goto ogg;
-	} else if (myPlayer._pClasstype == 8) {
+	} else if (myPlayer._pClasstype == 6) {
 	goto ogg;
-	} else if (myPlayer._pClasstype == 13) {
+	} else if (myPlayer._pClasstype == 8) {
 	goto ogg;
 	} else {
 	MyPlayer->UpdateManaPercentage();
@@ -908,7 +908,7 @@ void InitControlPan()
 	RedrawComponent(PanelDrawComponent::Health);
 	Player &myPlayer = *MyPlayer;
 //	if (&myPlayer == MyPlayer && &myPlayer._pClasstype == 5 || 8 || 13)
-	if (myPlayer._pClasstype == 1 || 2 || 3 || 4 || 6 || 7 || 9 || 10 || 11 || 12 || 14 || 15 || 16)
+	if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16)
 	RedrawComponent(PanelDrawComponent::Mana);
 
 	CloseCharPanel();
