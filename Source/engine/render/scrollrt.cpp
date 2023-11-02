@@ -405,8 +405,9 @@ void DrawPlayerIcons(const Surface &out, const Player &player, Point position, b
 	if (player.pEtherShield) {
 		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 0 }, &player != MyPlayer, infraVision);
 	}
-	if (player.wReflections > 0 && player._pHitPoints > 0 ) {
-		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { -50, -30 }, &player != MyPlayer, infraVision);// 0, -30
+	if (player.wReflections > 0 && player._pHitPoints > 0) {
+		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, -30 }, &player != MyPlayer, infraVision); // 0, -30
+		//DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { -50, -30 }, &player != MyPlayer, infraVision);// 0, -30  (reflect og icon)
 		//DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 16 }, &player != MyPlayer, infraVision);
 	}
 }
@@ -467,15 +468,15 @@ void DrawDeadPlayer(const Surface &out, Point tilePosition, Point targetBufferPo
 
 	for (Player &player : Players) {
 		if (player.plractive && player._pHitPoints == 0 && player.isOnActiveLevel() && player.position.tile == tilePosition) {
+			dFlags[tilePosition.x][tilePosition.y] |= DungeonFlag::DeadPlayer;
+			const Point playerRenderPosition { targetBufferPosition };
+			DrawPlayer(out, player, tilePosition, playerRenderPosition);
 			//player.wReflections = 0;
 			//if (&player == MyPlayer && player._pmode == PM_DEATH) {
 			//	ClxDraw(out, spriteBufferPosition, sprite);
 				//DrawPlayerIcons(out, player, targetBufferPosition, false);
 			//	return;
 			//}
-			dFlags[tilePosition.x][tilePosition.y] |= DungeonFlag::DeadPlayer;
-			const Point playerRenderPosition { targetBufferPosition };
-			DrawPlayer(out, player, tilePosition, playerRenderPosition);
 		}
 	}
 }
@@ -1706,7 +1707,7 @@ void DrawAndBlit()
 			if (myPlayer._pClasstype == 1 || myPlayer._pClasstype == 2 || myPlayer._pClasstype == 3 || myPlayer._pClasstype == 4 || myPlayer._pClasstype == 7 || myPlayer._pClasstype == 9 || myPlayer._pClasstype == 10 || myPlayer._pClasstype == 11 || myPlayer._pClasstype == 12 || myPlayer._pClasstype == 13 || myPlayer._pClasstype == 14 || myPlayer._pClasstype == 15 || myPlayer._pClasstype == 16) {
 			drawInfoBox = true;
 		} else {
-			drawInfoBox = true;
+			drawInfoBox = false;
 		}
 		drawCtrlPan = false;
 		hgt = gnViewportHeight;

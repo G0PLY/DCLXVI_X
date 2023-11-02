@@ -1559,12 +1559,11 @@ bool DoDeath(Player &player)
 			dFlags[player.position.tile.x][player.position.tile.y] |= DungeonFlag::DeadPlayer;
 		} else if (&player == MyPlayer && player.AnimInfo.tickCounterOfCurrentFrame == 30) {
 			MyPlayerIsDead = true;
-			//if (!gbIsMultiplayer) {
+			if (!gbIsMultiplayer) {
 				gamemenu_on();
-			//}
+			}
 		}
 	}
-
 	return false;
 }
 
@@ -2950,15 +2949,15 @@ void SetPlrAnims(Player &player)
 	player._pSFNum = plrAtkAnimData.castingActionFrame;
 	int armorGraphicIndex = player._pgfxnum & ~0xFU;
 
-	//Warrior
+	// Warrior
 	if (IsAnyOf(pc, HeroClass::Warrior, HeroClass::Barbarian)) {
 		if (gn == PlayerWeaponGraphic::Bow && leveltype != DTYPE_TOWN)
 			player._pNFrames = 8;
 		if (armorGraphicIndex > 0)
 			player._pDFrames = 15;
 	}
-
 }
+//}
 /**
  * @param player The player reference.
  * @param c The hero class.
@@ -3739,7 +3738,8 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	if (player._pgfxnum != 0) {
 		if (dropItems) {
 			// Ensure death animation show the player without weapon and armor, because they drop on death
-			player._pgfxnum = 0;
+			//player._pgfxnum = 0;
+			player._pgfxnum &= ~0xFU;
 		} else {
 			// Death animation aren't weapon specific, so always use the unarmed animations
 			player._pgfxnum &= ~0xFU;
@@ -3751,25 +3751,25 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	NewPlrAnim(player, player_graphic::Death, player._pdir);
 
 	player._pBlockFlag = false;
-	player.pManaShield = false;
+	////player.pManaShield = false;
 	//NetSendCmdParam1(true, CMD_SETREFLECT, myPlayer.wReflections);
-	player.pEtherShield = false;
-	player.pDmgReduct = false;
-	player.pHlthregn = false;
-	player.pManaregn = false;
-	player.wReflections = 0;
+	////player.pEtherShield = false;
+	////player.pDmgReduct = false;
+	////player.pHlthregn = false;
+	////player.pManaregn = false;
+	////player.wReflections = 0;
 	player._pmode = PM_DEATH;
 	player._pInvincible = true;
 	SetPlayerHitPoints(player, 0);
 
-	//if (&player != MyPlayer && dropItems) {
+	if (&player != MyPlayer && dropItems) {
 		// Ensure that items are removed for remote players
 		// The dropped items will be synced seperatly (by the remote client)
-		//for (auto &item : player.InvBody) {
-			//item.clear();
-		//}
-		//CalcPlrInv(player, false);
-	//}
+		for (auto &item : player.InvBody) {
+			item.clear();
+		}
+		CalcPlrInv(player, false);
+	}
 
 	if (player.isOnActiveLevel()) {
 		FixPlayerLocation(player, player._pdir);

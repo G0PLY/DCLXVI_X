@@ -28,12 +28,10 @@ Singleplayer Ironman-esk inspired Diablo mod,
 
 --------------------------------------------------------------------------------------------------
 
-Game breaking issue with Templar, keeps crashing games (appears to be loading wrong graphic on death but not always, idk still searching the hey-stack)...
-
 To-do-list (/issues): Spell icons, (Multiplayer)
 
 Latest Updates:
-11/2/23 -- Templar crashes game (looking into it... playable if no deaths) ;/
+11/2/23 -- Templar should be fixed and working now... this is 2nd update for the day (not changing version #, redownload if not sure).
 
 10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v11223), have fun... 
 
