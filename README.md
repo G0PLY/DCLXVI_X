@@ -3,11 +3,9 @@ A mod for Diablo 1 with Hellfire
 
 DCLXVI v11223 current version...
 
-Quick update link if you already have a copy of DCLXVI https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI.exe
+Quick update link if you already have a copy of DCLXVI https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVIexe.zip
 
-Source release Halloween '23 (v11223)
-
-https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11223.zip
+Source release Halloween '23 (v11223) https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11223.zip
 
 =======
 
@@ -73,7 +71,7 @@ Setup is the same as the prebuilt version plus the following...
 
 Download devilutionX-1.5 (link below)
 
-Swap source files and Build, after Building drop the devilutionx.mpq in the folder (can be downloaded here https://github.com/G0PLY/DCLXVI_X/raw/main/devilutionx.mpq , the mpq that comes with devilutionX will not work with the game), can also strip the images files from the mpq and make your own mpq, (there are also dev-tools at the devilution github)
+Swap source files and Build, after Building drop the devilutionx.mpq in the folder (can be downloaded here https://github.com/G0PLY/DCLXVI_X/raw/main/dclxviMPQ.zip , the mpq that comes with devilutionX will not work with the game), can also strip the images files from the mpq and make your own mpq, (there are also dev-tools at the devilution github)
 
 --------------------------------------------------------------------------------------------------
 
