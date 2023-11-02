@@ -63,6 +63,14 @@ health/mana orbs data has been disabled even when ON in options
 
 --------------------------------------------------------------------------------------------------
 
+Source Build...
+
+Download devilutionX-1.5 (link below)
+
+Swap source files and Build, after Building drop the devilutionx.mpq in the folder (can be found in the pre-built version, the mpq that comes with devilutionX will not work with the game), can also strip the images files from the mpq and make your own mpq, (there are also dev-tools at the devilution github)
+
+--------------------------------------------------------------------------------------------------
+
 Using devilutionX-1.5
 
 download devilutionX v1.5 from
