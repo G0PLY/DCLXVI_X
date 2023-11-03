@@ -402,12 +402,12 @@ void DrawPlayerIcons(const Surface &out, const Player &player, Point position, b
 	if (player.pManaregn) {
 		DrawPlayerIconHelper(out, MissileGraphicID::ManaRegen, position + Displacement { 0, -24 }, &player != MyPlayer, infraVision);// 0, -24
 	}
-	if (player.pEtherShield) {
-		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 0 }, &player != MyPlayer, infraVision);
-	}
+	//if (player.pEtherShield) {
+	//	DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 0 }, &player != MyPlayer, infraVision);
+	//}
 	if (player.wReflections > 0 && player._pHitPoints > 0) {
 		DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, -30 }, &player != MyPlayer, infraVision); // 0, -30
-		//DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { -50, -30 }, &player != MyPlayer, infraVision);// 0, -30  (reflect og icon)
+		//DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, -30 }, &player != MyPlayer, infraVision);// 0, -30  (reflect og icon)
 		//DrawPlayerIconHelper(out, MissileGraphicID::Reflect, position + Displacement { 0, 16 }, &player != MyPlayer, infraVision);
 	}
 }

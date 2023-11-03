@@ -1314,7 +1314,7 @@ bool DoAttack(Player &player)
 		if ((player._pClass == HeroClass::Monk &&  (player.InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Staff || player.InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Staff))
 		    || (player._pClass == HeroClass::Bard &&  player.InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Sword && player.InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Sword)
 		    || (player._pClass == HeroClass::Assassin &&  player.InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Sword && player.InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Sword)
-		    || (player._pClass == HeroClass::Battlemage &&  player.InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Sword && player.InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Sword)
+		    || (player._pClass == HeroClass::Battlemage && player.InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Sword && player.InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Sword)
 		    || (player._pClass == HeroClass::Templar &&  player.InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Sword && player.InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Sword)
 		    || (((player.InvBody[INVLOC_HAND_LEFT]._itype == ItemType::Sword && player.InvBody[INVLOC_HAND_LEFT]._iLoc == ILOC_TWOHAND)
 		    || (player.InvBody[INVLOC_HAND_RIGHT]._itype == ItemType::Sword && player.InvBody[INVLOC_HAND_RIGHT]._iLoc == ILOC_TWOHAND)))
@@ -2949,8 +2949,8 @@ void SetPlrAnims(Player &player)
 	player._pSFNum = plrAtkAnimData.castingActionFrame;
 	int armorGraphicIndex = player._pgfxnum & ~0xFU;
 
-	// Warrior
-	if (IsAnyOf(pc, HeroClass::Warrior, HeroClass::Barbarian)) {
+	// Warrior style classes need to be added here, or game will crash on deaths...
+	if (IsAnyOf(pc, HeroClass::Warrior, HeroClass::Barbarian, HeroClass::Templar, HeroClass::Cleric)) {
 		if (gn == PlayerWeaponGraphic::Bow && leveltype != DTYPE_TOWN)
 			player._pNFrames = 8;
 		if (armorGraphicIndex > 0)
@@ -3738,8 +3738,8 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	if (player._pgfxnum != 0) {
 		if (dropItems) {
 			// Ensure death animation show the player without weapon and armor, because they drop on death
-			//player._pgfxnum = 0;
-			player._pgfxnum &= ~0xFU;
+			player._pgfxnum = 0;
+			//player._pgfxnum &= ~0xFU;
 		} else {
 			// Death animation aren't weapon specific, so always use the unarmed animations
 			player._pgfxnum &= ~0xFU;
@@ -3761,7 +3761,7 @@ StartPlayerKill(Player &player, DeathReason deathReason)
 	player._pmode = PM_DEATH;
 	player._pInvincible = true;
 	SetPlayerHitPoints(player, 0);
-
+	
 	if (&player != MyPlayer && dropItems) {
 		// Ensure that items are removed for remote players
 		// The dropped items will be synced seperatly (by the remote client)

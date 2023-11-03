@@ -267,7 +267,7 @@ MissileFileData MissileSpriteData[] = {
 /*BloodStarRed*/             { {},               96,          16, "scubmisd",         1, MissileGraphicsFlags::MonsterOwned,             0, AnimLen_16      },
 /*BloodStarRedExplosion*/    { {},              128,          32, "scbsexpd",         1, MissileGraphicsFlags::MonsterOwned,             0, AnimLen_6       },
 /*HorkSpawn*/                { {},               96,          16, "spawns",           8, MissileGraphicsFlags::MonsterOwned,             0, AnimLen_9       },
-/*OLDReflect*/       //           { {},              160,          64, "reflect",          1, MissileGraphicsFlags::NotAnimated,              0, AnimLen_1       },
+/*OLDReflect*/         //         { {},              160,          64, "reflect",          1, MissileGraphicsFlags::NotAnimated,              0, AnimLen_1       },
 /*ReflectNEW*/                  { {},              96,          16, "reflect",          1, MissileGraphicsFlags::NotAnimated,              0, AnimLen_1       },
 /*OrangeFlare*/              { {},               96,           8, "ms_ora",          16, MissileGraphicsFlags::MonsterOwned,             0, AnimLen_15      },
 /*BlueFlare*/                { {},               96,           8, "ms_bla",          16, MissileGraphicsFlags::MonsterOwned,             0, AnimLen_15      },

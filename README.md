@@ -1,11 +1,11 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v11223 current version...
+DCLXVI v11323 current version...
 
 Quick update link if you already have a copy of DCLXVI https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVIexe.zip
 
-Source release Halloween '23 (v11223) https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11223.zip
+Source release Halloween '23 (v11323) https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11323.zip
 
 =======
 
@@ -29,19 +29,22 @@ Singleplayer Ironman-esk inspired Diablo mod,
 --------------------------------------------------------------------------------------------------
 
 Latest Updates:
-11/2/23 -- Well I'm done, there are issues but I just don't want to work on it anymore (Templar crashes the game on death at times, maybe others as well (if so probably Cleric, Paladin, not sure but the rest seem to be fine)...
 
-10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v11223), have fun... 
+11/3/23 -- New update, changed spell icons around a bit, Templar crashes resolved...  
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11223.zip
+11/2/23 -- Failed at finding Templar crashes ;/
+
+10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v11323), have fun... 
+
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11323.zip
 
 --------------------------------------------------------------------------------------------------
 
 Prebuilt Windows Version...
 
-Download DCLXVI_11223.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_11323.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_11223.zip
+https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_11323.zip
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 

@@ -36,14 +36,14 @@ const uint8_t SpellITbl[] = {
 	6, //townp
 	7, //stonec
 	8, // infravision
-	27, // phase (witchbloodstar)
+	27, // phase ()
 	12, // manashi
 	11, // fireball
 	17, // guardian
 	15, // chainl
 	13, // flamewave
-	17, // dooomserp (staticfield)
-	18, // bloodritual (bola aka knockback)
+	21, // dooomserp (staticfield)
+	33, // bloodritual (bola aka knockback)
 	10, // nova
 	19, // invis (aimedshot)
 	14, // inferno
@@ -63,25 +63,25 @@ const uint8_t SpellITbl[] = {
 	9, // healother
 	35, //bloodstar
 	29, //bonespirit
-	40, // manaregen
-	30, // healthregen
-	30, // dmgreduct
+	32, // manaregen (reflect)
+	24, // healthregen
+	31, // dmgreduct ^
 	35, // witch bloodstar   /// new spells insert below this
-	41, // smite (was mana #50)
+	42, // smite (was mana #50) (divine intervention)
 	50, // the magi
 	49, // jester
-	45, // lightningwall
+	16, // lightningwall (?changed was 45)
 	46, // immolation
-	42, // warp
+	41, // warp (smite^)
 	44, // reflect
 	47, // berserk
-	48, // rune F
-	43, // rune L
+	45, // rune F (lightningwall)
+	46, // rune L (immolation)
 	34, // rune N
 	34, // rune I
 	34, // rune S
 	34, // Manaregen
-	34, // Healthregen
+	24, // Healthregen
 };
 
 } // namespace
