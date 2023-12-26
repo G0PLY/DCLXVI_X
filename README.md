@@ -1,11 +1,9 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v11323 current version...
+DCLXVI vT current version...
 
-Quick update link if you already have a copy of DCLXVI https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVIexe.zip
-
-Source release Halloween '23 (v11323) https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11323.zip
+Source release Christmas '23 (vT) https://github.com/G0PLY/DCLXVI_X/raw/main/Source_T.zip
 
 =======
 
@@ -30,21 +28,23 @@ Singleplayer Ironman-esk inspired Diablo mod,
 
 Latest Updates:
 
+12/26/23 -- Merry Christmas! This is my last update to this project, for the most part everything is working/fixed (no major issues that I can think of anyway)...
+
 11/3/23 -- New update, changed spell icons around a bit, Templar crashes resolved...  
 
 11/2/23 -- Failed at finding Templar crashes ;/
 
-10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v11323), have fun... 
+10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (vT), have fun... 
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/Source_11323.zip
+https://github.com/G0PLY/DCLXVI_X/raw/main/Source_T.zip
 
 --------------------------------------------------------------------------------------------------
 
 Prebuilt Windows Version...
 
-Download DCLXVI_11323.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
+Download DCLXVI_T.zip (Singleplayer only, has more features but less traditional style, has Bloodmage)
 
-https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_11323.zip
+https://github.com/G0PLY/DCLXVI_X/raw/main/DCLXVI_T.zip
 
 Download DCLXVI_6123.zip (Multiplayer, less features but more traditional style, no Bloodmage)
 
@@ -67,11 +67,7 @@ health/mana orbs data has been disabled even when ON in options
 
 Source Build...
 
-Setup is the same as the prebuilt version plus the following...
-
 Download devilutionX-1.5 (link below)
-
-Swap source files and Build, after Building drop the devilutionx.mpq in the folder (can be downloaded here https://github.com/G0PLY/DCLXVI_X/raw/main/dclxviMPQ.zip , the mpq that comes with devilutionX will not work with the game), can also strip the images files from the mpq and make your own mpq, (there are also dev-tools at the devilution github)
 
 --------------------------------------------------------------------------------------------------
 
