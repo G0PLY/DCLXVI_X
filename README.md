@@ -27,20 +27,13 @@ Singleplayer Ironman-esk inspired Diablo mod,
 --------------------------------------------------------------------------------------------------
 
 Latest Updates:
-
-<<<<<<< Updated upstream
-12/26/23 -- Merry Christmas! New Town map, new dungeon palettes, gameplay fixes... This is my last update to this project, for the most part everything is working/fixed (no major issues that I can think of anyway)...
 =======
+
 12/31/23 -- v123123 Cleaned up a bit, no changes...
 
-12/26/23 -- Merry Christmas! This is my last update to this project, for the most part everything is working/fixed (no major issues that I can think of anyway)...
->>>>>>> Stashed changes
+12/26/23 -- New Town map, new dungeon palettes, gameplay fixes... This is my last update to this project, for the most part everything is working/fixed (no major issues that I can think of anyway)...
 
 11/3/23 -- New update, changed spell icons around a bit, Templar crashes resolved...  
-
-11/2/23 -- Failed at finding Templar crashes ;/
-
-10/31/23 -- Happy Halloween to all the Mothers out there! Source code uploaded (v123123), have fun... 
 
 https://github.com/G0PLY/DCLXVI_X/raw/main/Source_123123.zip
 
