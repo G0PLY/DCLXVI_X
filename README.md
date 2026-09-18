@@ -10,6 +10,8 @@ All previously broken items from the last build are now dropping as they should.
 
 The new version can be found in the Source_091826 folder (no easy zip dl for now)...
 
+More updates to come, v123123 and v6123 are going to be deleted in the near future.
+
 ----------------------------------------------------------------------------------------
 
 Source release 123123 https://github.com/G0PLY/DCLXVI_X/raw/main/Source_123123.zip
@@ -38,7 +40,8 @@ Singleplayer Ironman-esk inspired Diablo mod,
 Latest Updates:
 =======
 
-09/18/26 -- This is a new Test version of the mod, Multiplayer and broken Items have been fixed as well as Rouge overhauled.
+09/18/26 -- v091826 This is a new Test version of the mod, Multiplayer and broken Items have been fixed as well as Rouge overhauled.
+
 
 12/31/23 -- v123123 Cleaned up a bit, no changes...
 
