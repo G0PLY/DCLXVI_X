@@ -1,7 +1,16 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v123123 current version...
+DCLXVI v091826 current version...
+
+New Test Version is out today 09/18/26
+
+Multiplayer has been fixed in this version and the Rouge abilities have been overhauled (Rouge now has Split Arrow and it scales with player level).
+All previously broken items from the last build are now dropping as they should.
+
+The new version can be found in the Source_091826 folder (no easy zip dl for now)...
+
+----------------------------------------------------------------------------------------
 
 Source release 123123 https://github.com/G0PLY/DCLXVI_X/raw/main/Source_123123.zip
 
