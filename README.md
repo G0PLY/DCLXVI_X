@@ -38,6 +38,8 @@ Singleplayer Ironman-esk inspired Diablo mod,
 Latest Updates:
 =======
 
+09/18/26 -- This is a new Test version of the mod, Multiplayer and broken Items have been fixed as well as Rouge overhauled.
+
 12/31/23 -- v123123 Cleaned up a bit, no changes...
 
 12/26/23 -- New Town map, new dungeon palettes, gameplay fixes... This is my last update to this project, for the most part everything is working/fixed (no major issues that I can think of anyway)...
