@@ -1,14 +1,13 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
-DCLXVI v091826 current version...
 
-New Test Version is out today 09/18/26
+DCLXVI Alpha_092426: Major updates, more to come...
 
-Multiplayer has been fixed in this version and the Rouge abilities have been overhauled (Rouge now has Split Arrow and it scales with player level).
-All previously broken items from the last build are now dropping as they should.
+New Alpha Test Version is out today 09/24/26
 
-The new version can be found in the Source_091826 folder (no easy zip dl for now)...
+
+The new version can be found in the Alpha_092426 folder (no easy zip dl for now)...
 
 More updates to come, v123123 and v6123 are going to be deleted in the near future.
 
@@ -40,7 +39,10 @@ Singleplayer Ironman-esk inspired Diablo mod,
 Latest Updates:
 =======
 
-09/18/26 -- v091826 This is a new Test version of the mod, Multiplayer and broken Items have been fixed as well as Rouge overhauled.
+09/24/26 -- Alpha_092426: extended all item and monster tables, new inventory graphics, fixed Lazarus (you now have to talk to Cain to progress the quest and have the gate open to Lazarus, Lazarus must be killed to open portal to Diablo), fixed a bug where monsters kill Diablo, new mainmenu background image, increased max amount of monsters allowed per level (atm it's set to insane levels for testing, and I forgot to lower it ;p), switched to a more stable rendering timer...
+
+09/18/26 -- v091826 This is a new Test version of the mod, Multiplayer and broken Items have been fixed as well as Rouge abilities have been overhauled (Rouge now has Split Arrow and it scales with player level).
+All previously broken items from the last build are now dropping as they should..
 
 
 12/31/23 -- v123123 Cleaned up a bit, no changes...
