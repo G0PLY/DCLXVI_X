@@ -1,13 +1,14 @@
 # DCLXVI_X
 A mod for Diablo 1 with Hellfire
 
+New Alpha Test Version is out today 09/26/26
 
+
+DCLXVI Alpha_092626: Game optimization checkpoint.
 DCLXVI Alpha_092426: Major updates, more to come...
 
-New Alpha Test Version is out today 09/24/26
 
-
-The new version can be found in the Alpha_092426 folder (no easy zip dl for now)...
+The new version can be found in the Alpha_092626 folder (no easy zip dl for now)...
 
 More updates to come, v123123 and v6123 are going to be deleted in the near future.
 
@@ -38,6 +39,8 @@ Singleplayer Ironman-esk inspired Diablo mod,
 
 Latest Updates:
 =======
+
+09/26/26 -- Alpha_092626: Game optimizations, Renderer/Networking changes without changing the gameplay, few minor bugs here and there... 
 
 09/24/26 -- Alpha_092426: extended all item and monster tables, new inventory graphics, fixed Lazarus (you now have to talk to Cain to progress the quest and have the gate open to Lazarus, Lazarus must be killed to open portal to Diablo), fixed a bug where monsters kill Diablo, new mainmenu background image, increased max amount of monsters allowed per level (atm it's set to insane levels for testing, and I forgot to lower it ;p), switched to a more stable rendering timer...
 
